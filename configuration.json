@@ -1,0 +1,25 @@
+{
+    "publicKeyPath": "",
+    "privateKeyPath": "",
+    "port": 8080,
+
+    "forward": {
+        "host": "www.google.com"
+    },
+
+    "humanChecker": {
+        "applicationInterfaces": {
+            "base": {
+                "key": "",
+                "url": "https://www.google.com/recaptcha/api/siteverify?secret={secret}&response={response}"
+            },
+            "googleV2": {
+                "key": ""
+            },
+            "googleV3": {
+                "key": ""
+            }
+        },
+        "skipSecrets": []
+    }
+}

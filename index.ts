@@ -1,158 +1,171 @@
+// #!/usr/bin/env babel-node
+// -*- coding: utf-8 -*-
+/** @module web-node */
+'use strict'
+/* !
+    region header
+    [Project page](https://torben.website/webNode)
+
+    Copyright Torben Sickert (info["~at~"]torben.website) 16.12.2012
+
+    License
+    -------
+
+    This library written by Torben Sickert stand under a creative commons
+    naming 3.0 unported license.
+    See https://creativecommons.org/licenses/by/3.0/deed.de
+    endregion
+*/
+// region imports
 // NOTE: http2 compatibility mode does work for unencrypted connections yet.
+import Tools from 'clientnode'
 import {createServer as createHTTP1Server} from 'http'
 import {
     createServer,
     createSecureServer,
-    Http2Server as HttpServer,
     Http2ServerResponse as HTTPServerResponse,
     Http2ServerRequest as HTTPServerRequest,
-    Http2SecureServer as HTTPSecureServer,
     Http2Stream as HTTPStream,
-    OutgoingHttpHeaders as OutgoingHTTPHeaders,
-    SecureServerOptions
+    OutgoingHttpHeaders as OutgoingHTTPHeaders
 } from 'http2'
 import {createConnection, Socket} from 'net'
+import {resolve} from 'path'
 
-interface APIConfiguration {
-    key:string,
-    url:string
-}
-type APIConfigurations = {
-    base:APIConfiguration
-    [key:string]:Partial<APIConfiguration>
-}
-
-interface Configuration {
-    publicKeyPath:string
-    privateKeyPath:string
-
-    nodeServerOptions:SecureServerOptions
-    port:number
-
-    forward:{
-        url:string
-    }
-
-    humanChecker:{
-        applicationInterfaces:APIConfigurations
-        identifiyAsHumanIfServiceThrowsException:boolean
-        skipSecrets:Array<string>
-    }
-}
-
-type HTTPServer = HttpServer|HTTPSecureServer
-
-interface Server {
-    instance:HTTPServer
-    streams:Array<HTTPStream>
-    sockets:Array<Socket>
-}
-
-
-const CONFIGURATION:Configuration = {
-    publicKeyPath: '',
-    privateKeyPath: '',
-
-    nodeServerOptions: {
-        allowHTTP1: true
-    },
-    port: 8080,
-
-    forward: {
-        url: 'www.google.com'
-    },
-
-    humanChecker: {
-        applicationInterfaces: {
-            base: {
-                key: '',
-                url: 'https://www.google.com/recaptcha/api/siteverify?secret={secret}&response={response}'
-            },
-            googleV2: {
-                key: ''
-            },
-            googleV3: {
-                key: ''
-            }
+import packageConfiguration from './package.json'
+import {
+    BufferedHTTPServerRequest, BufferedSocket, Configuration, Server
+} from './type'
+// endregion
+// region configuration
+const CONFIGURATION:Configuration = packageConfiguration.configuration
+const configurationPath:string = resolve(process.cwd(), 'configuration.json')
+if (Tools.isFileSync(configurationPath))
+    Tools.extend(
+        true,
+        CONFIGURATION,
+        eval(`require('${configurationPath}')`) as Configuration
+    )
+// endregion
+// region helper
+const reverseProxyBufferedRequest = (
+    clientSocket:Socket, buffers:Array<Buffer>
+):void => {
+    const serverSocket = createConnection(
+        {
+            allowHalfOpen: true,
+            host: CONFIGURATION.forward.host,
+            port: CONFIGURATION.forward.port
         },
-        identifiyAsHumanIfServiceThrowsException: true,
-        skipSecrets: []
+        () => {
+            console.info(
+                `Proxy data to: ${CONFIGURATION.forward.host}:` +
+                String(CONFIGURATION.forward.port)
+            )
+        }
+    )
+    serverSocket.on('error', (error:Error) => {
+        console.error('Proxy to server error', error)
+    })
+
+    serverSocket.pipe(clientSocket)
+    let hostFound = false
+    for (const buffer of buffers) {
+        if (!hostFound) {
+            const content:string = buffer.toString()
+            if (content.toLowerCase().includes('host: ')) {
+                serverSocket.write(content.replace(
+                    /(($|\n)host: )[^\n]+/i,
+                    `$1${CONFIGURATION.forward.host}:` +
+                    `${CONFIGURATION.forward.port}`
+                ))
+
+                hostFound = true
+                continue
+            }
+        }
+
+        serverSocket.write(buffer)
     }
 }
-
-
+// endregion
+// region live cycle methods
 const onIncomingMessage = (
     request:HTTPServerRequest, response:HTTPServerResponse
 ):void => {
-    console.log('Got request'/*, request, response*/)
+    const bufferedRequest = request as BufferedHTTPServerRequest
 
-    // response.end()
+    void (async ():Promise<void> => {
+        if (request.headers.response) {
+            response.write(request.headers.response as string)
+            response.end()
+
+            return
+        }
+
+        // NOTE: We have to wait until client request is fully buffered.
+        await Tools.timeout()
+
+        reverseProxyBufferedRequest(
+            response.socket, bufferedRequest.socket.buffers
+        )
+    })()
 }
 
 const onIncomingStream = (
     stream:HTTPStream, headers:OutgoingHTTPHeaders
 ):void => {
-    console.log('Got stream', stream, headers)
+    console.info('Got stream', stream, headers)
 }
-
-
+// endregion
+// region initialize server
 const server:Server = {
     instance: CONFIGURATION.publicKeyPath && CONFIGURATION.privateKeyPath ?
         createSecureServer(
-            CONFIGURATION.nodeServerOptions//, onIncomingMessage
+            CONFIGURATION.nodeServerOptions, onIncomingMessage
         ) :
         // NOTE: See import notice.
         (createHTTP1Server as unknown as typeof createServer)(
-            //onIncomingMessage
+            onIncomingMessage
         ),
     streams: [],
-    sockets: []
-}
+    sockets: [],
 
+    start: ():void => {
+        server.instance.listen(
+            CONFIGURATION.port,
+            CONFIGURATION.host,
+            ():void => console.info('Server started.')
+        )
+    },
+    stop: ():void => {
+        server.instance.close(():void => {
+            console.info('Shut server down.')
+        })
+
+        for (const connections of [server.sockets, server.streams])
+            if (Array.isArray(connections))
+                for (const connection of connections)
+                    connection.destroy()
+    }
+}
 
 server.instance.on(
     'connection',
-    (socket:Socket):void => {
-        // server.sockets.push(socket)
-
-        // Creating a connection from proxy to destination server
-        const proxyToServerSocket = createConnection(
-            {
-                allowHalfOpen: true,
-                host: CONFIGURATION.forward.url,
-                port: 80
-            },
-            () => {
-                console.log('Proxy data to:', CONFIGURATION.forward.url)
-            }
-        )
-
-        socket.pipe(proxyToServerSocket)
-        proxyToServerSocket.pipe(socket)
-
-        proxyToServerSocket.on('error', (err) => {
-            console.log('Proxy to server error')
-            console.log(errpr)
+    (socket:BufferedSocket):void => {
+        const buffers:Array<Buffer> = []
+        socket.on('data', (data:Buffer):void => {
+            buffers.push(data)
         })
+        socket.buffers = buffers
 
-        proxyToServerSocket.on('close', () => {
-            console.log('CLOSE')
-        })
+        server.sockets.push(socket)
 
-        socket.on('error', (error) => {
-            console.log('Client to proxy error');
-            console.log(error)
-        })
-
-        /*
-        socket.on('close', ():Array<Socket> =>
+        socket.on('close', ():void => {
             server.sockets.splice(server.sockets.indexOf(socket), 1)
-        )
-        */
+        })
     }
 )
 
-/*
 server.instance.on(
     'stream',
     (stream:HTTPStream, headers:OutgoingHTTPHeaders):void => {
@@ -165,27 +178,13 @@ server.instance.on(
         })
     }
 )
-*/
-
-
-const start = () =>
-    server.instance.listen(
-        CONFIGURATION.port, 'localhost', () => console.log('Server started')
-    )
-
-const close = () => {
-    server.instance.close(():void => {
-        console.log('Shut server down')
-    })
-
-    for (const connections of [server.sockets, server.streams])
-        if (Array.isArray(connections))
-            for (const connection of connections)
-                connection.destroy()
+// endregion
+if (require.main === module || eval('require.main') !== require.main) {
+    console.info('Start server with configuration:', CONFIGURATION)
+    server.start()
 }
 
-start()
-
+export default server
 /*
     def overwrite_normal_request(cls, token, data, rest_controller):
         '''Overwrites normal result with failing recaptcha id.'''
@@ -309,3 +308,7 @@ start()
                 data['assetFiles'].add(url.replace('{1}', protocol))
         return data
 */
+// region vim modline
+// vim: set tabstop=4 shiftwidth=4 expandtab:
+// vim: foldmethod=marker foldmarker=region,endregion:
+// endregion

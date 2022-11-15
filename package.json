@@ -21,7 +21,8 @@
   },
   "files": [
     "index.d.ts",
-    "index.js"
+    "index.js",
+    "type.d.ts"
   ],
   "bin": {
     "middleware": "index.js"
@@ -92,6 +93,32 @@
     "name": "middleware",
     "trackingCode": ""
   },
+  "configuration": {
+    "publicKeyPath": "",
+    "privateKeyPath": "",
+
+    "nodeServerOptions": {
+        "allowHTTP1": true
+    },
+    "host": "localhost",
+    "port": 8080,
+
+    "forward": {
+        "host": "localhost",
+        "port": 80
+    },
+
+    "humanChecker": {
+        "applicationInterfaces": {
+            "base": {
+                "key": "",
+                "url": ""
+            }
+        },
+        "identifiyAsHumanIfServiceThrowsException": true,
+        "skipSecrets": []
+    }
+  },
   "webOptimizer": {
     "assetPattern": {
       "javaScript": {
@@ -105,11 +132,6 @@
     "exportFormat": {
       "external": "commonjs2",
       "self": "commonjs2"
-    },
-    "injection": {
-      "entry": {
-        "__evaluate__": "2 < self.givenCommandLineArguments.length && self.givenCommandLineArguments[2].startsWith('test') ? {testBundle: 'test'} : {index: './index.ts', unixCrypt: './unixCrypt.ts'}"
-      }
     },
     "module": {
       "optimizer": {
