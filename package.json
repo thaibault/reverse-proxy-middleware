@@ -1,0 +1,127 @@
+{
+  "name": "middleware",
+  "version": "0.0.1",
+  "description": "A generic middleware with human checker.",
+  "keywords": [
+    "web",
+    "backend",
+    "api",
+    "middleware"
+  ],
+  "homepage": "https://torben.website/web-node",
+  "bugs": {
+    "email": "info@torben.website",
+    "url": "https://github.com/thaibault/web-node/issues"
+  },
+  "license": "CC-BY-3.0",
+  "author": {
+    "name": "Torben Sickert",
+    "email": "info@torben.website",
+    "url": "https://torben.website"
+  },
+  "files": [
+    "index.d.ts",
+    "index.js"
+  ],
+  "bin": {
+    "middleware": "index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thaibault/middleware.git"
+  },
+  "scripts": {
+    "build": "yarn build:types; yarn build:plain",
+    "build:plain": "weboptimizer build",
+    "build:types": "weboptimizer build:types",
+    "check": "yarn check:types; yarn lint",
+    "check:types": "weboptimizer check:types",
+    "clear": "weboptimizer clear",
+    "document": "weboptimizer document",
+    "lint": "weboptimizer lint",
+    "postversion": "yarn publish --non-interactive; git push --tags && git push",
+    "prepare": "yarn build",
+    "serve": "weboptimizer build && yarn serve",
+    "start": "./index.js '{plugin: {hotReloading: true}}'",
+    "prepare:test": "yarn clear && cd dummyPlugin && yarn build && cd ..",
+    "test": "yarn prepare:test && weboptimizer test",
+    "test:coverage": "yarn prepare:test && weboptimizer test:coverage",
+    "test:coverage:report": "yarn prepare:test && weboptimizer test:coverage:report",
+    "update": "yarn version --patch",
+    "update:documentation": "documentation-website",
+    "watch": "weboptimizer build --watch"
+  },
+  "runkitExample": "require('@babel/runtime/package.json')\n",
+  "dependencies": {
+    "@types/webpack": "https://registry.yarnpkg.com/@favware/skip-dependency/-/skip-dependency-1.1.1.tgz"
+  },
+  "devDependencies": {
+    "@babel/cli": "*",
+    "@babel/eslint-parser": "*",
+    "@types/node": "*",
+    "@typescript-eslint/eslint-plugin": "*",
+    "@typescript-eslint/parser": "*",
+    "clientnode": "*",
+    "documentation-website": "*",
+    "eslint": "*",
+    "eslint-config-google": "*",
+    "eslint-plugin-jsdoc": "*",
+    "jest": "*",
+    "jsdoc": "*",
+    "weboptimizer": "*"
+  },
+  "peerDependencies": {
+    "@babel/runtime": "*",
+    "clientnode": "*"
+  },
+  "peerDependenciesMeta": {
+    "@babel/runtime": {
+      "optional": true
+    }
+  },
+  "engines": {
+    "node": ">=17",
+    "npm": ">=7"
+  },
+  "resolutions": {
+    "@types/webpack": "https://registry.yarnpkg.com/@favware/skip-dependency/-/skip-dependency-1.1.1.tgz",
+    "colors": "1.4.0"
+  },
+  "sideEffects": true,
+  "documentationWebsite": {
+    "name": "middleware",
+    "trackingCode": ""
+  },
+  "webOptimizer": {
+    "assetPattern": {
+      "javaScript": {
+        "includeFilePathRegularExpression": "^(.+/)?index\\.js$",
+        "pattern": {
+          "#": "This is how we can make our main exported artefact executable.",
+          "__evaluate__": "`#!/usr/bin/env node\n// -*- coding: utf-8 -*-\n${self.generic.assetPattern.javaScript.pattern}if(module===eval('require.main'))module.paths.unshift('/application/node_modules');{1}`"
+        }
+      }
+    },
+    "exportFormat": {
+      "external": "commonjs2",
+      "self": "commonjs2"
+    },
+    "injection": {
+      "entry": {
+        "__evaluate__": "2 < self.givenCommandLineArguments.length && self.givenCommandLineArguments[2].startsWith('test') ? {testBundle: 'test'} : {index: './index.ts', unixCrypt: './unixCrypt.ts'}"
+      }
+    },
+    "module": {
+      "optimizer": {
+        "babelMinify": {
+          "#": "To provide a logging output we need to exclude this feature.",
+          "__evaluate__": "self.debug ? {bundle: null, module: null} : {bundle: {transform: {removeConsole: false}}, module: {removeConsole: false}}"
+        }
+      }
+    },
+    "targetTechnology": {
+      "boilerplate": "node",
+      "payload": "node"
+    }
+  }
+}
