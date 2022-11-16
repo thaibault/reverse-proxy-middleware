@@ -10,10 +10,11 @@
     "humanChecker": {
         "applicationInterfaces": {
             "base": {
-                "key": {
+                "headerName": "g-recaptcha-response",
+                "secret": {
                     "__evaluate__": "environment.GOOGLE_RECAPTCHA_KEY"
                 },
-                "url": "https://www.google.com/recaptcha/api/siteverify?secret={secret}&response={response}"
+                "url": "https://www.google.com/recaptcha/api/siteverify?secret=${secret}&response=${clientToken}"
             },
             "googleV2": {},
             "googleV3": {}

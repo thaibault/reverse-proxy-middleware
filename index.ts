@@ -19,6 +19,7 @@
 // region imports
 // NOTE: http2 compatibility mode does work for unencrypted connections yet.
 import Tools from 'clientnode'
+import {PlainObject} from 'clientnode/type'
 import {createServer as createHTTP1Server} from 'http'
 import {
     createServer,
@@ -34,11 +35,17 @@ import {connect as createSecureConnection} from 'tls'
 
 import packageConfiguration from './package.json'
 import {
-    BufferedHTTPServerRequest, BufferedSocket, Configuration, Server, Socket
+    ResolvedAPIConfigurations,
+    BufferedHTTPServerRequest,
+    BufferedSocket,
+    Configuration,
+    Server,
+    Socket
 } from './type'
 // endregion
 // region configuration
 const CONFIGURATION:Configuration = packageConfiguration.configuration
+
 const configurationPath:string = resolve(process.cwd(), 'configuration.json')
 if (Tools.isFileSync(configurationPath))
     Tools.extend(
@@ -53,6 +60,23 @@ if (Tools.isFileSync(configurationPath))
             }
         )
     )
+
+const APPLICATION_INTERFACES:ResolvedAPIConfigurations =
+    {} as ResolvedAPIConfigurations
+for (const [name, checker] of Object.entries(
+    CONFIGURATION.humanChecker.applicationInterfaces
+)) {
+    if (name === 'base')
+        continue
+
+    APPLICATION_INTERFACES[name] = Tools.extend(
+        true,
+        {},
+        CONFIGURATION.humanChecker.applicationInterfaces.base,
+        checker
+    )
+}
+
 const createConnection:typeof createSecureConnection =
     CONFIGURATION.forward.tls ?
         createSecureConnection :
@@ -67,6 +91,76 @@ const portSuffix:string = (
     ''
 // endregion
 // region helper
+const hasSkipSecret = (request:HTTPServerRequest):boolean =>
+    request.headers['re-captcha-skip'] === 'true' &&
+    request.headers['re-captcha-skip-secret'] ===
+        CONFIGURATION.humanChecker.skipSecrets
+
+const isValid = async (request:HTTPServerRequest):Promise<boolean|null> => {
+    if (hasSkipSecret(request))
+        return true
+
+    for (const [name, checker] of Object.entries(APPLICATION_INTERFACES)) {
+        const clientToken:string|undefined = ([] as Array<string|undefined>)
+            .concat(request.headers[checker.headerName])[0]
+        if (clientToken)
+            try {
+                const response:PlainObject = await (await fetch(
+                    Tools.stringEvaluate(
+                        `\`${checker.url}\``,
+                        {
+                            clientToken: clientToken.substring(
+                                clientToken.indexOf(' ') + 1
+                            ),
+                            secret: checker.secret
+                        }
+                    ).result,
+                    checker.options
+                )).json() as Promise<PlainObject>
+
+                if (
+                    response.success ||
+                    typeof response.score === 'number' &&
+                    response.score >= checker.score
+                ) {
+                    console.info(
+                        `Request "${checker.url}" (${name}) identified as ` +
+                        'human triggered.'
+                    )
+
+                    return true
+                }
+
+                console.info(
+                    `Request "${checker.url}" (${name}) identified as robot ` +
+                    'triggered:',
+                    response
+                )
+
+                return false
+            } catch (error) {
+                console.warn(
+                    `Request to "${checker.url}" (${name}) couldn't be ` +
+                    'identified as robot or human because the recaptcha ' +
+                    'service produces the following error:',
+                    error
+                )
+
+                if (checker.identifiyAsHumanIfServiceThrowsException) {
+                    console.info(
+                        'Request will be interpret as human triggered caused' +
+                        'by fallback configuration.'
+                    )
+
+                    return true
+                }
+
+                return null
+            }
+    }
+
+    return Object.keys(APPLICATION_INTERFACES).length === 0
+}
 const reverseProxyBufferedRequest = (
     clientSocket:Socket, buffers:Array<Buffer>
 ):void => {
@@ -163,19 +257,28 @@ const onIncomingMessage = (
     const bufferedRequest = request as BufferedHTTPServerRequest
 
     void (async ():Promise<void> => {
-        if (request.headers.response) {
-            response.write(request.headers.response as string)
+        const result:boolean|null = await isValid(request)
+
+        if (result === null) {
+            response.statusCode = 502
             response.end()
 
             return
         }
 
-        // NOTE: We have to wait until client request is fully buffered.
-        await Tools.timeout()
+        if (result) {
+            // NOTE: We have to wait until client request is fully buffered.
+            await Tools.timeout()
 
-        reverseProxyBufferedRequest(
-            response.socket, bufferedRequest.socket.buffers
-        )
+            reverseProxyBufferedRequest(
+                response.socket, bufferedRequest.socket.buffers
+            )
+
+            return
+        }
+
+        response.statusCode = CONFIGURATION.humanChecker.botDetectionStatusCode
+        response.end()
     })()
 }
 
@@ -249,133 +352,11 @@ server.instance.on(
 // endregion
 if (require.main === module || eval('require.main') !== require.main) {
     console.info('Start server with configuration:', CONFIGURATION)
+
     server.start()
 }
 
 export default server
-/*
-    def overwrite_normal_request(cls, token, data, rest_controller):
-        '''Overwrites normal result with failing recaptcha id.'''
-        data = {}
-        if token is not None:
-            if isinstance(token, int):
-                data = {'id': token}
-            elif ' ' in token:
-                data = {'id': int(token[:token.find(' ')])}
-        return (
-            data, rest_controller.mime_type,
-            rest_controller.cache_control_header, None)
-
-    def before_response_interceptor(cls, data, rest_controller):
-        '''Check whether given form is valid against human check.'''
-        result = None
-        if (
-            not (
-                (
-                    cls.agile.web_node.debug or
-                    'staging' in cls.agile.web_node.given_command_line_arguments.flags
-                ) and
-                isinstance(rest_controller.web_node.request['data'], dict) and
-                rest_controller.web_node.request['handler'].headers.get(
-                    're-captcha-skip'
-                ) == 'true' or
-                rest_controller.web_node.request['handler'].headers.get(
-                    're-captcha-skip'
-                ) == 'true' and
-                rest_controller.web_node.request['handler'].headers.get(
-                    're-captcha-skip-secret'
-                ) in cls.agile.web_node.options[__plugin_name__]['skipSecrets']
-            ) and
-            '%s:%s' % (
-                rest_controller.web_node.request['type'].upper(),
-                rest_controller.web_node.request['uri']
-            ) in cls.agile.web_node.options[__plugin_name__]['requestsToCheck']
-        ):
-            token = rest_controller.web_node.request['handler'].headers.get(
-                'g-recaptcha-response', ''
-            )
-            try:
-                response = urlopen(
-                    cls.agile.web_node.options[__plugin_name__][
-                        'applicationInterface-v' + application_interface_version
-                    ]['url'].format(
-                        response=token[token.find(' ') + 1:],
-                        secret=cls.agile.web_node.options[__plugin_name__][
-                            'applicationInterface-v' + application_interface_version
-                        ]['key'])
-                ).read()
-            except IOError as exception:
-
-                __logger__.warn(
-                    'Request "%s" couldn\'t be identified as robot or '
-                    'human because the recaptcha service produces the '
-                    'following error: %s: %s',
-                    rest_controller.web_node.request['uri'],
-                    exception.__class__.__name__,
-                    convert_to_unicode(exception)
-                )
-                if cls.agile.web_node.options[__plugin_name__][
-                    'identifiyAsHumanIfServiceThrowsException'
-                ]:
-                    __logger__.info(
-                        'Request "%s" identified as human triggered caused by '
-                        'fallback configuration.',
-                        rest_controller.web_node.request['uri']
-                    )
-                    return
-                rest_controller.web_node.request['handler'].send_response(502)
-                return cls.overwrite_normal_request(
-                    token, data, rest_controller)
-            else:
-                if (
-                    token and
-                    (
-                        'TODO temporary disabled' or
-                        (
-                            json.loads(response).get('success', False) or
-                            json.loads(response).get('score', 0) >= 0.01
-                        )
-                    )
-                ):
-                    __logger__.info(
-                        'Request "%s" identified as human triggered.',
-                        rest_controller.web_node.request['uri'])
-                    return
-                __logger__.info(
-                    'Request "%s" identified as robot triggered. Token "%s", '
-                    'response: "%s"',
-                    rest_controller.web_node.request['uri'],
-                    token,
-                    json.loads(response)
-                )
-                rest_controller.web_node.request['handler'].send_response(420)
-                return cls.overwrite_normal_request(
-                    token, data, rest_controller)
-
-    def get_manifest_scope(cls, data, *arguments, **keywords):
-        '''Add plugins specific urls to manifest.'''
-        if 'url' not in data['assetFiles'].add(data['options'][__plugin_name__][
-            'applicationInterface-v' + application_interface_version
-        ]):
-            return data
-        for protocol in ('http', 'https'):
-            data['assetFiles'].add(data['options'][__plugin_name__][
-                'applicationInterface-v' + application_interface_version
-            ]['url']
-                .replace('{1}', protocol)
-                .replace(
-                    '{2}',
-                    data['options'][__plugin_name__][
-                        'applicationInterface-v' + application_interface_version
-                    ]['callbackFunctionName']
-                )
-            )
-            for url in data['options'][__plugin_name__][
-                'applicationInterface-v' + application_interface_version
-            ]['preLoadingURLs']:
-                data['assetFiles'].add(url.replace('{1}', protocol))
-        return data
-*/
 // region vim modline
 // vim: set tabstop=4 shiftwidth=4 expandtab:
 // vim: foldmethod=marker foldmarker=region,endregion:

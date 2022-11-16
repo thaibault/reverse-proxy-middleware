@@ -111,11 +111,15 @@
     "humanChecker": {
       "applicationInterfaces": {
         "base": {
-          "key": "",
+          "headerName": "",
+          "identifiyAsHumanIfServiceThrowsException": true,
+          "options": {},
+          "score": 0.01,
+          "secret": "",
           "url": ""
         }
       },
-      "identifiyAsHumanIfServiceThrowsException": true,
+      "botDetectionStatusCode": 420,
       "skipSecrets": []
     }
   },

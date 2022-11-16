@@ -28,12 +28,19 @@ import {Socket as PlainSocket} from 'net'
 import {TLSSocket} from 'tls'
 // endregion
 export interface APIConfiguration {
-    key:string
+    headerName:string
+    identifiyAsHumanIfServiceThrowsException:boolean
+    secret:string
+    score:number
+    options:RequestInit
     url:string
 }
 export type APIConfigurations = {
     base:APIConfiguration
     [key:string]:Partial<APIConfiguration>
+}
+export type ResolvedAPIConfigurations = {
+    [key:string]:APIConfiguration
 }
 
 export type Socket = PlainSocket|TLSSocket
@@ -66,7 +73,7 @@ export interface Configuration {
 
     humanChecker:{
         applicationInterfaces:APIConfigurations
-        identifiyAsHumanIfServiceThrowsException:boolean
+        botDetectionStatusCode:number
         skipSecrets:Array<string>
     }
 }
