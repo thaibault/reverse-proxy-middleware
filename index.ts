@@ -105,7 +105,7 @@ const isValid = async (request:HTTPServerRequest):Promise<boolean|null> => {
             .concat(request.headers[checker.headerName])[0]
         if (clientToken)
             try {
-                const response:PlainObject = await (await fetch(
+                const response:PlainObject = (await (await fetch(
                     Tools.stringEvaluate(
                         `\`${checker.url}\``,
                         {
@@ -116,7 +116,7 @@ const isValid = async (request:HTTPServerRequest):Promise<boolean|null> => {
                         }
                     ).result,
                     checker.options
-                )).json() as Promise<PlainObject>
+                )).json()) as PlainObject
 
                 if (
                     response.success ||
