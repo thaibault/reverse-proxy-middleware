@@ -28,12 +28,13 @@ import {
     Http2Stream as HTTPStream,
     OutgoingHttpHeaders as OutgoingHTTPHeaders
 } from 'http2'
-import {createConnection, Socket} from 'net'
+import {createConnection as createPlainConnection} from 'net'
 import {resolve} from 'path'
+import {connect as createSecureConnection} from 'tls'
 
 import packageConfiguration from './package.json'
 import {
-    BufferedHTTPServerRequest, BufferedSocket, Configuration, Server
+    BufferedHTTPServerRequest, BufferedSocket, Configuration, Server, Socket
 } from './type'
 // endregion
 // region configuration
@@ -45,6 +46,18 @@ if (Tools.isFileSync(configurationPath))
         CONFIGURATION,
         eval(`require('${configurationPath}')`) as Configuration
     )
+const createConnection:typeof createSecureConnection =
+    CONFIGURATION.forward.tls ?
+        createSecureConnection :
+        createPlainConnection as unknown as typeof createSecureConnection
+const portSuffix:string = (
+    CONFIGURATION.forward.tls &&
+    CONFIGURATION.forward.port !== 443 ||
+    !CONFIGURATION.forward.tls &&
+    CONFIGURATION.forward.port !== 80
+) ?
+    `:${CONFIGURATION.forward.port}` :
+    ''
 // endregion
 // region helper
 const reverseProxyBufferedRequest = (
@@ -52,14 +65,20 @@ const reverseProxyBufferedRequest = (
 ):void => {
     const serverSocket = createConnection(
         {
-            allowHalfOpen: true,
             host: CONFIGURATION.forward.host,
-            port: CONFIGURATION.forward.port
+            port: CONFIGURATION.forward.port,
+            ...(CONFIGURATION.forward.tls ?
+                {
+                    servername: CONFIGURATION.forward.host,
+                    rejectUnauthorized: false
+                } :
+                {}
+            )
         },
         () => {
             console.info(
-                `Proxy data to: ${CONFIGURATION.forward.host}:` +
-                String(CONFIGURATION.forward.port)
+                `Proxy to: http${CONFIGURATION.forward.tls ? 's' : ''}` +
+                `://${CONFIGURATION.forward.host}${portSuffix}`
             )
         }
     )
@@ -67,25 +86,67 @@ const reverseProxyBufferedRequest = (
         console.error('Proxy to server error', error)
     })
 
-    serverSocket.pipe(clientSocket)
-    let hostFound = false
-    for (const buffer of buffers) {
-        if (!hostFound) {
-            const content:string = buffer.toString()
-            if (content.toLowerCase().includes('host: ')) {
-                serverSocket.write(content.replace(
-                    /(($|\n)host: )[^\n]+/i,
-                    `$1${CONFIGURATION.forward.host}:` +
-                    `${CONFIGURATION.forward.port}`
-                ))
+    // Send data from server back to client.
+    if (CONFIGURATION.forward.headerTransformation.retrieve.length) {
+        let headerProcessed = false
+        serverSocket.on('data', (buffer:Buffer):void => {
+            if (headerProcessed) {
+                clientSocket.write(buffer)
 
-                hostFound = true
+                return
+            }
+
+            let content:string = buffer.toString()
+            for (
+                const replacement of
+                CONFIGURATION.forward.headerTransformation.retrieve
+            )
+                content = content.replace(
+                    replacement.source, replacement.target as string
+                )
+
+            clientSocket.write(content)
+
+            headerProcessed = true
+        })
+    } else
+        serverSocket.pipe(clientSocket)
+
+    serverSocket.on('connect', () => {
+        let headerProcessed = false
+        for (const buffer of buffers) {
+            if (!headerProcessed) {
+                let content:string = buffer.toString()
+
+                if (CONFIGURATION.forward.tls)
+                    // NOTE: TLS support was introduced in version 1.1.
+                    content = content.replace(/HTTP\/1\.0/i, 'HTTP/1.1')
+
+                // Overwrite proxy host with destination one.
+                content = content.replace(
+                    /(($|\n)host: )[^\n]+/i,
+                    `$1${CONFIGURATION.forward.host}${portSuffix}`
+                )
+
+                for (
+                    const replacement of
+                    CONFIGURATION.forward.headerTransformation.send
+                )
+                    content = content.replace(
+                        replacement.source, replacement.target as string
+                    )
+
+                console.info(`Send:\n\n${content}`)
+
+                serverSocket.write(content)
+
+                headerProcessed = true
                 continue
             }
-        }
 
-        serverSocket.write(buffer)
-    }
+            serverSocket.write(buffer)
+        }
+    })
 }
 // endregion
 // region live cycle methods

@@ -104,8 +104,13 @@
     "port": 8080,
 
     "forward": {
+        "headerTransformation": {
+            "retrieve": [],
+            "send": []
+        },
         "host": "localhost",
-        "port": 80
+        "port": 443,
+        "tls": true
     },
 
     "humanChecker": {

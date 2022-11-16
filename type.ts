@@ -24,7 +24,8 @@ import {
     Http2Stream as HTTPStream,
     SecureServerOptions
 } from 'http2'
-import {Socket} from 'net'
+import {Socket as PlainSocket} from 'net'
+import {TLSSocket} from 'tls'
 // endregion
 export interface APIConfiguration {
     key:string
@@ -35,13 +36,16 @@ export type APIConfigurations = {
     [key:string]:Partial<APIConfiguration>
 }
 
-export interface BufferedSocket extends Socket {
-    buffers:Array<Buffer>
-}
+export type Socket = PlainSocket|TLSSocket
+export type BufferedSocket = Socket & {buffers:Array<Buffer>}
 export interface BufferedHTTPServerRequest extends HTTPServerRequest {
     socket:BufferedSocket
 }
 
+export interface HeaderTransformation {
+    source:string|RegExp
+    target:string|((substring:string, ...parameters:Array<unknown>) => string)
+}
 export interface Configuration {
     publicKeyPath:string
     privateKeyPath:string
@@ -51,8 +55,13 @@ export interface Configuration {
     port:number
 
     forward:{
+        headerTransformation:{
+            retrieve:Array<HeaderTransformation>
+            send:Array<HeaderTransformation>
+        }
         host:string
         port:number
+        tls:boolean
     }
 
     humanChecker:{

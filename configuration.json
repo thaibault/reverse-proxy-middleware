@@ -4,7 +4,7 @@
     "port": 8080,
 
     "forward": {
-        "host": "www.google.com"
+        "host": "www.posic.de"
     },
 
     "humanChecker": {
