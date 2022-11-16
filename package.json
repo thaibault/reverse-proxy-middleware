@@ -1,6 +1,6 @@
 {
   "name": "bot-filter",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "A reverse proxy blocking bot requests.",
   "keywords": [
     "api",
