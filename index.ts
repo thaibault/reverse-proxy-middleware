@@ -19,7 +19,7 @@
 // region imports
 // NOTE: http2 compatibility mode does work for unencrypted connections yet.
 import Tools from 'clientnode'
-import {PlainObject} from 'clientnode/type'
+import {EvaluationResult, PlainObject} from 'clientnode/type'
 import {createServer as createHTTP1Server} from 'http'
 import {
     createServer,
@@ -107,19 +107,31 @@ const isValid = async (request:HTTPServerRequest):Promise<boolean|null> => {
     for (const [name, checker] of Object.entries(APPLICATION_INTERFACES)) {
         const clientToken:string|undefined = ([] as Array<string|undefined>)
             .concat(request.headers[checker.headerName])[0]
-        if (clientToken)
+        if (clientToken) {
+            const urlEvaluationResult:EvaluationResult<string> =
+                Tools.stringEvaluate(
+                    `\`${checker.url}\``,
+                    {
+                        clientToken: clientToken.substring(
+                            clientToken.indexOf(' ') + 1
+                        ),
+                        secret: checker.secret
+                    }
+                )
+
+            if (urlEvaluationResult.error) {
+                console.error(
+                    'Error while evaluation checker url:',
+                    urlEvaluationResult.error
+                )
+                continue
+            }
+
+            const url:string = urlEvaluationResult.result
+
             try {
                 const response:PlainObject = (await (await fetch(
-                    Tools.stringEvaluate(
-                        `\`${checker.url}\``,
-                        {
-                            clientToken: clientToken.substring(
-                                clientToken.indexOf(' ') + 1
-                            ),
-                            secret: checker.secret
-                        }
-                    ).result,
-                    checker.options
+                    url, checker.options
                 )).json()) as PlainObject
 
                 if (
@@ -128,15 +140,15 @@ const isValid = async (request:HTTPServerRequest):Promise<boolean|null> => {
                     response.score >= checker.score
                 ) {
                     console.info(
-                        `Request "${checker.url}" (${name}) identified as ` +
-                        'human triggered.'
+                        `Request "${url}" (${name}) identified as human ` +
+                        'triggered.'
                     )
 
                     return true
                 }
 
                 console.info(
-                    `Request "${checker.url}" (${name}) identified as robot ` +
+                    `Request "${url}" (${name}) identified as robot ` +
                     'triggered:',
                     response
                 )
@@ -144,9 +156,9 @@ const isValid = async (request:HTTPServerRequest):Promise<boolean|null> => {
                 return false
             } catch (error) {
                 console.warn(
-                    `Request to "${checker.url}" (${name}) couldn't be ` +
-                    'identified as robot or human because the recaptcha ' +
-                    'service produces the following error:',
+                    `Request to "${url}" (${name}) couldn't be identified as` +
+                    'robot or human because the recaptcha service produces ' +
+                    'the following error:',
                     error
                 )
 
@@ -161,6 +173,7 @@ const isValid = async (request:HTTPServerRequest):Promise<boolean|null> => {
 
                 return null
             }
+        }
     }
 
     return Object.keys(APPLICATION_INTERFACES).length === 0

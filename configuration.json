@@ -16,8 +16,7 @@
                 },
                 "url": "https://www.google.com/recaptcha/api/siteverify?secret=${secret}&response=${clientToken}"
             },
-            "googleV2": {},
-            "googleV3": {}
+            "googleV2-3": {}
         },
         "skipSecrets": [{
             "__evaluate__": "environment.SKIP_SECRET"
