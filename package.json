@@ -1,6 +1,6 @@
 {
   "name": "middleware",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A generic middleware with human checker.",
   "keywords": [
     "web",
@@ -96,32 +96,29 @@
   "configuration": {
     "publicKeyPath": "",
     "privateKeyPath": "",
-
     "nodeServerOptions": {
-        "allowHTTP1": true
+      "allowHTTP1": true
     },
     "host": "localhost",
     "port": 8080,
-
     "forward": {
-        "headerTransformation": {
-            "retrieve": [],
-            "send": []
-        },
-        "host": "localhost",
-        "port": 443,
-        "tls": true
+      "headerTransformation": {
+        "retrieve": [],
+        "send": []
+      },
+      "host": "localhost",
+      "port": 443,
+      "tls": true
     },
-
     "humanChecker": {
-        "applicationInterfaces": {
-            "base": {
-                "key": "",
-                "url": ""
-            }
-        },
-        "identifiyAsHumanIfServiceThrowsException": true,
-        "skipSecrets": []
+      "applicationInterfaces": {
+        "base": {
+          "key": "",
+          "url": ""
+        }
+      },
+      "identifiyAsHumanIfServiceThrowsException": true,
+      "skipSecrets": []
     }
   },
   "webOptimizer": {
