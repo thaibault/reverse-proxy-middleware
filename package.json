@@ -46,7 +46,7 @@
     "postversion": "yarn publish --non-interactive; git push --tags && git push",
     "prepare": "yarn build",
     "serve": "weboptimizer build && yarn serve",
-    "start": "./index.js '{plugin: {hotReloading: true}}'",
+    "start": "./index.js",
     "update": "yarn version --patch",
     "update:documentation": "documentation-website",
     "watch": "weboptimizer build --watch"
