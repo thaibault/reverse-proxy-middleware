@@ -351,7 +351,9 @@ server.instance.on(
 )
 // endregion
 if (require.main === module || eval('require.main') !== require.main) {
-    console.info('Start server with configuration:', CONFIGURATION)
+    console.info(
+        'Start server with configuration:', Tools.represent(CONFIGURATION)
+    )
 
     server.start()
 }
