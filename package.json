@@ -1,17 +1,20 @@
 {
-  "name": "middleware",
+  "name": "bot-filter",
   "version": "0.0.3",
-  "description": "A generic middleware with human checker.",
+  "description": "A reverse proxy blocking bot requests.",
   "keywords": [
-    "web",
-    "backend",
     "api",
-    "middleware"
+    "backend",
+    "bot-filter",
+    "bot-blocker",
+    "proxy",
+    "reverse-proxy",
+    "web"
   ],
-  "homepage": "https://torben.website/web-node",
+  "homepage": "https://torben.website/bot-filter",
   "bugs": {
     "email": "info@torben.website",
-    "url": "https://github.com/thaibault/web-node/issues"
+    "url": "https://github.com/thaibault/bot-filter/issues"
   },
   "license": "CC-BY-3.0",
   "author": {
@@ -25,11 +28,11 @@
     "type.d.ts"
   ],
   "bin": {
-    "middleware": "index.js"
+    "bot-filter": "index.js"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/thaibault/middleware.git"
+    "url": "https://github.com/thaibault/bot-filter.git"
   },
   "scripts": {
     "build": "yarn build:types; yarn build:plain",
@@ -90,7 +93,7 @@
   },
   "sideEffects": true,
   "documentationWebsite": {
-    "name": "middleware",
+    "name": "bot-filter",
     "trackingCode": ""
   },
   "configuration": {
