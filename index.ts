@@ -92,9 +92,10 @@ const portSuffix:string = (
 // endregion
 // region helper
 const hasSkipSecret = (request:HTTPServerRequest):boolean =>
-    request.headers['re-captcha-skip'] === 'true' &&
-    request.headers['re-captcha-skip-secret'] ===
-        CONFIGURATION.humanChecker.skipSecrets
+    request.headers['bot-filter-skip'] === 'true' &&
+    CONFIGURATION.humanChecker.skipSecrets.includes(
+        request.headers['bot-filter-skip-secret']
+    )
 
 const isValid = async (request:HTTPServerRequest):Promise<boolean|null> => {
     if (hasSkipSecret(request))
@@ -351,7 +352,9 @@ server.instance.on(
 )
 // endregion
 if (require.main === module || eval('require.main') !== require.main) {
-    console.info('Start server with configuration:', CONFIGURATION)
+    console.info(
+        'Start server with configuration:', Tools.represent(CONFIGURATION)
+    )
 
     server.start()
 }
