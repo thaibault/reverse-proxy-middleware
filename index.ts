@@ -93,8 +93,11 @@ const portSuffix:string = (
 // region helper
 const hasSkipSecret = (request:HTTPServerRequest):boolean =>
     request.headers['bot-filter-skip'] === 'true' &&
+    Boolean(request.headers['bot-filter-skip-secret']) &&
     CONFIGURATION.humanChecker.skipSecrets.includes(
-        request.headers['bot-filter-skip-secret']
+        ([] as Array<string>).concat(
+            request.headers['bot-filter-skip-secret'] as string
+        )[0]
     )
 
 const isValid = async (request:HTTPServerRequest):Promise<boolean|null> => {
