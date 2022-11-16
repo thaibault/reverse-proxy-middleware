@@ -44,7 +44,14 @@ if (Tools.isFileSync(configurationPath))
     Tools.extend(
         true,
         CONFIGURATION,
-        eval(`require('${configurationPath}')`) as Configuration
+        Tools.evaluateDynamicData<Configuration>(
+            eval(`require('${configurationPath}')`) as Configuration,
+            {
+                configuration: CONFIGURATION,
+                environment: process.env,
+                Tools
+            }
+        )
     )
 const createConnection:typeof createSecureConnection =
     CONFIGURATION.forward.tls ?
@@ -77,8 +84,8 @@ const reverseProxyBufferedRequest = (
         },
         () => {
             console.info(
-                `Proxy to: http${CONFIGURATION.forward.tls ? 's' : ''}` +
-                `://${CONFIGURATION.forward.host}${portSuffix}`
+                `Proxy to: http${CONFIGURATION.forward.tls ? 's' : ''}://` +
+                `${CONFIGURATION.forward.host}${portSuffix}`
             )
         }
     )

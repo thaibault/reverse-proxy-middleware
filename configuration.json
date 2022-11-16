@@ -10,16 +10,16 @@
     "humanChecker": {
         "applicationInterfaces": {
             "base": {
-                "key": "",
+                "key": {
+                    "__evaluate__": "environment.GOOGLE_RECAPTCHA_KEY"
+                },
                 "url": "https://www.google.com/recaptcha/api/siteverify?secret={secret}&response={response}"
             },
-            "googleV2": {
-                "key": ""
-            },
-            "googleV3": {
-                "key": ""
-            }
+            "googleV2": {},
+            "googleV3": {}
         },
-        "skipSecrets": []
+        "skipSecrets": [{
+            "__evaluate__": "environment.SKIP_SECRET"
+        }]
     }
 }
