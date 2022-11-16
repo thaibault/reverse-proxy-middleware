@@ -47,10 +47,6 @@
     "prepare": "yarn build",
     "serve": "weboptimizer build && yarn serve",
     "start": "./index.js '{plugin: {hotReloading: true}}'",
-    "prepare:test": "yarn clear && cd dummyPlugin && yarn build && cd ..",
-    "test": "yarn prepare:test && weboptimizer test",
-    "test:coverage": "yarn prepare:test && weboptimizer test:coverage",
-    "test:coverage:report": "yarn prepare:test && weboptimizer test:coverage:report",
     "update": "yarn version --patch",
     "update:documentation": "documentation-website",
     "watch": "weboptimizer build --watch"
@@ -70,7 +66,6 @@
     "eslint": "*",
     "eslint-config-google": "*",
     "eslint-plugin-jsdoc": "*",
-    "jest": "*",
     "jsdoc": "*",
     "weboptimizer": "*"
   },
