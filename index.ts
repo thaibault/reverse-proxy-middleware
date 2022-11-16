@@ -92,9 +92,10 @@ const portSuffix:string = (
 // endregion
 // region helper
 const hasSkipSecret = (request:HTTPServerRequest):boolean =>
-    request.headers['re-captcha-skip'] === 'true' &&
-    request.headers['re-captcha-skip-secret'] ===
-        CONFIGURATION.humanChecker.skipSecrets
+    request.headers['bot-filter-skip'] === 'true' &&
+    CONFIGURATION.humanChecker.skipSecrets.includes(
+        request.headers['bot-filter-skip-secret']
+    )
 
 const isValid = async (request:HTTPServerRequest):Promise<boolean|null> => {
     if (hasSkipSecret(request))
