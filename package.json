@@ -1,6 +1,6 @@
 {
   "name": "bot-filter",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "description": "A reverse proxy blocking bot requests.",
   "keywords": [
     "api",
@@ -52,9 +52,6 @@
     "watch": "weboptimizer build --watch"
   },
   "runkitExample": "require('@babel/runtime/package.json')\n",
-  "dependencies": {
-    "@types/webpack": "https://registry.yarnpkg.com/@favware/skip-dependency/-/skip-dependency-1.1.1.tgz"
-  },
   "dependencies": {
     "@babel/runtime": "*"
   },
