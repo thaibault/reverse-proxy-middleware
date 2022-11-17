@@ -23,7 +23,7 @@
 # endregion
 # region start container commands
 # Run the following command in the directory where this file lives to start:
-# podman / docker run --interactive --name bot-filter --publish 0.0.0.0:8080:8080 --rm --tty ghcr.io/thaibault/bot-filter:latest
+# podman / docker run --interactive --name bot-filter --publish 0.0.0.0:8080:8080 --rm --tty --volume "$(pwd):/application" ghcr.io/thaibault/bot-filter:latest
 # endregion
 ARG         BASE_IMAGE
 

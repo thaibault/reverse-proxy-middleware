@@ -53,6 +53,20 @@ export interface HeaderTransformation {
     source:string|RegExp
     target:string|((substring:string, ...parameters:Array<unknown>) => string)
 }
+export interface Forwarder {
+    headerTransformation:{
+        retrieve:Array<HeaderTransformation>
+        send:Array<HeaderTransformation>
+    }
+    host:string
+    identifier:RegExp|string
+    port:number
+    tls:boolean
+}
+export type ResolvedForwarder = {
+    [key:string]:Forwarder
+}
+
 export interface Configuration {
     publicKeyPath:string
     privateKeyPath:string
@@ -61,14 +75,9 @@ export interface Configuration {
     host:string
     port:number
 
-    forward:{
-        headerTransformation:{
-            retrieve:Array<HeaderTransformation>
-            send:Array<HeaderTransformation>
-        }
-        host:string
-        port:number
-        tls:boolean
+    forwarder:{
+        base:Forwarder
+        [key:string]:Partial<Forwarder>
     }
 
     humanChecker:{

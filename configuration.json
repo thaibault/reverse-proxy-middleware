@@ -1,10 +1,14 @@
 {
     "publicKeyPath": "",
     "privateKeyPath": "",
-    "port": 8080,
+    "port": {
+        "__evaluate__": "environment.PORT ?? 8080"
+    },
 
     "forward": {
-        "host": "www.posic.de"
+        "base": {
+            "host": "www.posic.de"
+        }
     },
 
     "humanChecker": {

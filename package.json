@@ -91,13 +91,16 @@
     "host": "localhost",
     "port": 8080,
     "forward": {
-      "headerTransformation": {
-        "retrieve": [],
-        "send": []
-      },
-      "host": "localhost",
-      "port": 443,
-      "tls": true
+      "base": {
+        "headerTransformation": {
+          "retrieve": [],
+          "send": []
+        },
+        "host": "localhost",
+        "identifier": "",
+        "port": 443,
+        "tls": true
+      }
     },
     "humanChecker": {
       "applicationInterfaces": {

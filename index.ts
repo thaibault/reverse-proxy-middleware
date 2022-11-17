@@ -39,6 +39,8 @@ import {
     BufferedHTTPServerRequest,
     BufferedSocket,
     Configuration,
+    Forwarder,
+    ResolvedForwarder,
     Server,
     Socket
 } from './type'
@@ -76,21 +78,34 @@ for (const [name, checker] of Object.entries(
         checker
     )
 }
+const FORWARDER:ResolvedForwarder = {} as ResolvedForwarder
+for (const [name, forwarder] of Object.entries(CONFIGURATION.forwarder)) {
+    if (name === 'base')
+        continue
 
-const createConnection:typeof createSecureConnection =
-    CONFIGURATION.forward.tls ?
-        createSecureConnection :
-        createPlainConnection as unknown as typeof createSecureConnection
-const portSuffix:string = (
-    CONFIGURATION.forward.tls &&
-    CONFIGURATION.forward.port !== 443 ||
-    !CONFIGURATION.forward.tls &&
-    CONFIGURATION.forward.port !== 80
-) ?
-    `:${CONFIGURATION.forward.port}` :
-    ''
+    FORWARDER[name] = Tools.extend(
+        true, {}, CONFIGURATION.forwarder.base, forwarder
+    )
+}
 // endregion
 // region helper
+const determineForwarder = (request:HTTPServerRequest):Forwarder|null => {
+    for (const [name, forwarder] of Object.entries(FORWARDER))
+        if (
+            forwarder.identifier &&
+            typeof forwarder.identifier === 'string' &&
+            request.url === forwarder.identifier ||
+            forwarder.identifier instanceof RegExp &&
+            forwarder.identifier.test(request.url)
+        ) {
+            console.info(`Determined forwarder "${name}."`)
+
+            return forwarder
+        }
+
+    return null
+}
+
 const hasSkipSecret = (request:HTTPServerRequest):boolean =>
     request.headers['bot-filter-skip'] === 'true' &&
     Boolean(request.headers['bot-filter-skip-secret']) &&
@@ -179,8 +194,20 @@ const isValid = async (request:HTTPServerRequest):Promise<boolean|null> => {
     return Object.keys(APPLICATION_INTERFACES).length === 0
 }
 const reverseProxyBufferedRequest = (
-    clientSocket:Socket, buffers:Array<Buffer>
+    clientSocket:Socket, buffers:Array<Buffer>, forwarder:Forwarder
 ):void => {
+    const createConnection:typeof createSecureConnection = forwarder.tls ?
+        createSecureConnection :
+        createPlainConnection as unknown as typeof createSecureConnection
+    const portSuffix:string = (
+        forwarder.tls &&
+        forwarder.port !== 443 ||
+        !forwarder.tls &&
+        forwarder.port !== 80
+    ) ?
+        `:${forwarder.port}` :
+        ''
+
     const serverSocket = createConnection(
         {
             host: CONFIGURATION.forward.host,
@@ -287,9 +314,18 @@ const onIncomingMessage = (
             // NOTE: We have to wait until client request is fully buffered.
             await Tools.timeout()
 
-            reverseProxyBufferedRequest(
-                response.socket, bufferedRequest.socket.buffers
-            )
+            const forwarder:Forwarder|null = determineForwarder(request)
+
+            if (forwarder)
+                reverseProxyBufferedRequest(
+                    response.socket, bufferedRequest.socket.buffers, forwarder
+                )
+            else {
+                console.error('No forwarder found for given request:', request)
+
+                response.statusCode = 502
+                response.end()
+            }
 
             return
         }
@@ -321,8 +357,11 @@ const server:Server = {
     start: ():void => {
         server.instance.listen(
             CONFIGURATION.port,
-            CONFIGURATION.host,
-            ():void => console.info('Server started.')
+            ():void =>
+                console.info(
+                    `Listen on port ${CONFIGURATION.port} for incoming ` +
+                    'requests.'
+                )
         )
     },
     stop: ():void => {
