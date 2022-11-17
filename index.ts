@@ -18,7 +18,7 @@
 */
 // region imports
 // NOTE: http2 compatibility mode does work for unencrypted connections yet.
-import Tools from 'clientnode'
+import Tools, {CloseEventNames} from 'clientnode'
 import {EvaluationResult, PlainObject} from 'clientnode/type'
 import {createServer as createHTTP1Server} from 'http'
 import {
@@ -373,6 +373,13 @@ if (require.main === module || eval('require.main') !== require.main) {
     )
 
     server.start()
+
+    for (const name of CloseEventNames)
+        process.on(name, ():void => {
+            console.info(`\nGot "${name}" signal: stopping server.`)
+
+            server.stop()
+        })
 }
 
 export default server
