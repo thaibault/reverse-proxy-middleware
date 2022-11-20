@@ -99,22 +99,20 @@
         "host": "localhost",
         "identifier": "",
         "port": 443,
+        "stateAPIs": [
+          {
+            "name": "base",
+            "data": {},
+            "options": {},
+            "preExpression": "false",
+            "postExpression": "true",
+            "resultExpression": "",
+            "skipSecret": [],
+            "url": ""
+          }
+        ],
         "tls": true
       }
-    },
-    "humanChecker": {
-      "applicationInterfaces": {
-        "base": {
-          "headerName": "",
-          "identifiyAsHumanIfServiceThrowsException": true,
-          "options": {},
-          "score": 0.01,
-          "secret": "",
-          "url": ""
-        }
-      },
-      "botDetectionStatusCode": 420,
-      "skipSecrets": []
     }
   },
   "webOptimizer": {

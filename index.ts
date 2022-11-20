@@ -48,20 +48,22 @@ import {
 // region configuration
 const CONFIGURATION:Configuration = packageConfiguration.configuration
 
-const configurationPath:string = resolve(process.cwd(), 'configuration.json')
-if (Tools.isFileSync(configurationPath))
-    Tools.extend(
-        true,
-        CONFIGURATION,
-        Tools.evaluateDynamicData<Configuration>(
-            eval(`require('${configurationPath}')`) as Configuration,
-            {
-                configuration: CONFIGURATION,
-                environment: process.env,
-                Tools
-            }
+for (const path of ['configuration.json', 'secure-configuration.json']) {
+    const configurationPath:string = resolve(process.cwd(), path)
+    if (Tools.isFileSync(configurationPath))
+        Tools.extend(
+            true,
+            CONFIGURATION,
+            Tools.evaluateDynamicData<Configuration>(
+                eval(`require('${configurationPath}')`) as Configuration,
+                {
+                    configuration: CONFIGURATION,
+                    environment: process.env,
+                    Tools
+                }
+            )
         )
-    )
+}
 
 const APPLICATION_INTERFACES:ResolvedAPIConfigurations =
     {} as ResolvedAPIConfigurations
