@@ -1,20 +1,20 @@
 {
-  "name": "bot-filter",
+  "name": "reverse-proxy-middleware",
   "version": "0.0.15",
   "description": "A reverse proxy blocking bot requests.",
   "keywords": [
     "api",
     "backend",
-    "bot-filter",
     "bot-blocker",
+    "middleware",
     "proxy",
     "reverse-proxy",
     "web"
   ],
-  "homepage": "https://torben.website/bot-filter",
+  "homepage": "https://torben.website/reverse-proxy-middleware",
   "bugs": {
     "email": "info@torben.website",
-    "url": "https://github.com/thaibault/bot-filter/issues"
+    "url": "https://github.com/thaibault/reverse-proxy-middleware/issues"
   },
   "license": "CC-BY-3.0",
   "author": {
@@ -28,11 +28,11 @@
     "type.d.ts"
   ],
   "bin": {
-    "bot-filter": "index.js"
+    "reverse-proxy-middleware": "index.js"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/thaibault/bot-filter.git"
+    "url": "https://github.com/thaibault/reverse-proxy-middleware.git"
   },
   "scripts": {
     "build": "yarn build:types; yarn build:plain",
@@ -79,7 +79,7 @@
   },
   "sideEffects": true,
   "documentationWebsite": {
-    "name": "bot-filter",
+    "name": "reverse-proxy-middleware",
     "trackingCode": ""
   },
   "configuration": {

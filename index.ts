@@ -109,11 +109,11 @@ const determineForwarder = (request:HTTPServerRequest):Forwarder|null => {
 }
 
 const hasSkipSecret = (request:HTTPServerRequest):boolean =>
-    request.headers['bot-filter-skip'] === 'true' &&
-    Boolean(request.headers['bot-filter-skip-secret']) &&
+    request.headers['reverse-proxy-middleware-skip'] === 'true' &&
+    Boolean(request.headers['reverse-proxy-middleware-skip-secret']) &&
     CONFIGURATION.humanChecker.skipSecrets.includes(
         ([] as Array<string>).concat(
-            request.headers['bot-filter-skip-secret'] as string
+            request.headers['reverse-proxy-middleware-skip-secret'] as string
         )[0]
     )
 

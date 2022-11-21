@@ -17,13 +17,13 @@
 # Run the following command in the directory where this file lives to build a
 # new docker image:
 
-# - docker pull arm64v8/node && docker build --no-cache --tag ghcr.io/thaibault/bot-filter:latest ./
-# - cat "${ILU_GITHUB_BASE_CONFIGURATION_PATH}mainToken.txt" | docker login ghcr.io --username thaibault --password-stdin && docker push ghcr.io/thaibault/bot-filter:latest
+# - docker pull arm64v8/node && docker build --no-cache --tag ghcr.io/thaibault/reverse-proxy-middleware:latest ./
+# - cat "${ILU_GITHUB_BASE_CONFIGURATION_PATH}mainToken.txt" | docker login ghcr.io --username thaibault --password-stdin && docker push ghcr.io/thaibault/reverse-proxy-middleware:latest
 
 # endregion
 # region start container commands
 # Run the following command in the directory where this file lives to start:
-# podman / docker run --interactive --name bot-filter --publish 0.0.0.0:8080:8080 --rm --tty --volume "$(pwd):/application" ghcr.io/thaibault/bot-filter:latest
+# podman / docker run --interactive --name reverse-proxy-middleware --publish 0.0.0.0:8080:8080 --rm --tty --volume "$(pwd):/application" ghcr.io/thaibault/reverse-proxy-middleware:latest
 # endregion
 ARG         BASE_IMAGE
 
