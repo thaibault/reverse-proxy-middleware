@@ -69,6 +69,7 @@
     "eslint": "*",
     "eslint-config-google": "*",
     "eslint-plugin-jsdoc": "*",
+    "jest": "*",
     "jsdoc": "*",
     "weboptimizer": "*"
   },
