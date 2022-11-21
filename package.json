@@ -101,13 +101,12 @@
         "port": 443,
         "stateAPIs": [
           {
-            "name": "base",
             "data": {},
+            "name": "base",
             "options": {},
             "preExpression": "false",
             "postExpression": "true",
-            "resultExpression": "",
-            "skipSecret": [],
+            "skipSecrets": [],
             "url": ""
           }
         ],
