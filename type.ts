@@ -27,28 +27,21 @@ import {
 import {Socket as PlainSocket} from 'net'
 import {TLSSocket} from 'tls'
 // endregion
-export interface APIConfiguration {
-    headerName:string
-    identifiyAsHumanIfServiceThrowsException:boolean
-    secret:string
-    score:number
-    options:RequestInit
-    url:string
-}
-export type APIConfigurations = {
-    base:APIConfiguration
-    [key:string]:Partial<APIConfiguration>
-}
-export type ResolvedAPIConfigurations = {
-    [key:string]:APIConfiguration
-}
-
 export type Socket = PlainSocket|TLSSocket
 export type BufferedSocket = Socket & {buffers:Array<Buffer>}
 export interface BufferedHTTPServerRequest extends HTTPServerRequest {
     socket:BufferedSocket
 }
 
+export interface APIConfiguration {
+    data:Mapping<unknown>
+    name:string
+    options:RequestInit
+    preExpression:string
+    postExpression:string
+    skipSecrets:Array<string>
+    url:string
+}
 export interface HeaderTransformation {
     source:string|RegExp
     target:string|((substring:string, ...parameters:Array<unknown>) => string)
@@ -61,6 +54,7 @@ export interface Forwarder {
     host:string
     identifier:RegExp|string
     port:number
+    stateAPIs:Array<APIConfiguration>
     tls:boolean
 }
 export type ResolvedForwarder = {
@@ -78,12 +72,6 @@ export interface Configuration {
     forwarder:{
         base:Forwarder
         [key:string]:Partial<Forwarder>
-    }
-
-    humanChecker:{
-        applicationInterfaces:APIConfigurations
-        botDetectionStatusCode:number
-        skipSecrets:Array<string>
     }
 }
 
