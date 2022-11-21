@@ -97,7 +97,7 @@
           "send": []
         },
         "host": "localhost",
-        "identifierExpression": "",
+        "useExpression": "true",
         "port": 443,
         "stateAPIs": [
           {

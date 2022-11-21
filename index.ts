@@ -139,25 +139,66 @@ const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
                 }
             forwarder.headerTransformations = headerTransformations
             // endregion
-            // region normalize identifier expression
-            if (givenForwarder.identifierExpression instanceof RegExp)
-                forwarder.identifierExpression =
-                    ():RegExp => givenForwarder.identifierExpression
-            else {
-                const result:CompilationResult<RegExp|string> =
-                    Tools.stringCompile(
-                        givenForwarder.identifierExpression,
-                        EVALUATION_SCOPE_NAMES
+            // region state apis
+            const stateAPIs:Array<ResolvedAPIConfiguration> = []
+            const givenStateAPIs:Array<ApiConfiguration> =
+                ([] as Array<APIConfiguration>)
+                    .concat(givenForwarder.stateAPIs)
+            const baseAPI:APIConfiguration = givenStateAPIs.filter(
+                (api:APIConfiguration):boolean => api.name === 'base'
+            )[0]
+            const extendedGivenStateAPIs:Array<APIConfiguration> = []
+            for (const api of givenStateAPIs)
+                if (api.name !== 'base')
+                    extendedGivenStateAPIs.push(
+                        Tools.extend(true, {}, baseAPI, api)
                     )
+            for (const api of extendedGivenStateAPIs) {
+                api.skipSecrets = ([] as Array<string>).concat(api.skipSecrets)
+                const expressions:ResolvedAPIExpressions = {pre: [], post: []}
+                for (const expression of ([] as Array<string>).concat(
+                    api.expressions.pre
+                )) {
+                    const result:ComilationResult<boolean|number> =
+                        Tools.stringCompile<boolean|number>(
+                            expression, SCOPE_EVALUATION_NAMES
+                        )
 
-                if (result.error)
-                    throw new Error(error)
+                    if (result.error)
+                        throw new Error(result.error)
 
+                    expressions.pre.push(result.templateFunction)
+                }
+                for (const expression of ([] as Array<string>).concat(
+                    api.expressions.post
+                )) {
+                    const result:ComilationResult<number|true> =
+                        Tools.stringCompile<number|true>(
+                            expression, SCOPE_EVALUATION_NAMES
+                        )
 
-                forwarder.identifierExpression = result.templateFunction
+                    if (result.error)
+                        throw new Error(result.error)
+
+                    expressions.pre.push(result.templateFunction)
+                }
+                api.expressions = expressions
+                stateAPIs.push(api)
             }
+
+            forwarder.stateAPIs = stateAPIs
             // endregion
-            
+            // region normalize identifier expression
+            const result:CompilationResult<RegExp|string> =
+                Tools.stringCompile(
+                    givenForwarder.useExpression, EVALUATION_SCOPE_NAMES
+                )
+
+            if (result.error)
+                throw new Error(error)
+
+            forwarder.useExpression = result.templateFunction
+            // endregion
             resolvedForwarders[name] = forwarder
         }
 

@@ -49,19 +49,28 @@ export interface EvaluationScope {
     Tools:typeof Tools
 }
 
+export interface APIExpressions {
+    post?:Array<string>|string
+    pre?:Array<string>|string
+}
 export interface APIConfiguration {
     data?:Mapping<unknown>
     name:string
     options?:RequestInit
-    expressions?:{
-        post?:Array<string>|string
-        pre?:Array<string>|string
-    }
-    skipSecrets?:Array<string>
+    expressions?:APIExpressions
+    skipSecrets?:Array<string>|string
     url:string
 }
+export interface ResolvedAPIExpressions {
+    pre:Array<TemplateFunction<boolean|number>>
+    post:Array<TemplateFunction<number|true>
+}
 export type ResolvedAPIConfiguration =
-    NoneNullable<Omit<APIConfiguration, ''>>
+    NoneNullable<Omit<APIConfiguration, 'expressions'|'skipSecrets'>> &
+    {
+        expressions:ResolvedAPIExpressions
+        skipSecrets:Array<string>
+    }
 export interface HeaderTransformation {
     source?:string|RegExp
     target?:string|((substring:string, ...parameters:Array<unknown>) => string)
@@ -81,10 +90,10 @@ export interface ResolvedHeaderTransformations {
 export interface Forwarder {
     headerTransformations?:HeaderTransformations
     host:string
-    identifierExpression?:RegExp|string
     port?:number
     stateAPIs?:APIConfiguration|Array<APIConfiguration>
     tls?:boolean
+    useExpression?:string
 }
 export interface Forwarders {
     base:Forwarder
@@ -92,12 +101,12 @@ export interface Forwarders {
 }
 export type ResolvedForwarder =
     NoneNullable<Omit<
-        Forwarder, 'headerTransformations'|'identifierExpression'|'stateAPIs'
+        Forwarder, 'headerTransformations'|'stateAPIs'|'useExpression'
     >> &
     {
         headerTransformations:ResolvedHeaderTransformations
-        identifierExpression:TemplateFunction<boolean>
         stateAPIs:Array<ResolvedAPIConfiguration>
+        useExpression:TemplateFunction<boolean>
     }
 export type ResolvedForwarders = {
     [key:string]:ResolvedForwarder
