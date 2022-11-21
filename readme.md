@@ -13,15 +13,15 @@ endregion -->
 Project status
 --------------
 
-[![npm](https://img.shields.io/npm/v/bot-filter?color=%23d55e5d&label=npm%20package%20version&logoColor=%23d55e5d)](https://www.npmjs.com/package/bot-filter)
-[![npm downloads](https://img.shields.io/npm/dy/bot-filter.svg)](https://www.npmjs.com/package/bot-filter)
+[![npm](https://img.shields.io/npm/v/reverse-proxy-middleware?color=%23d55e5d&label=npm%20package%20version&logoColor=%23d55e5d)](https://www.npmjs.com/package/reverse-proxy-middleware)
+[![npm downloads](https://img.shields.io/npm/dy/reverse-proxy-middleware.svg)](https://www.npmjs.com/package/reverse-proxy-middleware)
 
-[![<LABEL>](https://github.com/thaibault/bot-filter/actions/workflows/build.yaml/badge.svg)](https://github.com/thaibault/bot-filter/actions/workflows/build.yaml)
-[![<LABEL>](https://github.com/thaibault/bot-filter/actions/workflows/check-types.yaml/badge.svg)](https://github.com/thaibault/bot-filter/actions/workflows/check-types.yaml)
+[![<LABEL>](https://github.com/thaibault/reverse-proxy-middleware/actions/workflows/build.yaml/badge.svg)](https://github.com/thaibault/reverse-proxy-middleware/actions/workflows/build.yaml)
+[![<LABEL>](https://github.com/thaibault/reverse-proxy-middleware/actions/workflows/check-types.yaml/badge.svg)](https://github.com/thaibault/reverse-proxy-middleware/actions/workflows/check-types.yaml)
 [![<LABEL>](https://github.com/thaibault/web-node/actions/workflows/lint.yaml/badge.svg)](https://github.com/thaibault/web-node/actions/workflows/lint.yaml)
-[![<LABEL>](https://github.com/thaibault/bot-filter/actions/workflows/build-image-periodically-2-branches.yaml/badge.svg)](https://github.com/thaibault/bot-filter/actions/workflows/build-image-periodically-2-branches.yaml)
+[![<LABEL>](https://github.com/thaibault/reverse-proxy-middleware/actions/workflows/build-image-periodically-2-branches.yaml/badge.svg)](https://github.com/thaibault/reverse-proxy-middleware/actions/workflows/build-image-periodically-2-branches.yaml)
 
-[![documentation website](https://img.shields.io/website-up-down-green-red/http/torben.website/bot-filter.svg?label=documentation-website)](http://torben.website/bot-filter)
+[![documentation website](https://img.shields.io/website-up-down-green-red/http/torben.website/reverse-proxy-middleware.svg?label=documentation-website)](http://torben.website/reverse-proxy-middleware)
 
 Use case
 --------
