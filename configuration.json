@@ -17,14 +17,14 @@
                         "score": 0.01
                     },
                     "name": "googleReCaptchaV2-3",
-                    "postExpressions": [
-                        "Boolean(error)",
-                        "response.success",
-                        "typeof response.score === 'number' && response.score >= data.score ? true : 420"
-                    ],
-                    "preExpressions": [
-                        "headers['g-recaptcha-response'] ? true : 400"
-                    ],
+                    "expressions": {
+                        "post": [
+                            "Boolean(error)",
+                            "response.success",
+                            "typeof response.score === 'number' && response.score >= data.score ? true : 420"
+                        ],
+                        "pre": "headers['g-recaptcha-response'] ? true : 400"
+                    },
                     "url": "https://www.google.com/recaptcha/api/siteverify?secret=${data.secret}&response=${headers['g-recaptcha-response']}"
                 },
                 {
@@ -38,7 +38,7 @@
                         },
                         "method": "POST"
                     },
-                    "preExpressions": "true",
+                    "expressions": {"pre": "true"},
                     "url": "https://jobradgmbh--leadform.sandbox.my.salesforce.com/services/oauth2/token"
                 }
             ]

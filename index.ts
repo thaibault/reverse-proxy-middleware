@@ -76,7 +76,7 @@ const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
                 forwarders.base,
                 givenForwarder
             )
-
+            // region normalize header transformations
             const headerTransformations:ResolvedHeaderTransformations = {
                 retrieve: [],
                 send: []
@@ -89,23 +89,75 @@ const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
 
                     for (const givenTransformation of givenTransformations) {
                         const transformation:ResolvedHeaderTransformation = {}
+
                         if (Object.prototype.hasOwnProperty.call(
                             givenTransformation, 'source'
                         ))
-                            transformation.source = ():string => ''
+                            if (givenTransformation.source instanceof RegExp)
+                                transformation.source =
+                                    ():RegExp => givenTransformation.source
+                            else {
+                                const result:CompilationResult<RegExp|string> =
+                                    Tools.stringCompile<RegExp|string>(
+                                        givenTransformation.source,
+                                        EVALUATION_SCOPE_NAMES
+                                    )
+
+                                if (result.error)
+                                    throw new Error(result.error)
+
+                                transformation.source = result.templateFunction
+                            }
                         else
-                            transformation.source = Tools.stringCompile<
-                                RegExp|string
-                            >(
-                                givenTransformation.source,
-                                EVALUATION_SCOPE_NAMES
+                            transformation.source = ():string => ''
+
+                        if (Object.prototype.hasOwnProperty.call(
+                            givenTransformation, 'target'
+                        ))
+                            if (
+                                typeof givenTransformation.target ===
+                                    'function'
                             )
+                                transformation.target = ():StringReplacer =>
+                                    givenTransformation.target
+                            else {
+                                const result:CompilationResult<
+                                    string|StringReplacer
+                                > = Tools.stringCompile<string|StringReplacer>(
+                                    givenTransformation.target,
+                                    EVALUATION_SCOPE_NAMES
+                                )
+
+                                if (result.error)
+                                    throw new Error(result.error)
+
+                                transformation.target = result.templateFunction
+                            }
+                        else
+                            transformation.source = ():string => ''
                     }
                 }
+            forwarder.headerTransformations = headerTransformations
+            // endregion
+            // region normalize identifier expression
+            if (givenForwarder.identifierExpression instanceof RegExp)
+                forwarder.identifierExpression =
+                    ():RegExp => givenForwarder.identifierExpression
+            else {
+                const result:CompilationResult<RegExp|string> =
+                    Tools.stringCompile(
+                        givenForwarder.identifierExpression,
+                        EVALUATION_SCOPE_NAMES
+                    )
 
-            resolvedForwarder.headerTransformations =
-                resolvedHeaderTransformations
+                if (result.error)
+                    throw new Error(error)
 
+
+                forwarder.identifierExpression = result.templateFunction
+            }
+            // endregion
+            
             resolvedForwarders[name] = forwarder
         }
 

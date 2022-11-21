@@ -17,7 +17,7 @@
     endregion
 */
 // region imports
-import {CompilationResult} from 'clientnode/type'
+import {TemplateFunction} from 'clientnode/type'
 import {
     Http2SecureServer as HTTPSecureServer,
     Http2Server as HttpServer,
@@ -33,6 +33,9 @@ export type BufferedSocket = Socket & {buffers:Array<Buffer>}
 export interface BufferedHTTPServerRequest extends HTTPServerRequest {
     socket:BufferedSocket
 }
+
+export type StringReplacer =
+    (substring:string, ...parameters:Array<unknown>) => string
 
 export interface EvaluationScope {
     error?:Error
@@ -50,21 +53,22 @@ export interface APIConfiguration {
     data?:Mapping<unknown>
     name:string
     options?:RequestInit
-    postExpressions?:Array<string>|string
-    preExpressions?:Array<string>|string
+    expressions?:{
+        post?:Array<string>|string
+        pre?:Array<string>|string
+    }
     skipSecrets?:Array<string>
     url:string
 }
-export type ResolvedAPIConfiguration = NoneNullable<APIConfiguration>
+export type ResolvedAPIConfiguration =
+    NoneNullable<Omit<APIConfiguration, ''>>
 export interface HeaderTransformation {
     source?:string|RegExp
     target?:string|((substring:string, ...parameters:Array<unknown>) => string)
 }
 export interface ResolvedHeaderTransformation {
-    source:CompilationResult<string|RegExp>
-    target:CompilationResult<
-        string|((substring:string, ...parameters:Array<unknown>) => string)
-    >
+    source:TemplateFunction<string|RegExp>
+    target:TemplateFunction<string|StringReplacer>
 }
 export interface HeaderTransformations {
     retrieve?:Array<HeaderTransformation>|HeaderTransformation
@@ -79,7 +83,7 @@ export interface Forwarder {
     host:string
     identifierExpression?:RegExp|string
     port?:number
-    stateAPIs?:Array<APIConfiguration>
+    stateAPIs?:APIConfiguration|Array<APIConfiguration>
     tls?:boolean
 }
 export interface Forwarders {
@@ -87,8 +91,14 @@ export interface Forwarders {
     [key:string]:Partial<Forwarder>
 }
 export type ResolvedForwarder =
-    NoneNullable<Omit<Forwarder, 'headerTransformation'>> &
-    {headerTransformation:ResolvedHeaderTransformation}
+    NoneNullable<Omit<
+        Forwarder, 'headerTransformations'|'identifierExpression'|'stateAPIs'
+    >> &
+    {
+        headerTransformations:ResolvedHeaderTransformations
+        identifierExpression:TemplateFunction<boolean>
+        stateAPIs:Array<ResolvedAPIConfiguration>
+    }
 export type ResolvedForwarders = {
     [key:string]:ResolvedForwarder
 }

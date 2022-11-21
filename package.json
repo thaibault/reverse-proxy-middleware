@@ -104,8 +104,10 @@
             "data": {},
             "name": "base",
             "options": {},
-            "preExpressions": "false",
-            "postExpressions": "true",
+            "expressions": {
+                "pre": "false",
+                "post": "true"
+            },
             "skipSecrets": [],
             "url": ""
           }
