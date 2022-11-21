@@ -90,22 +90,22 @@
     },
     "host": "localhost",
     "port": 8080,
-    "forward": {
+    "forwarders": {
       "base": {
-        "headerTransformation": {
+        "headerTransformations": {
           "retrieve": [],
           "send": []
         },
         "host": "localhost",
-        "identifier": "",
+        "identifierExpression": "",
         "port": 443,
         "stateAPIs": [
           {
             "data": {},
             "name": "base",
             "options": {},
-            "preExpression": "false",
-            "postExpression": "true",
+            "preExpressions": "false",
+            "postExpressions": "true",
             "skipSecrets": [],
             "url": ""
           }

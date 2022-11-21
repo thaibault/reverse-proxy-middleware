@@ -5,11 +5,10 @@
         "__evaluate__": "environment.PORT ?? 8080"
     },
 
-    "forward": {
+    "forwarders": {
         "base": {
-            "headerTransformation": {
-              "retrieve": [],
-              "send": [{"target": "stateAPIs.salesforceSession.response.data.access_token"}]
+            "headerTransformations": {
+              "send": {"target": "stateAPIs.salesforceSession.response.data.access_token"}
             },
             "host": "www.posic.de",
             "stateAPIs": [
@@ -18,8 +17,14 @@
                         "score": 0.01
                     },
                     "name": "googleReCaptchaV2-3",
-                    "postExpression": "error ? true : ((response.success || typeof response.score === 'number' && response.score >= data.score) ? true : 420)",
-                    "preExpression": "headers['g-recaptcha-response'] ? true : 400",
+                    "postExpressions": [
+                        "Boolean(error)",
+                        "response.success",
+                        "typeof response.score === 'number' && response.score >= data.score ? true : 420"
+                    ],
+                    "preExpressions": [
+                        "headers['g-recaptcha-response'] ? true : 400"
+                    ],
                     "url": "https://www.google.com/recaptcha/api/siteverify?secret=${data.secret}&response=${headers['g-recaptcha-response']}"
                 },
                 {
@@ -33,7 +38,7 @@
                         },
                         "method": "POST"
                     },
-                    "preExpression": "true",
+                    "preExpressions": "true",
                     "url": "https://jobradgmbh--leadform.sandbox.my.salesforce.com/services/oauth2/token"
                 }
             ]

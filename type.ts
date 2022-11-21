@@ -17,6 +17,7 @@
     endregion
 */
 // region imports
+import {CompilationResult} from 'clientnode/type'
 import {
     Http2SecureServer as HTTPSecureServer,
     Http2Server as HttpServer,
@@ -33,47 +34,77 @@ export interface BufferedHTTPServerRequest extends HTTPServerRequest {
     socket:BufferedSocket
 }
 
+export interface EvaluationScope {
+    error?:Error
+    request?:HTTPServerRequest
+    response?:HTTPServerResponse
+    stateAPIs?:Mapping<{
+        error?:Error
+        configuration:APIConfiguration
+        response?:HTTPServerResponse
+    }>
+    Tools:typeof Tools
+}
+
 export interface APIConfiguration {
-    data:Mapping<unknown>
+    data?:Mapping<unknown>
     name:string
-    options:RequestInit
-    preExpression:string
-    postExpression:string
-    skipSecrets:Array<string>
+    options?:RequestInit
+    postExpressions?:Array<string>|string
+    preExpressions?:Array<string>|string
+    skipSecrets?:Array<string>
     url:string
 }
+export type ResolvedAPIConfiguration = NoneNullable<APIConfiguration>
 export interface HeaderTransformation {
-    source:string|RegExp
-    target:string|((substring:string, ...parameters:Array<unknown>) => string)
+    source?:string|RegExp
+    target?:string|((substring:string, ...parameters:Array<unknown>) => string)
+}
+export interface ResolvedHeaderTransformation {
+    source:CompilationResult<string|RegExp>
+    target:CompilationResult<
+        string|((substring:string, ...parameters:Array<unknown>) => string)
+    >
+}
+export interface HeaderTransformations {
+    retrieve?:Array<HeaderTransformation>|HeaderTransformation
+    send?:Array<HeaderTransformation>|HeaderTransformation
+}
+export interface ResolvedHeaderTransformations {
+    retrieve:Array<ResolvedHeaderTransformation>
+    send:Array<ResolvedHeaderTransformation>
 }
 export interface Forwarder {
-    headerTransformation:{
-        retrieve:Array<HeaderTransformation>
-        send:Array<HeaderTransformation>
-    }
+    headerTransformations?:HeaderTransformations
     host:string
-    identifier:RegExp|string
-    port:number
-    stateAPIs:Array<APIConfiguration>
-    tls:boolean
+    identifierExpression?:RegExp|string
+    port?:number
+    stateAPIs?:Array<APIConfiguration>
+    tls?:boolean
 }
-export type ResolvedForwarder = {
-    [key:string]:Forwarder
+export interface Forwarders {
+    base:Forwarder
+    [key:string]:Partial<Forwarder>
+}
+export type ResolvedForwarder =
+    NoneNullable<Omit<Forwarder, 'headerTransformation'>> &
+    {headerTransformation:ResolvedHeaderTransformation}
+export type ResolvedForwarders = {
+    [key:string]:ResolvedForwarder
 }
 
 export interface Configuration {
-    publicKeyPath:string
     privateKeyPath:string
+    publicKeyPath:string
 
     nodeServerOptions:SecureServerOptions
     host:string
     port:number
 
-    forwarder:{
-        base:Forwarder
-        [key:string]:Partial<Forwarder>
-    }
+    forwarders:Forwarders
 }
+export type ResolvedConfiguration =
+    Omit<Configuration, 'forwarders'> & {forwarders:ResolvedForwarders}
 
 export type HTTPServer = HttpServer|HTTPSecureServer
 export interface Server {

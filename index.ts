@@ -39,59 +39,18 @@ import {
     BufferedHTTPServerRequest,
     BufferedSocket,
     Configuration,
-    Forwarder,
+    Forwarders,
     ResolvedForwarder,
+    ResolvedForwarders,
     Server,
     Socket
 } from './type'
 // endregion
-// region configuration
-const CONFIGURATION:Configuration = packageConfiguration.configuration
-
-for (const path of ['configuration.json', 'secure-configuration.json']) {
-    const configurationPath:string = resolve(process.cwd(), path)
-    if (Tools.isFileSync(configurationPath))
-        Tools.extend(
-            true,
-            CONFIGURATION,
-            Tools.evaluateDynamicData<Configuration>(
-                eval(`require('${configurationPath}')`) as Configuration,
-                {
-                    configuration: CONFIGURATION,
-                    environment: process.env,
-                    Tools
-                }
-            )
-        )
-}
-
-const APPLICATION_INTERFACES:ResolvedAPIConfigurations =
-    {} as ResolvedAPIConfigurations
-for (const [name, checker] of Object.entries(
-    CONFIGURATION.humanChecker.applicationInterfaces
-)) {
-    if (name === 'base')
-        continue
-
-    APPLICATION_INTERFACES[name] = Tools.extend(
-        true,
-        {},
-        CONFIGURATION.humanChecker.applicationInterfaces.base,
-        checker
-    )
-}
-const FORWARDER:ResolvedForwarder = {} as ResolvedForwarder
-for (const [name, forwarder] of Object.entries(CONFIGURATION.forwarder)) {
-    if (name === 'base')
-        continue
-
-    FORWARDER[name] = Tools.extend(
-        true, {}, CONFIGURATION.forwarder.base, forwarder
-    )
-}
-// endregion
 // region helper
-const determineForwarder = (request:HTTPServerRequest):Forwarder|null => {
+/// region forwarder
+const determineForwarder = (
+    request:HTTPServerRequest
+):ResolvedForwarder|null => {
     for (const [name, forwarder] of Object.entries(FORWARDER))
         if (
             forwarder.identifier &&
@@ -107,7 +66,52 @@ const determineForwarder = (request:HTTPServerRequest):Forwarder|null => {
 
     return null
 }
+const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
+    const resolvedForwarders:ResolvedForwarders = {}
+    for (const [name, givenForwarder] of Object.entries(forwarders))
+        if (name !== 'base') {
+            const forwarder:ResolvedForwarder = Tools.extend(
+                true,
+                {},
+                forwarders.base,
+                givenForwarder
+            )
 
+            const headerTransformations:ResolvedHeaderTransformations = {
+                retrieve: [],
+                send: []
+            }
+            for (const type of ['retrieve', 'send'] as const)
+                for (const givenTransformations of (
+                    [] as Array<HeaderTransformation>
+                ).concat(forwarder.headerTransformations[type])) {
+                    headerTransformations[type] = []
+
+                    for (const givenTransformation of givenTransformations) {
+                        const transformation:ResolvedHeaderTransformation = {}
+                        if (Object.prototype.hasOwnProperty.call(
+                            givenTransformation, 'source'
+                        ))
+                            transformation.source = ():string => ''
+                        else
+                            transformation.source = Tools.stringCompile<
+                                RegExp|string
+                            >(
+                                givenTransformation.source,
+                                EVALUATION_SCOPE_NAMES
+                            )
+                    }
+                }
+
+            resolvedForwarder.headerTransformations =
+                resolvedHeaderTransformations
+
+            resolvedForwarders[name] = forwarder
+        }
+
+    return resolvedForwarders
+}
+/// endregion
 const hasSkipSecret = (request:HTTPServerRequest):boolean =>
     request.headers['reverse-proxy-middleware-skip'] === 'true' &&
     Boolean(request.headers['reverse-proxy-middleware-skip-secret']) &&
@@ -195,8 +199,9 @@ const isValid = async (request:HTTPServerRequest):Promise<boolean|null> => {
 
     return Object.keys(APPLICATION_INTERFACES).length === 0
 }
+
 const reverseProxyBufferedRequest = (
-    clientSocket:Socket, buffers:Array<Buffer>, forwarder:Forwarder
+    clientSocket:Socket, buffers:Array<Buffer>, forwarder:ResolvedForwarder
 ):void => {
     const createConnection:typeof createSecureConnection = forwarder.tls ?
         createSecureConnection :
@@ -316,7 +321,8 @@ const onIncomingMessage = (
             // NOTE: We have to wait until client request is fully buffered.
             await Tools.timeout()
 
-            const forwarder:Forwarder|null = determineForwarder(request)
+            const forwarder:ResolvedForwarder|null =
+                determineForwarder(request)
 
             if (forwarder)
                 reverseProxyBufferedRequest(
@@ -342,6 +348,33 @@ const onIncomingStream = (
 ):void => {
     console.info('Got stream', stream, headers)
 }
+// endregion
+// region configuration
+const CONFIGURATION:Configuration = packageConfiguration.configuration
+
+for (const path of [
+    'configuration.json', 'secure-configuration.json'
+] as const) {
+    const configurationPath:string = resolve(process.cwd(), path)
+    if (Tools.isFileSync(configurationPath))
+        Tools.extend(
+            true,
+            CONFIGURATION,
+            Tools.evaluateDynamicData<Configuration>(
+                eval(`require('${configurationPath}')`) as Configuration,
+                {
+                    configuration: CONFIGURATION,
+                    environment: process.env,
+                    Tools
+                }
+            )
+        )
+}
+const EVALUATION_SCOPE_NAMES = [
+    'error', 'request', 'response', 'stateAPIs', 'Tools'
+] as const 
+const FORWARDERS:ResolvedForwarders =
+    resolveForwarders(CONFIGURATION.forwarders)
 // endregion
 // region initialize server
 const server:Server = {
@@ -408,6 +441,7 @@ server.instance.on(
     }
 )
 // endregion
+// region start / stop
 if (require.main === module || eval('require.main') !== require.main) {
     console.info(
         'Start server with configuration:', Tools.represent(CONFIGURATION)
@@ -422,7 +456,7 @@ if (require.main === module || eval('require.main') !== require.main) {
             server.stop()
         })
 }
-
+// endregion
 export default server
 // region vim modline
 // vim: set tabstop=4 shiftwidth=4 expandtab:
