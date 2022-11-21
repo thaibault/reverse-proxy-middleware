@@ -47,6 +47,9 @@
     "prepare": "yarn build",
     "serve": "weboptimizer build && yarn start",
     "start": "./index.js",
+    "test": "weboptimizer test",
+    "test:coverage": "weboptimizer test:coverage",
+    "test:coverage:report": "weboptimizer test:coverage:report",
     "update": "yarn version --patch",
     "update:documentation": "documentation-website",
     "watch": "weboptimizer build --watch"
