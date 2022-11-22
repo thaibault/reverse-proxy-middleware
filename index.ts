@@ -55,39 +55,24 @@ const onIncomingMessage = (
 ):void => {
     const bufferedRequest = request as BufferedHTTPServerRequest
 
-    void (async ():Promise<void> => {
-        const result:boolean|null = await isValid(request)
+    // NOTE: We have to wait until client request is fully buffered.
+    await Tools.timeout()
 
-        if (result === null) {
+    void (async ():Promise<void> => {
+        const forwarder:ResolvedForwarder|null =
+            determineForwarder(request, response, FORWARDERS)
+
+        if (forwarder === null) {
+            console.error('No forwarder found for given request:', request)
+
             response.statusCode = 502
             response.end()
-
-            return
         }
 
-        if (result) {
-            // NOTE: We have to wait until client request is fully buffered.
-            await Tools.timeout()
-
-            const forwarder:ResolvedForwarder|null =
-                determineForwarder(request)
-
-            if (forwarder)
-                reverseProxyBufferedRequest(
-                    response.socket, bufferedRequest.socket.buffers, forwarder
-                )
-            else {
-                console.error('No forwarder found for given request:', request)
-
-                response.statusCode = 502
-                response.end()
-            }
-
-            return
-        }
-
-        response.statusCode = CONFIGURATION.humanChecker.botDetectionStatusCode
-        response.end()
+        if (await applyStateAPIs(request, response, forwarder))
+            reverseProxyBufferedRequest(
+                response.socket, bufferedRequest.socket.buffers, forwarder
+            )
     })()
 }
 
@@ -119,8 +104,8 @@ for (const path of [
         )
 }
 const EVALUATION_SCOPE_NAMES = [
-    'error', 'request', 'response', 'stateAPIs', 'Tools'
-] as const 
+    'data', 'error', 'request', 'response', 'stateAPIs', 'Tools'
+] as const
 const FORWARDERS:ResolvedForwarders =
     resolveForwarders(CONFIGURATION.forwarders)
 // endregion

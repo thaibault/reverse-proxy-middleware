@@ -47,17 +47,108 @@ import {
 } from './type'
 // endregion
 // region forwarder
+export const applyStateAPIs = async (
+    request:HTTPServerRequest,
+    response:HTTPServerResponse,
+    forwarder:ResolvedForwarder
+):Promise<boolean> => {
+    const stateAPIScope:Mapping<unknown> = {}
+
+    for (const stateAPI of forwarder.stateAPIs) {
+        stateAPIScope[stateAPI.name] = {...stateAPI}
+        let useStateAPI = false
+
+        for (const expression of stateAPI.expressions.pre) {
+            const result:boolean|number = expression(
+                stateAPI.data,
+                null,
+                request,
+                response,
+                stateAPIScope,
+                Tools
+            )
+
+            if (typeof result === 'number') {
+                console.info(
+                    'Break request caused by state api ' +
+                    `"${stateAPI.name}" with status code ${result}.`
+                )
+
+                response.statusCode = result
+                response.end()
+
+                return false
+            }
+
+            if (result)
+                useStateAPI = true
+            else
+                break
+        }
+
+        if (useStateAPI) {
+            console.info(`Use state api "${stateAPI.name}".`)
+
+            if (hasSkipSecret(request, stateAPI)) {
+                console.info(
+                    `Skip state api "${stateAPI.name}" causes by ` +
+                    'determined skip secret.'
+                )
+
+                break
+            }
+
+            let error:Error|null = null
+            try {
+                stateAPIScope[stateAPI.name].response = await fetch(
+                    stateAPI.url, stateAPI.options
+                )
+
+                stateAPIScope[stateAPI.name].response.data =
+                    await stateAPIScope[stateAPI.name].response.json()
+            } catch (givenError) {
+                error = givenError
+                console.warn(
+                    `State api "${stateAPI.name}" throws error:`, error
+                )
+            }
+
+            for (const expression of stateAPI.expressions.post) {
+                const result:number|true = expression(
+                    stateAPI.data,
+                    error,
+                    request,
+                    response,
+                    stateAPIScope,
+                    Tools
+                )
+
+                if (typeof result === 'number') {
+                    console.info(
+                        'Break request caused by state api ' +
+                        `"${stateAPI.name}" with status code ${result}.`
+                    )
+
+                    response.statusCode = result
+                    response.end()
+
+                    return false
+                }
+            }
+        }
+    }
+
+    return true
+}
 export const determineForwarder = (
-    request:HTTPServerRequest
+    request:HTTPServerRequest,
+    response:HTTPServerResponse,
+    forwarders:ResolvedForwarders
 ):ResolvedForwarder|null => {
-    for (const [name, forwarder] of Object.entries(FORWARDER))
-        if (
-            forwarder.identifier &&
-            typeof forwarder.identifier === 'string' &&
-            request.url === forwarder.identifier ||
-            forwarder.identifier instanceof RegExp &&
-            forwarder.identifier.test(request.url)
-        ) {
+    for (const [name, forwarder] of Object.entries(forwarders))
+        if (forwarder.useExpression(
+            forwarder, null, request, response, forwarder.stateAPIs, Tools
+        )) {
             console.info(`Determined forwarder "${name}."`)
 
             return forwarder
@@ -203,95 +294,17 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
 
     return resolvedForwarders
 }
-// endregion
-export const hasSkipSecret = (request:HTTPServerRequest):boolean =>
+export const hasSkipSecret = (
+    request:HTTPServerRequest, stateAPI:ResolvedStateAPI
+):boolean =>
     request.headers['reverse-proxy-middleware-skip'] === 'true' &&
     Boolean(request.headers['reverse-proxy-middleware-skip-secret']) &&
-    CONFIGURATION.humanChecker.skipSecrets.includes(
+    stateAPI.skipSecrets.includes(
         ([] as Array<string>).concat(
             request.headers['reverse-proxy-middleware-skip-secret'] as string
         )[0]
     )
-
-export const isValid = async (request:HTTPServerRequest):Promise<boolean|null> => {
-    if (hasSkipSecret(request))
-        return true
-
-    for (const [name, checker] of Object.entries(APPLICATION_INTERFACES)) {
-        const clientToken:string|undefined = ([] as Array<string|undefined>)
-            .concat(request.headers[checker.headerName])[0]
-        if (clientToken) {
-            const urlEvaluationResult:EvaluationResult<string> =
-                Tools.stringEvaluate(
-                    `\`${checker.url}\``,
-                    {
-                        clientToken: clientToken.substring(
-                            clientToken.indexOf(' ') + 1
-                        ),
-                        secret: checker.secret
-                    }
-                )
-
-            if (urlEvaluationResult.error) {
-                console.error(
-                    'Error while evaluation checker url:',
-                    urlEvaluationResult.error
-                )
-                continue
-            }
-
-            const url:string = urlEvaluationResult.result
-
-            try {
-                const response:PlainObject = (await (await fetch(
-                    url, checker.options
-                )).json()) as PlainObject
-
-                if (
-                    response.success ||
-                    typeof response.score === 'number' &&
-                    response.score >= checker.score
-                ) {
-                    console.info(
-                        `Request "${url}" (${name}) identified as human ` +
-                        'triggered.'
-                    )
-
-                    return true
-                }
-
-                console.info(
-                    `Request "${url}" (${name}) identified as robot ` +
-                    'triggered:',
-                    response
-                )
-
-                return false
-            } catch (error) {
-                console.warn(
-                    `Request to "${url}" (${name}) couldn't be identified as` +
-                    'robot or human because the recaptcha service produces ' +
-                    'the following error:',
-                    error
-                )
-
-                if (checker.identifiyAsHumanIfServiceThrowsException) {
-                    console.info(
-                        'Request will be interpret as human triggered caused' +
-                        'by fallback configuration.'
-                    )
-
-                    return true
-                }
-
-                return null
-            }
-        }
-    }
-
-    return Object.keys(APPLICATION_INTERFACES).length === 0
-}
-
+// endregion
 export const reverseProxyBufferedRequest = (
     clientSocket:Socket, buffers:Array<Buffer>, forwarder:ResolvedForwarder
 ):void => {
