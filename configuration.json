@@ -42,8 +42,8 @@
                         "expressions": {"pre": "true"},
                         "url": "https://jobradgmbh--leadform.sandbox.my.salesforce.com/services/oauth2/token"
                     }
-                }
-            ]
+                ]
+            }
         }
     }
 }

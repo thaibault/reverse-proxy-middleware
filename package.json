@@ -23,6 +23,7 @@
     "url": "https://torben.website"
   },
   "files": [
+    "helper.d.ts",
     "index.d.ts",
     "index.js",
     "type.d.ts"

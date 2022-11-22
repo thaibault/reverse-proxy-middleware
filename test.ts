@@ -16,13 +16,13 @@
 // region imports
 import {testEach} from 'clientnode/testHelper'
 
-import {resolveForwarder} from './index'
+import {resolveForwarders} from './index'
 // endregion
-testEach<typeof resolveForwarder>(
-    'resolveForwarder',
-    resolveForwarder,
+testEach<typeof resolveForwarders>(
+    'resolveForwarders',
+    resolveForwarders,
 
-    [{}, {}]
+    [{}, {base: {host: 'localhost'}}]
 )
 // region vim modline
 // vim: set tabstop=4 shiftwidth=4 expandtab:
