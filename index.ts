@@ -19,46 +19,39 @@
 // region imports
 // NOTE: http2 compatibility mode does work for unencrypted connections yet.
 import Tools, {CloseEventNames} from 'clientnode'
-import {EvaluationResult, PlainObject} from 'clientnode/type'
 import {createServer as createHTTP1Server} from 'http'
-import {
-    createServer,
-    createSecureServer,
-    Http2ServerResponse as HTTPServerResponse,
-    Http2ServerRequest as HTTPServerRequest,
-    Http2Stream as HTTPStream,
-    OutgoingHttpHeaders as OutgoingHTTPHeaders
-} from 'http2'
-import {createConnection as createPlainConnection} from 'net'
 import {resolve} from 'path'
-import {connect as createSecureConnection} from 'tls'
 
 import reverseProxyBufferedRequest, {
-    determineForwarder, hasSkipSecret, resolveForwarders
+    applyStateAPIs,
+    determineForwarder,
+    resolveForwarders
 } from './helper'
 import packageConfiguration from './package.json'
 import {
-    ResolvedAPIConfigurations,
     BufferedHTTPServerRequest,
     BufferedSocket,
     Configuration,
-    Forwarders,
+    HTTPServerResponse,
+    HTTPServerRequest,
+    HTTPStream,
+    OutgoingHTTPHeaders,
     ResolvedForwarder,
     ResolvedForwarders,
-    Server,
-    Socket
+    Server
 } from './type'
 // endregion
+declare const ORIGINAL_MAIN_MODULE:object
 // region live cycle methods
 const onIncomingMessage = (
     request:HTTPServerRequest, response:HTTPServerResponse
 ):void => {
     const bufferedRequest = request as BufferedHTTPServerRequest
 
-    // NOTE: We have to wait until client request is fully buffered.
-    await Tools.timeout()
-
     void (async ():Promise<void> => {
+        // NOTE: We have to wait until client request is fully buffered.
+        await Tools.timeout()
+
         const forwarder:ResolvedForwarder|null =
             determineForwarder(request, response, FORWARDERS)
 
@@ -69,9 +62,9 @@ const onIncomingMessage = (
             response.end()
         }
 
-        if (await applyStateAPIs(request, response, forwarder))
+        if (await applyStateAPIs(request, response, forwarder!))
             reverseProxyBufferedRequest(
-                response.socket, bufferedRequest.socket.buffers, forwarder
+                response.socket, bufferedRequest.socket.buffers, forwarder!
             )
     })()
 }
@@ -103,9 +96,6 @@ for (const path of [
             )
         )
 }
-const EVALUATION_SCOPE_NAMES = [
-    'data', 'error', 'request', 'response', 'stateAPIs', 'Tools'
-] as const
 const FORWARDERS:ResolvedForwarders =
     resolveForwarders(CONFIGURATION.forwarders)
 // endregion

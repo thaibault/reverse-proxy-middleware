@@ -17,17 +17,27 @@
     endregion
 */
 // region imports
-import {TemplateFunction} from 'clientnode/type'
+import Tools from 'clientnode'
+import {Mapping, TemplateFunction} from 'clientnode/type'
 import {
     Http2SecureServer as HTTPSecureServer,
     Http2Server as HttpServer,
-    Http2ServerRequest as HTTPServerRequest,
-    Http2Stream as HTTPStream,
+    Http2ServerRequest,
+    Http2ServerResponse,
+    Http2Stream,
+    OutgoingHttpHeaders,
     SecureServerOptions
 } from 'http2'
 import {Socket as PlainSocket} from 'net'
 import {TLSSocket} from 'tls'
 // endregion
+export type HTTPServer = HttpServer|HTTPSecureServer
+export type HTTPServerRequest = Http2ServerRequest
+export type HTTPServerResponse = Http2ServerResponse
+export type HTTPStream = Http2Stream
+
+export type OutgoingHTTPHeaders = OutgoingHttpHeaders
+
 export type Socket = PlainSocket|TLSSocket
 export type BufferedSocket = Socket & {buffers:Array<Buffer>}
 export interface BufferedHTTPServerRequest extends HTTPServerRequest {
@@ -43,7 +53,7 @@ export interface EvaluationScope {
     response?:HTTPServerResponse
     stateAPIs?:Mapping<{
         error?:Error
-        configuration:APIConfiguration
+        configuration:StateAPI
         response?:HTTPServerResponse
     }>
     Tools:typeof Tools
@@ -53,7 +63,7 @@ export interface APIExpressions {
     post?:Array<string>|string
     pre?:Array<string>|string
 }
-export interface APIConfiguration {
+export interface StateAPI {
     data?:Mapping<unknown>
     name:string
     options?:RequestInit
@@ -63,10 +73,10 @@ export interface APIConfiguration {
 }
 export interface ResolvedAPIExpressions {
     pre:Array<TemplateFunction<boolean|number>>
-    post:Array<TemplateFunction<number|true>
+    post:Array<TemplateFunction<number|true>>
 }
-export type ResolvedAPIConfiguration =
-    NoneNullable<Omit<APIConfiguration, 'expressions'|'skipSecrets'>> &
+export type ResolvedStateAPI =
+    NonNullable<Omit<StateAPI, 'expressions'|'skipSecrets'>> &
     {
         expressions:ResolvedAPIExpressions
         skipSecrets:Array<string>
@@ -76,7 +86,7 @@ export interface HeaderTransformation {
     target?:string|((substring:string, ...parameters:Array<unknown>) => string)
 }
 export interface ResolvedHeaderTransformation {
-    source:TemplateFunction<string|RegExp>
+    source:TemplateFunction<RegExp|string>
     target:TemplateFunction<string|StringReplacer>
 }
 export interface HeaderTransformations {
@@ -91,7 +101,7 @@ export interface Forwarder {
     headerTransformations?:HeaderTransformations
     host:string
     port?:number
-    stateAPIs?:APIConfiguration|Array<APIConfiguration>
+    stateAPIs?:StateAPI|Array<StateAPI>
     tls?:boolean
     useExpression?:string
 }
@@ -100,12 +110,12 @@ export interface Forwarders {
     [key:string]:Partial<Forwarder>
 }
 export type ResolvedForwarder =
-    NoneNullable<Omit<
+    NonNullable<Omit<
         Forwarder, 'headerTransformations'|'stateAPIs'|'useExpression'
     >> &
     {
         headerTransformations:ResolvedHeaderTransformations
-        stateAPIs:Array<ResolvedAPIConfiguration>
+        stateAPIs:Array<ResolvedStateAPI>
         useExpression:TemplateFunction<boolean>
     }
 export type ResolvedForwarders = {
@@ -125,7 +135,6 @@ export interface Configuration {
 export type ResolvedConfiguration =
     Omit<Configuration, 'forwarders'> & {forwarders:ResolvedForwarders}
 
-export type HTTPServer = HttpServer|HTTPSecureServer
 export interface Server {
     instance:HTTPServer
     streams:Array<HTTPStream>

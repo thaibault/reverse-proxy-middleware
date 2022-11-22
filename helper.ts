@@ -18,44 +18,43 @@
 */
 // region imports
 // NOTE: http2 compatibility mode does work for unencrypted connections yet.
-import Tools, {CloseEventNames} from 'clientnode'
-import {EvaluationResult, PlainObject} from 'clientnode/type'
-import {createServer as createHTTP1Server} from 'http'
-import {
-    createServer,
-    createSecureServer,
-    Http2ServerResponse as HTTPServerResponse,
-    Http2ServerRequest as HTTPServerRequest,
-    Http2Stream as HTTPStream,
-    OutgoingHttpHeaders as OutgoingHTTPHeaders
-} from 'http2'
+import Tools from 'clientnode'
+import {CompilationResult, Mapping} from 'clientnode/type'
 import {createConnection as createPlainConnection} from 'net'
-import {resolve} from 'path'
 import {connect as createSecureConnection} from 'tls'
 
-import packageConfiguration from './package.json'
 import {
-    ResolvedAPIConfigurations,
-    BufferedHTTPServerRequest,
-    BufferedSocket,
-    Configuration,
     Forwarders,
+    HeaderTransformation,
+    HTTPServerResponse,
+    HTTPServerRequest,
+    ResolvedAPIExpressions,
+    ResolvedHeaderTransformation,
+    ResolvedHeaderTransformations,
     ResolvedForwarder,
     ResolvedForwarders,
-    Server,
-    Socket
+    ResolvedStateAPI,
+    Socket,
+    StateAPI,
+    StringReplacer
 } from './type'
 // endregion
+export const EVALUATION_SCOPE_NAMES:Array<string> = [
+    'data', 'error', 'request', 'response', 'stateAPIs', 'Tools'
+]
 // region forwarder
 export const applyStateAPIs = async (
     request:HTTPServerRequest,
     response:HTTPServerResponse,
     forwarder:ResolvedForwarder
 ):Promise<boolean> => {
-    const stateAPIScope:Mapping<unknown> = {}
+    const stateAPIScope:Mapping<
+        ResolvedStateAPI & {response:Response & {data:Mapping<unknown>}}
+    > = {}
 
     for (const stateAPI of forwarder.stateAPIs) {
-        stateAPIScope[stateAPI.name] = {...stateAPI}
+        stateAPIScope[stateAPI.name] = {...stateAPI} as
+            ResolvedStateAPI & {response:Response & {data:Mapping<unknown>}}
         let useStateAPI = false
 
         for (const expression of stateAPI.expressions.pre) {
@@ -102,12 +101,12 @@ export const applyStateAPIs = async (
             try {
                 stateAPIScope[stateAPI.name].response = await fetch(
                     stateAPI.url, stateAPI.options
-                )
+                ) as Response & {data:Mapping<unknown>}
 
                 stateAPIScope[stateAPI.name].response.data =
                     await stateAPIScope[stateAPI.name].response.json()
             } catch (givenError) {
-                error = givenError
+                error = givenError as Error
                 console.warn(
                     `State api "${stateAPI.name}" throws error:`, error
                 )
@@ -165,93 +164,91 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
                 {},
                 forwarders.base,
                 givenForwarder
-            )
+            ) as unknown as ResolvedForwarder
             // region normalize header transformations
             const headerTransformations:ResolvedHeaderTransformations = {
                 retrieve: [],
                 send: []
             }
-            for (const type of ['retrieve', 'send'] as const)
-                for (const givenTransformations of (
+            for (const type of ['retrieve', 'send'] as const) {
+                headerTransformations[type] = []
+                for (const givenTransformation of (
                     [] as Array<HeaderTransformation>
-                ).concat(forwarder.headerTransformations[type])) {
-                    headerTransformations[type] = []
+                ).concat(
+                    forwarder.headerTransformations[type] as
+                        unknown as
+                        HeaderTransformation
+                )) {
+                    const transformation:ResolvedHeaderTransformation = {
+                        source: ():string => '',
+                        target: ():string => ''
+                    }
 
-                    for (const givenTransformation of givenTransformations) {
-                        const transformation:ResolvedHeaderTransformation = {}
-
-                        if (Object.prototype.hasOwnProperty.call(
-                            givenTransformation, 'source'
-                        ))
-                            if (givenTransformation.source instanceof RegExp)
-                                transformation.source =
-                                    ():RegExp => givenTransformation.source
-                            else {
-                                const result:CompilationResult<RegExp|string> =
-                                    Tools.stringCompile<RegExp|string>(
-                                        givenTransformation.source,
-                                        EVALUATION_SCOPE_NAMES
-                                    )
-
-                                if (result.error)
-                                    throw new Error(result.error)
-
-                                transformation.source = result.templateFunction
-                            }
-                        else
-                            transformation.source = ():string => ''
-
-                        if (Object.prototype.hasOwnProperty.call(
-                            givenTransformation, 'target'
-                        ))
-                            if (
-                                typeof givenTransformation.target ===
-                                    'function'
-                            )
-                                transformation.target = ():StringReplacer =>
-                                    givenTransformation.target
-                            else {
-                                const result:CompilationResult<
-                                    string|StringReplacer
-                                > = Tools.stringCompile<string|StringReplacer>(
-                                    givenTransformation.target,
+                    if (Object.prototype.hasOwnProperty.call(
+                        givenTransformation, 'source'
+                    ))
+                        if (givenTransformation.source instanceof RegExp)
+                            transformation.source = ():RegExp =>
+                                givenTransformation.source as RegExp
+                        else {
+                            const result:CompilationResult<RegExp|string> =
+                                Tools.stringCompile<RegExp|string>(
+                                    givenTransformation.source!,
                                     EVALUATION_SCOPE_NAMES
                                 )
 
-                                if (result.error)
-                                    throw new Error(result.error)
+                            if (result.error)
+                                throw new Error(result.error)
 
-                                transformation.target = result.templateFunction
-                            }
-                        else
-                            transformation.source = ():string => ''
-                    }
+                            transformation.source = result.templateFunction
+                        }
+
+                    if (Object.prototype.hasOwnProperty.call(
+                        givenTransformation, 'target'
+                    ))
+                        if (typeof givenTransformation.target === 'function')
+                            transformation.target = ():string|StringReplacer =>
+                                givenTransformation.target!
+                        else {
+                            const result:CompilationResult<
+                                string|StringReplacer
+                            > = Tools.stringCompile<string|StringReplacer>(
+                                givenTransformation.target!,
+                                EVALUATION_SCOPE_NAMES
+                            )
+
+                            if (result.error)
+                                throw new Error(result.error)
+
+                            transformation.target = result.templateFunction
+                        }
                 }
+            }
             forwarder.headerTransformations = headerTransformations
             // endregion
             // region state apis
-            const stateAPIs:Array<ResolvedAPIConfiguration> = []
-            const givenStateAPIs:Array<ApiConfiguration> =
-                ([] as Array<APIConfiguration>)
-                    .concat(givenForwarder.stateAPIs)
-            const baseAPI:APIConfiguration = givenStateAPIs.filter(
-                (api:APIConfiguration):boolean => api.name === 'base'
+            const stateAPIs:Array<ResolvedStateAPI> = []
+            const givenStateAPIs:Array<StateAPI> =
+                ([] as Array<StateAPI>).concat(givenForwarder.stateAPIs!)
+            const baseAPI:StateAPI = givenStateAPIs.filter(
+                (api:StateAPI):boolean => api.name === 'base'
             )[0]
-            const extendedGivenStateAPIs:Array<APIConfiguration> = []
+            const extendedGivenStateAPIs:Array<StateAPI> = []
             for (const api of givenStateAPIs)
                 if (api.name !== 'base')
                     extendedGivenStateAPIs.push(
                         Tools.extend(true, {}, baseAPI, api)
                     )
             for (const api of extendedGivenStateAPIs) {
-                api.skipSecrets = ([] as Array<string>).concat(api.skipSecrets)
+                api.skipSecrets =
+                    ([] as Array<string>).concat(api.skipSecrets!)
                 const expressions:ResolvedAPIExpressions = {pre: [], post: []}
                 for (const expression of ([] as Array<string>).concat(
-                    api.expressions.pre
+                    api.expressions!.pre!
                 )) {
-                    const result:ComilationResult<boolean|number> =
+                    const result:CompilationResult<boolean|number> =
                         Tools.stringCompile<boolean|number>(
-                            expression, SCOPE_EVALUATION_NAMES
+                            expression, EVALUATION_SCOPE_NAMES
                         )
 
                     if (result.error)
@@ -260,11 +257,11 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
                     expressions.pre.push(result.templateFunction)
                 }
                 for (const expression of ([] as Array<string>).concat(
-                    api.expressions.post
+                    api.expressions!.post!
                 )) {
-                    const result:ComilationResult<number|true> =
+                    const result:CompilationResult<number|true> =
                         Tools.stringCompile<number|true>(
-                            expression, SCOPE_EVALUATION_NAMES
+                            expression, EVALUATION_SCOPE_NAMES
                         )
 
                     if (result.error)
@@ -272,20 +269,20 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
 
                     expressions.pre.push(result.templateFunction)
                 }
-                api.expressions = expressions
-                stateAPIs.push(api)
+                ;(api as unknown as ResolvedStateAPI).expressions = expressions
+                stateAPIs.push(api as unknown as ResolvedStateAPI)
             }
 
             forwarder.stateAPIs = stateAPIs
             // endregion
             // region normalize use expression
-            const result:CompilationResult<RegExp|string> =
+            const result:CompilationResult<boolean> =
                 Tools.stringCompile(
-                    givenForwarder.useExpression, EVALUATION_SCOPE_NAMES
+                    givenForwarder.useExpression!, EVALUATION_SCOPE_NAMES
                 )
 
             if (result.error)
-                throw new Error(error)
+                throw new Error(result.error)
 
             forwarder.useExpression = result.templateFunction
             // endregion
@@ -322,20 +319,17 @@ export const reverseProxyBufferedRequest = (
 
     const serverSocket = createConnection(
         {
-            host: CONFIGURATION.forward.host,
-            port: CONFIGURATION.forward.port,
-            ...(CONFIGURATION.forward.tls ?
-                {
-                    servername: CONFIGURATION.forward.host,
-                    rejectUnauthorized: false
-                } :
+            host: forwarder.host,
+            port: forwarder.port,
+            ...(forwarder.tls ?
+                {servername: forwarder.host, rejectUnauthorized: false} :
                 {}
             )
         },
         () => {
             console.info(
-                `Proxy to: http${CONFIGURATION.forward.tls ? 's' : ''}://` +
-                `${CONFIGURATION.forward.host}${portSuffix}`
+                `Proxy to: http${forwarder.tls ? 's' : ''}://` +
+                `${forwarder.host}${portSuffix}`
             )
         }
     )
@@ -344,7 +338,7 @@ export const reverseProxyBufferedRequest = (
     })
 
     // Send data from server back to client.
-    if (CONFIGURATION.forward.headerTransformation.retrieve.length) {
+    if (forwarder.headerTransformations.retrieve.length) {
         let headerProcessed = false
         serverSocket.on('data', (buffer:Buffer):void => {
             if (headerProcessed) {
@@ -355,13 +349,14 @@ export const reverseProxyBufferedRequest = (
 
             let content:string = buffer.toString()
             for (
-                const replacement of
-                CONFIGURATION.forward.headerTransformation.retrieve
-            )
-                content = content.replace(
-                    replacement.source, replacement.target as string
-                )
+                const replacement of forwarder.headerTransformations.retrieve
+            ) {
+                // TODO error handling and scope prep.
+                const source:RegExp|string = replacement.source()
+                const target:string|StringReplacer = replacement.target()
 
+                content = content.replace(source, target as string)
+            }
             clientSocket.write(content)
 
             headerProcessed = true
@@ -375,23 +370,24 @@ export const reverseProxyBufferedRequest = (
             if (!headerProcessed) {
                 let content:string = buffer.toString()
 
-                if (CONFIGURATION.forward.tls)
+                if (forwarder.tls)
                     // NOTE: TLS support was introduced in version 1.1.
                     content = content.replace(/HTTP\/1\.0/i, 'HTTP/1.1')
 
                 // Overwrite proxy host with destination one.
                 content = content.replace(
-                    /(($|\n)host: )[^\n]+/i,
-                    `$1${CONFIGURATION.forward.host}${portSuffix}`
+                    /(($|\n)host: )[^\n]+/i, `$1${forwarder.host}${portSuffix}`
                 )
 
                 for (
-                    const replacement of
-                    CONFIGURATION.forward.headerTransformation.send
-                )
-                    content = content.replace(
-                        replacement.source, replacement.target as string
-                    )
+                    const replacement of forwarder.headerTransformations.send
+                ) {
+                    // TODO error handling and scope prep.
+                    const source:RegExp|string = replacement.source()
+                    const target:string|StringReplacer = replacement.target()
+
+                    content = content.replace(source, target as string)
+                }
 
                 console.info(`Send:\n\n${content}`)
 

@@ -14,16 +14,19 @@
     endregion
 */
 // region imports
+import {describe} from '@jest/globals'
 import {testEach} from 'clientnode/testHelper'
 
-import {resolveForwarders} from './index'
+import {resolveForwarders} from './helper'
 // endregion
-testEach<typeof resolveForwarders>(
-    'resolveForwarders',
-    resolveForwarders,
+describe('helper', ():void => {
+    testEach<typeof resolveForwarders>(
+        'resolveForwarders',
+        resolveForwarders,
 
-    [{}, {base: {host: 'localhost'}}]
-)
+        [{}, {base: {host: 'localhost'}}]
+    )
+})
 // region vim modline
 // vim: set tabstop=4 shiftwidth=4 expandtab:
 // vim: foldmethod=marker foldmarker=region,endregion:
