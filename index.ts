@@ -20,6 +20,7 @@
 // NOTE: http2 compatibility mode does work for unencrypted connections yet.
 import Tools, {CloseEventNames} from 'clientnode'
 import {createServer as createHTTP1Server} from 'http'
+import {createServer, createSecureServer} from 'http2'
 import {resolve} from 'path'
 
 import reverseProxyBufferedRequest, {

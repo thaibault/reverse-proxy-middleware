@@ -19,7 +19,7 @@
 // region imports
 // NOTE: http2 compatibility mode does work for unencrypted connections yet.
 import Tools from 'clientnode'
-import {CompilationResult, Mapping} from 'clientnode/type'
+import {CompilationResult, Mapping, PlainObject} from 'clientnode/type'
 import {createConnection as createPlainConnection} from 'net'
 import {connect as createSecureConnection} from 'tls'
 
@@ -104,7 +104,8 @@ export const applyStateAPIs = async (
                 ) as Response & {data:Mapping<unknown>}
 
                 stateAPIScope[stateAPI.name].response.data =
-                    await stateAPIScope[stateAPI.name].response.json()
+                    await stateAPIScope[stateAPI.name].response.json() as
+                        PlainObject
             } catch (givenError) {
                 error = givenError as Error
                 console.warn(
@@ -269,7 +270,9 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
 
                     expressions.pre.push(result.templateFunction)
                 }
+                /* eslint-disable @typescript-eslint/no-extra-semi */
                 ;(api as unknown as ResolvedStateAPI).expressions = expressions
+                /* eslint-enable @typescript-eslint/no-extra-semi */
                 stateAPIs.push(api as unknown as ResolvedStateAPI)
             }
 
@@ -314,7 +317,7 @@ export const reverseProxyBufferedRequest = (
         !forwarder.tls &&
         forwarder.port !== 80
     ) ?
-        `:${forwarder.port}` :
+        `:${String(forwarder.port)}` :
         ''
 
     const serverSocket = createConnection(

@@ -18,13 +18,23 @@ import {describe} from '@jest/globals'
 import {testEach} from 'clientnode/testHelper'
 
 import {resolveForwarders} from './helper'
+import packageConfiguration from './package.json'
 // endregion
+const {configuration: BASE_CONFIGURATION} = packageConfiguration
+
 describe('helper', ():void => {
     testEach<typeof resolveForwarders>(
         'resolveForwarders',
         resolveForwarders,
 
-        [{}, {base: {host: 'localhost'}}]
+        [{}, BASE_CONFIGURATION.forwarders],
+        [
+            {},
+            {
+                base: BASE_CONFIGURATION.forwarders.base,
+                test: {host: 'host'}
+            }
+        ]
     )
 })
 // region vim modline
