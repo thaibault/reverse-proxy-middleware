@@ -150,6 +150,7 @@ export const determineForwarder = (
     response:HTTPServerResponse,
     forwarders:ResolvedForwarders
 ):ResolvedForwarder|null => {
+    console.log('A', forwarders)
     for (const [name, forwarder] of Object.entries(forwarders))
         if (forwarder.useExpression(
             forwarder,

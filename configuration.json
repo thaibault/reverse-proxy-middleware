@@ -1,49 +1,62 @@
-{
-    "publicKeyPath": "",
-    "privateKeyPath": "",
-    "port": {
-        "__evaluate__": "environment.PORT ?? 8080"
-    },
+s{
+  "publicKeyPath": "",
+  "privateKeyPath": "",
+  "port": {
+    "__evaluate__": "environment.PORT ?? 8080"
+  },
 
-    "forwarders": {
-        "base": {
-            "headerTransformations": {
-              "send": {"target": "stateAPIs.salesforceSession.response.data.access_token"}
+  "forwarders": {
+    "base": {
+      "headerTransformations": {
+        "send": {"target": "stateAPIs.salesforceSession.response.data.access_token"}
+      },
+      "stateAPIs": {
+        "__append__": [
+          {
+            "data": {
+              "score": 0.01
             },
-            "host": "www.posic.de",
-            "stateAPIs": {
-                "__append__": [
-                    {
-                        "data": {
-                            "score": 0.01
-                        },
-                        "name": "googleReCaptchaV2-3",
-                        "expressions": {
-                            "pre": "headers['g-recaptcha-response'] ? true : 400",
-                            "post": [
-                                "Boolean(error)",
-                                "response.success",
-                                "typeof response.score === 'number' && response.score >= data.score ? true : 420"
-                            ]
-                        },
-                        "url": "https://www.google.com/recaptcha/api/siteverify?secret=${data.secret}&response=${headers['g-recaptcha-response']}"
-                    },
-                    {
-                        "data": {
-                            "clientName": "alexSeinTest"
-                        },
-                        "name": "salesforceSession",
-                        "options": {
-                            "body": {
-                                "grant_type": "password"
-                            },
-                            "method": "POST"
-                        },
-                        "expressions": {"pre": "true"},
-                        "url": "https://jobradgmbh--leadform.sandbox.my.salesforce.com/services/oauth2/token"
-                    }
-                ]
-            }
+            "name": "googleReCaptchaV2-3",
+            "expressions": {
+              "pre": "headers['g-recaptcha-response'] ? true : 400",
+              "post": [
+                "Boolean(error)",
+                "response.success",
+                "typeof response.score === 'number' && response.score >= data.score ? true : 420"
+              ]
+            },
+            "url": "https://www.google.com/recaptcha/api/siteverify?secret=${data.secret}&response=${headers['g-recaptcha-response']}"
+          },
+          {
+            "name": "salesforceSession",
+            "options": {
+              "body": {
+                "grant_type": "password"
+              },
+              "method": "POST"
+            },
+            "expressions": {"pre": "true"}
+          }
+        ]
+      }
+    },
+    "salesforceFreelancer": {
+      "host": "jobradgmbh--leadform.sandbox.my.salesforce.com/services/v43/lead",
+      "stateAPIs": {
+        "__2__": {
+          "url": "https://jobradgmbh--leadform.sandbox.my.salesforce.com/services/oauth2/token"
         }
+      },
+      "useExpression": "false"
+    },
+    "salesforceSales": {
+      "host": "jobradgmbh--leadform.sandbox.my.salesforce.com/services/v43/lead",
+      "stateAPIs": {
+        "__2__": {
+          "url": "https://jobradgmbh--leadform.sandbox.my.salesforce.com/services/oauth2/token"
+        }
+      },
+      "useExpression": "true"
     }
+  }
 }
