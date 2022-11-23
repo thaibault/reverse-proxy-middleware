@@ -22,6 +22,8 @@ import packageConfiguration from './package.json'
 // endregion
 const {configuration: BASE_CONFIGURATION} = packageConfiguration
 
+const positiveUseExpression = ():true => true
+
 describe('helper', ():void => {
     testEach<typeof resolveForwarders>(
         'resolveForwarders',
@@ -29,10 +31,23 @@ describe('helper', ():void => {
 
         [{}, BASE_CONFIGURATION.forwarders],
         [
-            {},
+            {
+                test: {
+                    headerTransformations: {
+                        retrieve: [],
+                        send: []
+                    },
+                    host: 'host',
+                    name: 'test',
+                    port: 443,
+                    stateAPIs: [],
+                    tls: true,
+                    useExpression: positiveUseExpression
+                }
+            },
             {
                 base: BASE_CONFIGURATION.forwarders.base,
-                test: {host: 'host'}
+                test: {host: 'host', useExpression: positiveUseExpression}
             }
         ]
     )

@@ -65,7 +65,10 @@ const onIncomingMessage = (
 
         if (await applyStateAPIs(request, response, forwarder!))
             reverseProxyBufferedRequest(
-                response.socket, bufferedRequest.socket.buffers, forwarder!
+                request,
+                response,
+                bufferedRequest.socket.buffers,
+                forwarder!
             )
     })()
 }

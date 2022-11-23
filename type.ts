@@ -18,7 +18,7 @@
 */
 // region imports
 import Tools from 'clientnode'
-import {Mapping, TemplateFunction} from 'clientnode/type'
+import {Mapping} from 'clientnode/type'
 import {
     Http2SecureServer as HTTPSecureServer,
     Http2Server as HttpServer,
@@ -47,21 +47,35 @@ export interface BufferedHTTPServerRequest extends HTTPServerRequest {
 export type StringReplacer =
     (substring:string, ...parameters:Array<unknown>) => string
 
+export type EvaluationScopeStateAPIs = Mapping<{
+    configuration:ResolvedForwarders|ResolvedStateAPI
+    error:Error|null
+    response:(Response & {data:Mapping<unknown>})|null
+}>
 export interface EvaluationScope {
-    error?:Error
+    data?:Mapping<unknown>
+    error?:Error|null
     request?:HTTPServerRequest
     response?:HTTPServerResponse
-    stateAPIs?:Mapping<{
-        error?:Error
-        configuration:StateAPI
-        response?:HTTPServerResponse
-    }>
+    stateAPIs?:EvaluationScopeStateAPIs
     Tools:typeof Tools
 }
+export type EvaluationParameters = [
+    EvaluationScope['data'],
+    EvaluationScope['error'],
+    EvaluationScope['request'],
+    EvaluationScope['response'],
+    EvaluationScope['stateAPIs'],
+    EvaluationScope['Tools']
+]
 
+export type APIPreEvaluationExpression =
+    string|((...parameters:EvaluationParameters) => boolean|number)
+export type APIPostEvaluationExpression =
+    string|((...parameters:EvaluationParameters) => number|true)
 export interface APIExpressions {
-    post?:Array<string>|string
-    pre?:Array<string>|string
+    pre?:Array<APIPreEvaluationExpression>|APIPreEvaluationExpression
+    post?:Array<APIPostEvaluationExpression>|APIPostEvaluationExpression
 }
 export interface StateAPI {
     data?:Mapping<unknown>
@@ -72,8 +86,8 @@ export interface StateAPI {
     url:string
 }
 export interface ResolvedAPIExpressions {
-    pre:Array<TemplateFunction<boolean|number>>
-    post:Array<TemplateFunction<number|true>>
+    pre:Array<(...parmaters:EvaluationParameters) => boolean|number>
+    post:Array<(...parameters:EvaluationParameters) => number|true>
 }
 export type ResolvedStateAPI =
     NonNullable<Omit<StateAPI, 'expressions'|'skipSecrets'>> &
@@ -82,12 +96,21 @@ export type ResolvedStateAPI =
         skipSecrets:Array<string>
     }
 export interface HeaderTransformation {
-    source?:string|RegExp
-    target?:string|((substring:string, ...parameters:Array<unknown>) => string)
+    source?:(
+        string |
+        RegExp |
+        ((...parameters:EvaluationParameters) => RegExp|string)
+    )
+    target?:(
+        string |
+        ((...parameters:EvaluationParameters) =>
+            string|((substring:string, ...parameters:Array<unknown>) => string)
+        )
+    )
 }
 export interface ResolvedHeaderTransformation {
-    source:TemplateFunction<RegExp|string>
-    target:TemplateFunction<string|StringReplacer>
+    source:(...parameters:EvaluationParameters) => RegExp|string
+    target:(...parameters:EvaluationParameters) => string|StringReplacer
 }
 export interface HeaderTransformations {
     retrieve?:Array<HeaderTransformation>|HeaderTransformation
@@ -103,7 +126,7 @@ export interface Forwarder {
     port?:number
     stateAPIs?:StateAPI|Array<StateAPI>
     tls?:boolean
-    useExpression?:string
+    useExpression?:string|((...parameters:EvaluationParameters) => boolean)
 }
 export interface Forwarders {
     base:Forwarder
@@ -115,12 +138,11 @@ export type ResolvedForwarder =
     >> &
     {
         headerTransformations:ResolvedHeaderTransformations
+        name:string
         stateAPIs:Array<ResolvedStateAPI>
-        useExpression:TemplateFunction<boolean>
+        useExpression:(...parameters:EvaluationParameters) => boolean
     }
-export type ResolvedForwarders = {
-    [key:string]:ResolvedForwarder
-}
+export type ResolvedForwarders = Mapping<ResolvedForwarder>
 
 export interface Configuration {
     privateKeyPath:string
