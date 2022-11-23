@@ -103,7 +103,6 @@
           "send": []
         },
         "host": "localhost",
-        "useExpression": "true",
         "port": 443,
         "stateAPIs": [
           {
@@ -118,7 +117,8 @@
             "url": ""
           }
         ],
-        "tls": true
+        "tls": true,
+        "useExpression": "true"
       }
     }
   },
