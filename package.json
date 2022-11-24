@@ -46,7 +46,7 @@
     "lint": "weboptimizer lint",
     "postversion": "yarn publish --non-interactive; git push --tags && git push",
     "prepare": "yarn build",
-    "serve": "weboptimizer build && yarn start",
+    "serve": "yarn build:plain && yarn start",
     "start": "./index.js",
     "test": "weboptimizer test",
     "test:coverage": "weboptimizer test:coverage",

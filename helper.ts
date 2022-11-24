@@ -150,6 +150,7 @@ export const determineForwarder = (
     response:HTTPServerResponse,
     forwarders:ResolvedForwarders
 ):ResolvedForwarder|null => {
+    console.log('A', forwarders)
     for (const [name, forwarder] of Object.entries(forwarders))
         if (forwarder.useExpression(
             forwarder,
@@ -179,7 +180,12 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
             const forwarder:ResolvedForwarder = Tools.extend(
                 true,
                 {name},
-                forwarders.base as unknown as ResolvedForwarder,
+                Tools.modifyObject<ResolvedForwarder>(
+                    Tools.copy(forwarders.base) as
+                        unknown as
+                        ResolvedForwarder,
+                    givenForwarder as unknown as ResolvedForwarder
+                ),
                 givenForwarder as unknown as ResolvedForwarder
             ) as unknown as ResolvedForwarder
             // region normalize header transformations
@@ -249,7 +255,7 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
             // region state apis
             const stateAPIs:Array<ResolvedStateAPI> = []
             const givenStateAPIs:Array<StateAPI> =
-                ([] as Array<StateAPI>).concat(givenForwarder.stateAPIs || [])
+                ([] as Array<StateAPI>).concat(forwarder.stateAPIs || [])
             const baseAPI:StateAPI = givenStateAPIs.filter(
                 (api:StateAPI):boolean => api.name === 'base'
             )[0]
@@ -257,7 +263,12 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
             for (const api of givenStateAPIs)
                 if (api.name !== 'base')
                     extendedGivenStateAPIs.push(
-                        Tools.extend(true, {}, baseAPI, api)
+                        Tools.extend(
+                            true,
+                            {},
+                            Tools.modifyObject(Tools.copy(baseAPI), api),
+                            api
+                        )
                     )
             for (const api of extendedGivenStateAPIs) {
                 api.skipSecrets =
