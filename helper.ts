@@ -62,15 +62,24 @@ export const applyStateAPIs = async (
         }
         let useStateAPI = false
 
+        let index:number = 1
         for (const expression of stateAPI.expressions.pre) {
-            const result:boolean|number = expression(
-                stateAPI.data,
-                null,
-                request,
-                response,
-                stateAPIScope,
-                Tools
-            )
+            let result:boolean|number
+            try {
+                result = expression(
+                    stateAPI.data,
+                    null,
+                    request,
+                    response,
+                    stateAPIScope,
+                    Tools
+                )
+            } catch (error) {
+                console.warn(
+                    `Failed running pre ${index}. expression of state api:`,
+                    error
+                )
+            }
 
             if (typeof result === 'number') {
                 console.info(
@@ -88,6 +97,8 @@ export const applyStateAPIs = async (
                 useStateAPI = true
             else
                 break
+
+            index += 1
         }
 
         if (useStateAPI) {
@@ -118,15 +129,24 @@ export const applyStateAPIs = async (
                 )
             }
 
+            index = 1
             for (const expression of stateAPI.expressions.post) {
-                const result:number|true = expression(
-                    stateAPI.data,
-                    error,
-                    request,
-                    response,
-                    stateAPIScope,
-                    Tools
-                )
+                try {
+                    const result:number|true = expression(
+                        stateAPI.data,
+                        error,
+                        request,
+                        response,
+                        stateAPIScope,
+                        Tools
+                    )
+                } catch (error) {
+                    console.warn(
+                        `Failed running ${index}. post expression of state ` +
+                        'api:',
+                        error
+                    )
+                }
 
                 if (typeof result === 'number') {
                     console.info(
@@ -139,6 +159,8 @@ export const applyStateAPIs = async (
 
                     return false
                 }
+
+                index += 1
             }
         }
     }
@@ -150,7 +172,6 @@ export const determineForwarder = (
     response:HTTPServerResponse,
     forwarders:ResolvedForwarders
 ):ResolvedForwarder|null => {
-    console.log('A', forwarders)
     for (const [name, forwarder] of Object.entries(forwarders))
         if (forwarder.useExpression(
             forwarder,
@@ -248,6 +269,8 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
                             transformation.target = result.templateFunction
                         } else
                             transformation.target = givenTransformation.target!
+
+                    headerTransformations[type].push(transformation)
                 }
             }
             forwarder.headerTransformations = headerTransformations

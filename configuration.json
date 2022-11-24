@@ -24,11 +24,11 @@
             },
             "name": "googleReCaptchaV2-3",
             "expressions": {
-              "pre": "headers['g-recaptcha-response'] ? true : 400",
+              "pre": "request.headers['g-recaptcha-response'] ? true : 400",
               "post": [
                 "Boolean(error)",
-                "response.success",
-                "typeof response.score === 'number' && response.score >= data.score ? true : 420"
+                "response.data.success",
+                "typeof response.data.score === 'number' && response.data.score >= data.score ? true : 420"
               ]
             },
             "url": "https://www.google.com/recaptcha/api/siteverify?secret=${data.secret}&response=${headers['g-recaptcha-response']}"
@@ -56,7 +56,7 @@
       "useExpression": "false"
     },
     "salesforceSales": {
-      "host": "jobradgmbh--leadform.sandbox.my.salesforce.com/services/v43/lead",
+      "host": "jobradgmbh--leadform.sandbox.my.salesforce.com",
       "stateAPIs": {
         "__2__": {
           "url": "https://jobradgmbh--leadform.sandbox.my.salesforce.com/services/oauth2/token"
