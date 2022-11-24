@@ -1,4 +1,4 @@
-s{
+{
   "publicKeyPath": "",
   "privateKeyPath": "",
   "port": {
@@ -8,7 +8,13 @@ s{
   "forwarders": {
     "base": {
       "headerTransformations": {
-        "send": {"target": "stateAPIs.salesforceSession.response.data.access_token"}
+        "send": [
+            {
+                "source": "/(GET|POST) \\/.* (.*)/",
+                "target": "$1 /services/v43/lead $2"
+            },
+            {"target": "stateAPIs.salesforceSession.response.data.access_token"}
+        ]
       },
       "stateAPIs": {
         "__append__": [
@@ -41,7 +47,7 @@ s{
       }
     },
     "salesforceFreelancer": {
-      "host": "jobradgmbh--leadform.sandbox.my.salesforce.com/services/v43/lead",
+      "host": "jobradgmbh--leadform.sandbox.my.salesforce.com",
       "stateAPIs": {
         "__2__": {
           "url": "https://jobradgmbh--leadform.sandbox.my.salesforce.com/services/oauth2/token"

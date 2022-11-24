@@ -19,6 +19,7 @@
 // region imports
 // NOTE: http2 compatibility mode does work for unencrypted connections yet.
 import Tools, {CloseEventNames} from 'clientnode'
+import {RecursivePartial} from 'clientnode/type'
 import {createServer as createHTTP1Server} from 'http'
 import {createServer, createSecureServer} from 'http2'
 import {resolve} from 'path'
@@ -80,26 +81,30 @@ const onIncomingStream = (
 }
 // endregion
 // region configuration
-const CONFIGURATION:Configuration = packageConfiguration.configuration
+const BASE_CONFIGURATION:Configuration = packageConfiguration.configuration
 
 for (const path of [
     'configuration.json', 'secure-configuration.json'
 ] as const) {
     const configurationPath:string = resolve(process.cwd(), path)
-    if (Tools.isFileSync(configurationPath))
+    if (Tools.isFileSync(configurationPath)) {
+        const configuration:RecursivePartial<Configuration> =
+            eval(`require('${configurationPath}')`) as
+                RecursivePartial<Configuration>
+
         Tools.extend(
             true,
-            CONFIGURATION,
-            Tools.evaluateDynamicData<Configuration>(
-                eval(`require('${configurationPath}')`) as Configuration,
-                {
-                    configuration: CONFIGURATION,
-                    environment: process.env,
-                    Tools
-                }
-            )
+            Tools.modifyObject<Configuration>(
+                BASE_CONFIGURATION, configuration
+            )!,
+            configuration
         )
+    }
 }
+const CONFIGURATION:Configuration = Tools.evaluateDynamicData<Configuration>(
+    BASE_CONFIGURATION,
+    {configuration: BASE_CONFIGURATION, environment: process.env, Tools}
+)
 const FORWARDERS:ResolvedForwarders =
     resolveForwarders(CONFIGURATION.forwarders)
 // endregion
@@ -178,6 +183,7 @@ if (
     console.info(
         'Start server with configuration:', Tools.represent(CONFIGURATION)
     )
+    console.debug('Apply resolved forwarder:', Tools.represent(FORWARDERS))
 
     server.start()
 
