@@ -185,7 +185,7 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
                         unknown as
                         ResolvedForwarder,
                     givenForwarder as unknown as ResolvedForwarder
-                ),
+                )!,
                 givenForwarder as unknown as ResolvedForwarder
             ) as unknown as ResolvedForwarder
             // region normalize header transformations
@@ -266,7 +266,9 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
                         Tools.extend(
                             true,
                             {},
-                            Tools.modifyObject(Tools.copy(baseAPI), api),
+                            Tools.modifyObject<StateAPI>(
+                                Tools.copy(baseAPI), api
+                            )!,
                             api
                         )
                     )
