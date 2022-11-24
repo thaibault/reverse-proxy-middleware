@@ -11,7 +11,7 @@
         "send": [
             {
                 "source": "/(GET|POST) \\/.* (.*)/",
-                "target": "$1 /services/v43/lead $2"
+                "target": "'$1 /services/v43/lead $2'"
             },
             {"target": "stateAPIs.salesforceSession.response.data.access_token"}
         ]
