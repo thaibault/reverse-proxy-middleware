@@ -20,11 +20,17 @@
         "__append__": [
           {
             "data": {
-              "score": 0.01
+              "score": 0.01,
+              "secret": {
+                "__evaluate__": "environment.GOOGLE_RECAPTCHA_KEY"
+              },
+              "skipSecret": {
+                "__evaluate__": "environment.SKIP_SECRET"
+              }
             },
             "expressions": {
               "pre": [
-                "console.log(data.skipSecret) || data.skipSecret === request.headers['jobrad-bypass-captcha-skip-secret'] ? 'break' : 'continue'",
+                "data.skipSecret === request.headers['jobrad-bypass-captcha-skip-secret'] ? 'break' : 'continue'",
                 "request.headers['g-recaptcha-response'] ? true : 400"
               ],
               "post": [
@@ -52,6 +58,16 @@
     "salesforceFreelancer": {
       "host": "jobradgmbh--leadform.sandbox.my.salesforce.com",
       "stateAPIs": {
+        "__1__": {
+          "options": {
+            "body": {
+              "client_id": "environment.FREELANCER_CLIENT_ID",
+              "client_secret": "environment.FREELANCER_CLIENT_SECRET",
+              "username": "environment.FREELANCER_USERNAME",
+              "password": "environment.FREELANCER_PASSWORD"
+            }
+          }
+        },
         "__2__": {
           "url": "https://jobradgmbh--leadform.sandbox.my.salesforce.com/services/oauth2/token"
         }
@@ -61,6 +77,16 @@
     "salesforceSales": {
       "host": "jobradgmbh--leadform.sandbox.my.salesforce.com",
       "stateAPIs": {
+        "__1__": {
+          "options": {
+            "body": {
+              "client_id": "environment.SALES_CLIENT_ID",
+              "client_secret": "environment.SALES_CLIENT_SECRET",
+              "username": "environment.SALES_USERNAME",
+              "password": "environment.SALES_PASSWORD"
+            }
+          }
+        },
         "__2__": {
           "url": "https://jobradgmbh--leadform.sandbox.my.salesforce.com/services/oauth2/token"
         }
