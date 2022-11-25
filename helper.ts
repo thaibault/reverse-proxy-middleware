@@ -62,15 +62,24 @@ export const applyStateAPIs = async (
         }
         let useStateAPI = false
 
+        let index = 1
         for (const expression of stateAPI.expressions.pre) {
-            const result:boolean|number = expression(
-                stateAPI.data,
-                null,
-                request,
-                response,
-                stateAPIScope,
-                Tools
-            )
+            let result:'break'|boolean|'continue'|number = 'break'
+            try {
+                result = expression(
+                    stateAPI.data,
+                    null,
+                    request,
+                    response,
+                    stateAPIScope,
+                    Tools
+                )
+            } catch (error) {
+                console.warn(
+                    `Failed running pre ${index}. expression of state api:`,
+                    error
+                )
+            }
 
             if (typeof result === 'number') {
                 console.info(
@@ -84,23 +93,22 @@ export const applyStateAPIs = async (
                 return false
             }
 
+            if (result === 'break')
+                break
+
+            if (result === 'continue')
+                continue
+
             if (result)
                 useStateAPI = true
             else
                 break
+
+            index += 1
         }
 
         if (useStateAPI) {
             console.info(`Use state api "${stateAPI.name}".`)
-
-            if (hasSkipSecret(request, stateAPI)) {
-                console.info(
-                    `Skip state api "${stateAPI.name}" causes by ` +
-                    'determined skip secret.'
-                )
-
-                break
-            }
 
             let error:Error|null = null
             try {
@@ -118,15 +126,25 @@ export const applyStateAPIs = async (
                 )
             }
 
+            index = 1
             for (const expression of stateAPI.expressions.post) {
-                const result:number|true = expression(
-                    stateAPI.data,
-                    error,
-                    request,
-                    response,
-                    stateAPIScope,
-                    Tools
-                )
+                let result:'break'|'continue'|number|true = 'break'
+                try {
+                    result = expression(
+                        stateAPI.data,
+                        error,
+                        request,
+                        response,
+                        stateAPIScope,
+                        Tools
+                    )
+                } catch (error) {
+                    console.warn(
+                        `Failed running ${index}. post expression of state ` +
+                        'api:',
+                        error
+                    )
+                }
 
                 if (typeof result === 'number') {
                     console.info(
@@ -139,6 +157,14 @@ export const applyStateAPIs = async (
 
                     return false
                 }
+
+                if (result === 'break')
+                    break
+
+                if (result === 'continue')
+                    continue
+
+                index += 1
             }
         }
     }
@@ -150,7 +176,6 @@ export const determineForwarder = (
     response:HTTPServerResponse,
     forwarders:ResolvedForwarders
 ):ResolvedForwarder|null => {
-    console.log('A', forwarders)
     for (const [name, forwarder] of Object.entries(forwarders))
         if (forwarder.useExpression(
             forwarder,
@@ -248,6 +273,8 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
                             transformation.target = result.templateFunction
                         } else
                             transformation.target = givenTransformation.target!
+
+                    headerTransformations[type].push(transformation)
                 }
             }
             forwarder.headerTransformations = headerTransformations
@@ -273,8 +300,6 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
                         )
                     )
             for (const api of extendedGivenStateAPIs) {
-                api.skipSecrets =
-                    ([] as Array<string>).concat(api.skipSecrets || [])
                 const expressions:ResolvedAPIExpressions = {pre: [], post: []}
                 for (const expression of (
                     [] as Array<APIPreEvaluationExpression>
@@ -333,16 +358,6 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
 
     return resolvedForwarders
 }
-export const hasSkipSecret = (
-    request:HTTPServerRequest, stateAPI:ResolvedStateAPI
-):boolean =>
-    request.headers['reverse-proxy-middleware-skip'] === 'true' &&
-    Boolean(request.headers['reverse-proxy-middleware-skip-secret']) &&
-    stateAPI.skipSecrets.includes(
-        ([] as Array<string>).concat(
-            request.headers['reverse-proxy-middleware-skip-secret'] as string
-        )[0]
-    )
 // endregion
 export const reverseProxyBufferedRequest = (
     request:HTTPServerRequest,

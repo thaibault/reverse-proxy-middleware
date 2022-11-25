@@ -11,9 +11,9 @@
         "send": [
             {
                 "source": "/(GET|POST) \\/.* (.*)/",
-                "target": "$1 /services/v43/lead $2"
+                "target": "'$1 /services/data/v56/sobjects/Lead $2'"
             },
-            {"target": "stateAPIs.salesforceSession.response.data.access_token"}
+            {"target": "`Authorization: Bearer ${stateAPIs.salesforceSession.response.data.access_token}`"}
         ]
       },
       "stateAPIs": {
@@ -22,15 +22,18 @@
             "data": {
               "score": 0.01
             },
-            "name": "googleReCaptchaV2-3",
             "expressions": {
-              "pre": "headers['g-recaptcha-response'] ? true : 400",
+              "pre": [
+                "console.log(data.skipSecret) || data.skipSecret === request.headers['jobrad-bypass-captcha-skip-secret'] ? 'break' : 'continue'",
+                "request.headers['g-recaptcha-response'] ? true : 400"
+              ],
               "post": [
                 "Boolean(error)",
-                "response.success",
-                "typeof response.score === 'number' && response.score >= data.score ? true : 420"
+                "response.data.success",
+                "typeof response.data.score === 'number' && response.data.score >= data.score ? true : 420"
               ]
             },
+            "name": "googleReCaptchaV2-3",
             "url": "https://www.google.com/recaptcha/api/siteverify?secret=${data.secret}&response=${headers['g-recaptcha-response']}"
           },
           {
@@ -56,7 +59,7 @@
       "useExpression": "false"
     },
     "salesforceSales": {
-      "host": "jobradgmbh--leadform.sandbox.my.salesforce.com/services/v43/lead",
+      "host": "jobradgmbh--leadform.sandbox.my.salesforce.com",
       "stateAPIs": {
         "__2__": {
           "url": "https://jobradgmbh--leadform.sandbox.my.salesforce.com/services/oauth2/token"
