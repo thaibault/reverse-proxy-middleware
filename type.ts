@@ -69,10 +69,14 @@ export type EvaluationParameters = [
     EvaluationScope['Tools']
 ]
 
-export type APIPreEvaluationExpression =
-    string|((...parameters:EvaluationParameters) => boolean|number)
-export type APIPostEvaluationExpression =
-    string|((...parameters:EvaluationParameters) => number|true)
+export type APIPreEvaluationExpression = (
+    string |
+    ((...parameters:EvaluationParameters) => 'break'|boolean|'continue'|number)
+)
+export type APIPostEvaluationExpression = (
+    string |
+    ((...parameters:EvaluationParameters) => 'break'|'continue'|number|true)
+)
 export interface APIExpressions {
     pre?:Array<APIPreEvaluationExpression>|APIPreEvaluationExpression
     post?:Array<APIPostEvaluationExpression>|APIPostEvaluationExpression
@@ -82,19 +86,21 @@ export interface StateAPI {
     name:string
     options?:RequestInit
     expressions?:APIExpressions
-    skipSecrets?:Array<string>|string
     url:string
 }
 export interface ResolvedAPIExpressions {
-    pre:Array<(...parmaters:EvaluationParameters) => boolean|number>
-    post:Array<(...parameters:EvaluationParameters) => number|true>
+    pre:Array<
+        (...parmaters:EvaluationParameters) =>
+            'break'|boolean|'continue'|number
+    >
+    post:Array<
+        (...parameters:EvaluationParameters) =>
+            'break'|number|'continue'|true
+    >
 }
 export type ResolvedStateAPI =
-    NonNullable<Omit<StateAPI, 'expressions'|'skipSecrets'>> &
-    {
-        expressions:ResolvedAPIExpressions
-        skipSecrets:Array<string>
-    }
+    NonNullable<Omit<StateAPI, 'expressions'>> &
+    {expressions:ResolvedAPIExpressions}
 export interface HeaderTransformation {
     source?:(
         string |

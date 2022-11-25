@@ -107,13 +107,12 @@
         "stateAPIs": [
           {
             "data": {},
-            "name": "base",
-            "options": {},
             "expressions": {
               "pre": "false",
               "post": "true"
             },
-            "skipSecrets": [],
+            "name": "base",
+            "options": {},
             "url": ""
           }
         ],
