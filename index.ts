@@ -25,6 +25,7 @@ import {createServer, createSecureServer} from 'http2'
 import {resolve} from 'path'
 
 import reverseProxyBufferedRequest, {
+    addParsedContentToRequest,
     applyStateAPIs,
     determineForwarder,
     resolveForwarders
@@ -48,28 +49,38 @@ declare const ORIGINAL_MAIN_MODULE:object
 const onIncomingMessage = (
     request:HTTPServerRequest, response:HTTPServerResponse
 ):void => {
-    const bufferedRequest = request as BufferedHTTPServerRequest
+    const bufferedRequest:BufferedHTTPServerRequest =
+        request as BufferedHTTPServerRequest
 
     void (async ():Promise<void> => {
         // NOTE: We have to wait until client request is fully buffered.
-        await Tools.timeout()
+        while (true) {
+            await Tools.timeout()
+
+            if (bufferedRequest.socket.buffer.finished)
+                break
+        }
+
+        if (CONFIGURATION.parseBody)
+            addParsedContentToRequest(bufferedRequest)
 
         const forwarder:ResolvedForwarder|null =
-            determineForwarder(request, response, FORWARDERS)
+            determineForwarder(bufferedRequest, response, FORWARDERS)
 
         if (forwarder === null) {
-            console.error('No forwarder found for given request:', request)
+            console.error(
+                'No forwarder found for given request:', bufferedRequest
+            )
 
             response.statusCode = 502
             response.end()
         }
 
-        if (await applyStateAPIs(request, response, forwarder!))
+        const {result, scope} =
+            await applyStateAPIs(bufferedRequest, response, forwarder!)
+        if (result)
             reverseProxyBufferedRequest(
-                request,
-                response,
-                bufferedRequest.socket.buffers,
-                forwarder!
+                bufferedRequest, response, forwarder!, scope
             )
     })()
 }
@@ -146,15 +157,32 @@ const server:Server = {
 server.instance.on(
     'connection',
     (socket:BufferedSocket):void => {
-        const buffers:Array<Buffer> = []
-        socket.on('data', (data:Buffer):void => {
-            buffers.push(data)
-        })
-        socket.buffers = buffers
-
         server.sockets.push(socket)
 
+        socket.buffer = {
+            data: [],
+            finished: false
+        }
+        socket.on('data', (data:Buffer):void => {
+            socket.buffer.data.push(data)
+        })
+        for (const name of [
+            'done', 'finish', 'writableEnded', 'writableFinished'
+        ])
+            socket.on(name, ():void => {
+                socket.buffer.finished = true
+            })
+        /*
+            NOTE: Workaround since none of the events above trigger before
+            responding to client occurred.
+        */
+        void Tools.timeout(():void => {
+            socket.buffer.finished = true
+        })
+
         socket.on('close', ():void => {
+            socket.buffer.finished = true
+
             server.sockets.splice(server.sockets.indexOf(socket), 1)
         })
     }

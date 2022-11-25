@@ -26,12 +26,13 @@ import {connect as createSecureConnection} from 'tls'
 import {
     APIPostEvaluationExpression,
     APIPreEvaluationExpression,
+    BufferedHTTPServerRequest,
     EvaluationParameters,
     EvaluationScopeStateAPIs,
     Forwarders,
     HeaderTransformation,
     HTTPServerResponse,
-    HTTPServerRequest,
+    ParsedContent,
     ResolvedAPIExpressions,
     ResolvedHeaderTransformation,
     ResolvedHeaderTransformations,
@@ -48,10 +49,10 @@ export const EVALUATION_SCOPE_NAMES:Array<string> = [
 ]
 // region forwarder
 export const applyStateAPIs = async (
-    request:HTTPServerRequest,
+    request:BufferedHTTPServerRequest,
     response:HTTPServerResponse,
     forwarder:ResolvedForwarder
-):Promise<boolean> => {
+):Promise<{result:boolean, scope:EvaluationScopeStateAPIs}> => {
     const stateAPIScope:EvaluationScopeStateAPIs = {}
 
     for (const stateAPI of forwarder.stateAPIs) {
@@ -90,7 +91,7 @@ export const applyStateAPIs = async (
                 response.statusCode = result
                 response.end()
 
-                return false
+                return {result: false, scope: stateAPIScope}
             }
 
             if (result === 'break')
@@ -108,7 +109,7 @@ export const applyStateAPIs = async (
         }
 
         if (useStateAPI) {
-            console.info(`Use state api "${stateAPI.name}".`)
+            console.info(`Use state api:`, Tools.represent(stateAPI))
 
             let error:Error|null = null
             try {
@@ -126,6 +127,10 @@ export const applyStateAPIs = async (
                 )
             }
 
+            console.info(
+                `State api response is:`,
+                Tools.represent(stateAPIScope[stateAPI.name].response)
+            )
             index = 1
             for (const expression of stateAPI.expressions.post) {
                 let result:'break'|'continue'|number|true = 'break'
@@ -155,7 +160,7 @@ export const applyStateAPIs = async (
                     response.statusCode = result
                     response.end()
 
-                    return false
+                    return {result: false, scope: stateAPIScope}
                 }
 
                 if (result === 'break')
@@ -169,10 +174,10 @@ export const applyStateAPIs = async (
         }
     }
 
-    return true
+    return {result: true, scope: stateAPIScope}
 }
 export const determineForwarder = (
-    request:HTTPServerRequest,
+    request:BufferedHTTPServerRequest,
     response:HTTPServerResponse,
     forwarders:ResolvedForwarders
 ):ResolvedForwarder|null => {
@@ -184,7 +189,7 @@ export const determineForwarder = (
             response,
             {
                 [name]: {
-                    configuration: forwarders,
+                    configuration: forwarder,
                     error: null,
                     response: null
                 }
@@ -359,11 +364,64 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
     return resolvedForwarders
 }
 // endregion
+export const addParsedContentToRequest = (
+    bufferedRequest:BufferedHTTPServerRequest
+):void => {
+    if (bufferedRequest.headers['content-type'] === 'application/json')
+        try {
+            const data:string =
+                Buffer.concat(bufferedRequest.socket.buffer.data)
+                    .toString()
+            bufferedRequest.socket.buffer.body =
+                data.replace(/^[\s\S]+\s*\n\s*\n\s*([\s\S]+)$/m, '$1')
+            bufferedRequest.socket.buffer.content =
+                JSON.parse(bufferedRequest.socket.buffer.body) as ParsedContent
+        } catch (error) {
+            console.warn('Error parsing given request.', bufferedRequest)
+        }
+}
+export const transformHeaders = (
+    content:string,
+    headerTransformations:Array<ResolvedHeaderTransformation>,
+    parameters:EvaluationParameters
+):string => {
+    for (const replacement of headerTransformations)
+        try {
+            const source:RegExp|string = replacement.source(...parameters)
+            const target:string|StringReplacer =
+                replacement.target(...parameters)
+
+            if (!(source instanceof RegExp) && source.trim() === '')
+                content = content.replace(
+                    /(\s*\n)\s*\n\s*/,
+                    (
+                        substring:string,
+                        delimiter:string,
+                        ...parameters:Array<unknown>
+                    ):string => {
+                        const result:string =
+                            typeof target === 'string' ?
+                                target :
+                                target(substring, delimiter, ...parameters)
+
+                        return `${delimiter}${result}${substring}`
+                    }
+                )
+            else
+                content = content.replace(source, target as string)
+        } catch (error) {
+            console.warn(
+                'Could not apply header transformation:', error
+            )
+        }
+
+    return content
+}
 export const reverseProxyBufferedRequest = (
-    request:HTTPServerRequest,
+    request:BufferedHTTPServerRequest,
     response:HTTPServerResponse,
-    buffers:Array<Buffer>,
-    forwarder:ResolvedForwarder
+    forwarder:ResolvedForwarder,
+    stateAPIScope:EvaluationScopeStateAPIs
 ):void => {
     const clientSocket:Socket = response.socket
     const createConnection:typeof createSecureConnection = forwarder.tls ?
@@ -403,13 +461,7 @@ export const reverseProxyBufferedRequest = (
         null,
         request,
         response,
-        {
-            [forwarder.name]: {
-                configuration: {[forwarder.name]: forwarder},
-                error: null,
-                response: null
-            }
-        },
+        stateAPIScope,
         Tools
     ]
 
@@ -423,23 +475,13 @@ export const reverseProxyBufferedRequest = (
                 return
             }
 
-            let content:string = buffer.toString()
-            for (
-                const replacement of forwarder.headerTransformations.retrieve
+            clientSocket.write(
+                transformHeaders(
+                    buffer.toString(),
+                    forwarder.headerTransformations.retrieve,
+                    parameters
+                )
             )
-                try {
-                    const source:RegExp|string =
-                        replacement.source(...parameters)
-                    const target:string|StringReplacer =
-                        replacement.target(...parameters)
-
-                    content = content.replace(source, target as string)
-                } catch (error) {
-                    console.warn(
-                        'Could not apply header transformation:', error
-                    )
-                }
-            clientSocket.write(content)
 
             headerProcessed = true
         })
@@ -448,7 +490,7 @@ export const reverseProxyBufferedRequest = (
 
     serverSocket.on('connect', () => {
         let headerProcessed = false
-        for (const buffer of buffers) {
+        for (const buffer of request.socket.buffer.data) {
             if (!headerProcessed) {
                 let content:string = buffer.toString()
 
@@ -461,21 +503,9 @@ export const reverseProxyBufferedRequest = (
                     /(($|\n)host: )[^\n]+/i, `$1${forwarder.host}${portSuffix}`
                 )
 
-                for (
-                    const replacement of forwarder.headerTransformations.send
+                content = transformHeaders(
+                    content, forwarder.headerTransformations.send, parameters
                 )
-                    try {
-                        const source:RegExp|string =
-                            replacement.source(...parameters)
-                        const target:string|StringReplacer =
-                            replacement.target(...parameters)
-
-                        content = content.replace(source, target as string)
-                    } catch (error) {
-                        console.warn(
-                            'Could not apply header transformation:', error
-                        )
-                    }
 
                 console.info(`Send:\n\n${content}`)
 
