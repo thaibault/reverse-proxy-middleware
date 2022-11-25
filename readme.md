@@ -30,6 +30,18 @@ Project status
 Use case
 --------
 
+Easy and dynamically configurable reverse proxy. This tool can act as a
+middleware to check incoming requests via external bot filtering services such
+as ReCaptcha or friendlycaptcha.
+Adding state via session token with external authentication apis is possible as
+applying any external api given data to the incoming and conditionally
+forwarded requests.
+
+### Quick start
+
+To configure the middleware for providing a bot-filtering mechanism add a
+`configure.json` file and mount them into a docker container.
+
 ```JavaScript
 TODO
 ```

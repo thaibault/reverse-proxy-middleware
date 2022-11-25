@@ -11,7 +11,7 @@
         "send": [
             {
                 "source": "/(GET|POST) \\/.* (.*)/",
-                "target": "'$1 /services/data/v56/sobjects/Lead $2'"
+                "target": "'$1 /services/data/v56.0/sobjects/Lead $2'"
             },
             {"target": "`Authorization: Bearer ${stateAPIs.salesforceSession.response.data.access_token}`"}
         ]
@@ -45,12 +45,17 @@
           {
             "name": "salesforceSession",
             "options": {
-              "body": {
-                "grant_type": "password"
+              "headers": {
+                "Accept": "*/*",
+                "Content-Type": "application/x-www-form-urlencoded"
               },
-              "method": "POST"
+              "method": "POST",
+              "redirect": "follow"
             },
-            "expressions": {"pre": "true"}
+            "expressions": {
+              "pre": "true",
+              "post": "stateAPIs.salesforceSession.response.data.access_token ? true : 401"
+            }
           }
         ]
       }
@@ -58,40 +63,30 @@
     "salesforceFreelancer": {
       "host": "jobradgmbh--leadform.sandbox.my.salesforce.com",
       "stateAPIs": {
-        "__1__": {
+        "__2__": {
           "options": {
             "body": {
-              "client_id": "environment.FREELANCER_CLIENT_ID",
-              "client_secret": "environment.FREELANCER_CLIENT_SECRET",
-              "username": "environment.FREELANCER_USERNAME",
-              "password": "environment.FREELANCER_PASSWORD"
+              "__evaluate__": "`grant_type=password&client_id=${environment.FREELANCER_CLIENT_ID}&client_secret=${environment.FREELANCER_CLIENT_SECRET}&username=${environment.FREELANCER_USERNAME}&password=${environment.FREELANCER_PASSWORD}`"
             }
-          }
-        },
-        "__2__": {
+          },
           "url": "https://jobradgmbh--leadform.sandbox.my.salesforce.com/services/oauth2/token"
         }
       },
-      "useExpression": "false"
+      "useExpression": "request.headers['jobrad-type'] === 'freelancer'"
     },
     "salesforceSales": {
       "host": "jobradgmbh--leadform.sandbox.my.salesforce.com",
       "stateAPIs": {
-        "__1__": {
+        "__2__": {
           "options": {
             "body": {
-              "client_id": "environment.SALES_CLIENT_ID",
-              "client_secret": "environment.SALES_CLIENT_SECRET",
-              "username": "environment.SALES_USERNAME",
-              "password": "environment.SALES_PASSWORD"
+              "__evaluate__": "`grant_type=password&client_id=${environment.SALES_CLIENT_ID}&client_secret=${environment.SALES_CLIENT_SECRET}&username=${environment.SALES_USERNAME}&password=${environment.SALES_PASSWORD}`"
             }
-          }
-        },
-        "__2__": {
+          },
           "url": "https://jobradgmbh--leadform.sandbox.my.salesforce.com/services/oauth2/token"
         }
       },
-      "useExpression": "true"
+      "useExpression": "request.headers['jobrad-type'] === 'sales'"
     }
   }
 }

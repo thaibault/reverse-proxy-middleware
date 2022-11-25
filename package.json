@@ -96,6 +96,7 @@
     },
     "host": "localhost",
     "port": 8080,
+    "parseBody": false,
     "forwarders": {
       "base": {
         "headerTransformations": {

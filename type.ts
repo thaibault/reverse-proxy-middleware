@@ -18,7 +18,7 @@
 */
 // region imports
 import Tools from 'clientnode'
-import {Mapping} from 'clientnode/type'
+import {Mapping, PlainObject, Primitive} from 'clientnode/type'
 import {
     Http2SecureServer as HTTPSecureServer,
     Http2Server as HttpServer,
@@ -39,7 +39,17 @@ export type HTTPStream = Http2Stream
 export type OutgoingHTTPHeaders = OutgoingHttpHeaders
 
 export type Socket = PlainSocket|TLSSocket
-export type BufferedSocket = Socket & {buffers:Array<Buffer>}
+export type ParsedContent = Array<PlainObject|Primitive>|PlainObject
+export type BufferedSocket =
+    Socket &
+    {
+        buffer:{
+            body?:string
+            content?:ParsedContent
+            data:Array<Buffer>
+            finished:boolean
+        }
+    }
 export interface BufferedHTTPServerRequest extends HTTPServerRequest {
     socket:BufferedSocket
 }
@@ -48,7 +58,7 @@ export type StringReplacer =
     (substring:string, ...parameters:Array<unknown>) => string
 
 export type EvaluationScopeStateAPIs = Mapping<{
-    configuration:ResolvedForwarders|ResolvedStateAPI
+    configuration:ResolvedForwarder|ResolvedStateAPI
     error:Error|null
     response:(Response & {data:Mapping<unknown>})|null
 }>
@@ -158,6 +168,7 @@ export interface Configuration {
     host:string
     port:number
 
+    parseBody:boolean
     forwarders:Forwarders
 }
 export type ResolvedConfiguration =
