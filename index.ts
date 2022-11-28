@@ -74,6 +74,8 @@ const onIncomingMessage = (
 
             response.statusCode = 502
             response.end()
+
+            return
         }
 
         const {result, scope} =
