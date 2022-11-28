@@ -56,9 +56,6 @@
     "watch": "weboptimizer build --watch"
   },
   "runkitExample": "require('@babel/runtime/package.json')\n",
-  "dependencies": {
-    "clientnode": "*"
-  },
   "devDependencies": {
     "@babel/cli": "*",
     "@babel/eslint-parser": "*",
@@ -72,6 +69,10 @@
     "jest": "*",
     "jsdoc": "*",
     "weboptimizer": "*"
+  },
+  "dependencies": {
+    "@babel/runtime": "*",
+    "clientnode": "*"
   },
   "engines": {
     "node": ">=19",
