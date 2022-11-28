@@ -45,13 +45,14 @@ FROM        base as build
 COPY        . "$APPLICATION_PATH"
 
 # Install dev dependencies build and slice out dev dependencies afterwards.
+            # NOTE: Use busybox compatible commands (shortoptions).
 RUN         yarn --production=false && \
             yarn unlink clientnode; \
             yarn install --force --production=false && \
             yarn build && \
-            rm node_modules --force --recursive && \
+            rm node_modules -f -r && \
             yarn --production=true && \
-            rm --force --recursive /tmp/*
+            rm -f -r /tmp/*
 
 FROM        base as runtime
 
