@@ -79,10 +79,10 @@ const onIncomingMessage = (
         }
 
         const {result, scope} =
-            await applyStateAPIs(bufferedRequest, response, forwarder!)
+            await applyStateAPIs(bufferedRequest, response, forwarder)
         if (result)
             reverseProxyBufferedRequest(
-                bufferedRequest, response, forwarder!, scope
+                bufferedRequest, response, forwarder, scope
             )
     })()
 }
