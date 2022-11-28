@@ -55,6 +55,8 @@ RUN         yarn --production=false && \
 
 FROM        base as runtime
 
+RUN         yarn --production
+
 COPY        --from=build \
                 "${APPLICATION_PATH}index.js" \
                 "${APPLICATION_PATH}index.js"

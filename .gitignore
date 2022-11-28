@@ -157,6 +157,9 @@ __pycache__
 
 # Project specific
 *.js
+
+configuration.json
+secret-configuration.json
 # ...
 
 # region vim modline
