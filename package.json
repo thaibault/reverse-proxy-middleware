@@ -1,6 +1,6 @@
 {
   "name": "reverse-proxy-middleware",
-  "version": "0.0.25",
+  "version": "0.0.26",
   "description": "A reverse proxy blocking bot requests.",
   "keywords": [
     "api",
@@ -57,8 +57,7 @@
   },
   "runkitExample": "require('@babel/runtime/package.json')\n",
   "dependencies": {
-    "@babel/runtime": "*",
-    "@types/webpack": "https://registry.yarnpkg.com/@favware/skip-dependency/-/skip-dependency-1.1.1.tgz"
+    "clientnode": "*"
   },
   "devDependencies": {
     "@babel/cli": "*",
@@ -73,9 +72,6 @@
     "jest": "*",
     "jsdoc": "*",
     "weboptimizer": "*"
-  },
-  "dependencies": {
-    "clientnode": "*"
   },
   "engines": {
     "node": ">=19",
