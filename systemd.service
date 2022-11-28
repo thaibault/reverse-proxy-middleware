@@ -20,7 +20,7 @@ Conflicts=shutdown.target reboot.target halt.target
 
 # With proxy
 ExecStartPre=-/usr/bin/env docker network create proxy
-ExecStart=/usr/bin/env docker run --env PORT=80 --expose 80 --interactive --log-opt max-size=10m --name reverse-proxy-middleware --network proxy --rm ghcr.io/thaibault/reverse-proxy-middleware:latest
+ExecStart=/usr/bin/env docker run --env PORT=80 --expose 80 --interactive --log-opt max-size=10m --name reverse-proxy-middleware --network proxy --rm --volume "/srv/http/reverse-proxy-middleware/configuration.json:/application/configuration.json" ghcr.io/thaibault/reverse-proxy-middleware:latest
 
 ExecStop=/usr/bin/env docker stop reverse-proxy-middleware
 
