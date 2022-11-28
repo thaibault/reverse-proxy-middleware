@@ -27,7 +27,7 @@
 # endregion
 ARG         BASE_IMAGE
 
-FROM        ${BASE_IMAGE:-'node'} as base
+FROM        ${BASE_IMAGE:-'node:current-alpine'} as base
 
 ENV         APPLICATION_PATH /application/
 ENV         PORT 8080
