@@ -131,6 +131,7 @@ export const applyStateAPIs = async (
                 `State api response is:`,
                 Tools.represent(stateAPIScope[stateAPI.name].response)
             )
+
             index = 1
             for (const expression of stateAPI.expressions.post) {
                 let result:'break'|'continue'|number|true = 'break'
@@ -196,7 +197,7 @@ export const determineForwarder = (
             },
             Tools
         )) {
-            console.info(`Determined forwarder "${name}."`)
+            console.info(`Determined forwarder "${name}".`)
 
             return forwarder
         }
