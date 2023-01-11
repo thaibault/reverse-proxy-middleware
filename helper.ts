@@ -387,7 +387,10 @@ export const transformHeaders = (
             const target:string|StringReplacer =
                 transformation.targetRun(...parameters)
 
-            if (!(source instanceof RegExp) && source.trim() === '')
+            if (!(source instanceof RegExp) && source.trim() === '') {
+                if (target.trim() === '')
+                    continue
+
                 // Add new header.
                 content = content.replace(
                     /(\s*\n)\s*\n\s*/,
@@ -404,8 +407,8 @@ export const transformHeaders = (
                         return `${delimiter}${result}${substring}`
                     }
                 )
-            else {
-                // Search and replace header.
+            } else {
+                // Search and replace (or remove) header.
                 console.info(
                     `Search for "${source as string}" and replace with`,
                     `${Tools.represent(target)}.`
