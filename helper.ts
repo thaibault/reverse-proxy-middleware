@@ -476,13 +476,15 @@ export const reverseProxyBufferedRequest = (
                 return
             }
 
-            clientSocket.write(
-                transformHeaders(
-                    buffer.toString(),
-                    forwarder.headerTransformations.retrieve,
-                    parameters
-                )
+            let content:string = buffer.toString()
+
+            content = transformHeaders(
+                content, forwarder.headerTransformations.retrieve, parameters
             )
+
+            console.info(`Send response to client:\n\n${content}`)
+
+            clientSocket.write(content)
 
             headerProcessed = true
         })
@@ -508,7 +510,7 @@ export const reverseProxyBufferedRequest = (
                     content, forwarder.headerTransformations.send, parameters
                 )
 
-                console.info(`Send:\n\n${content}`)
+                console.info(`Send request to backend:\n\n${content}`)
 
                 serverSocket.write(content)
 
