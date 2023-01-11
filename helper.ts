@@ -224,8 +224,7 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
                 retrieve: [],
                 send: []
             }
-            for (const type of ['retrieve', 'send'] as const) {
-                headerTransformations[type] = []
+            for (const type of ['retrieve', 'send'] as const)
                 for (const givenTransformation of (
                     [] as Array<HeaderTransformation>
                 ).concat(
@@ -234,43 +233,39 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
                         HeaderTransformation
                 )) {
                     const transformation:ResolvedHeaderTransformation = {
-                        source: ():string => '',
-                        target: ():string => ''
+                        ...givenTransformation,
+                        sourceRun: ():string => '',
+                        targetRun: ():string => ''
                     }
 
                     if (Object.prototype.hasOwnProperty.call(
-                        givenTransformation, 'source'
+                        transformation, 'source'
                     ))
-                        if (givenTransformation.source instanceof RegExp)
-                            transformation.source = ():RegExp =>
-                                givenTransformation.source as RegExp
-                        else if (
-                            typeof givenTransformation.source === 'string'
-                        ) {
+                        if (transformation.source instanceof RegExp)
+                            transformation.sourceRun = ():RegExp =>
+                                transformation.source as RegExp
+                        else if (typeof transformation.source === 'string') {
                             const result:CompilationResult<RegExp|string> =
                                 Tools.stringCompile<RegExp|string>(
-                                    givenTransformation.source,
+                                    transformation.source,
                                     EVALUATION_SCOPE_NAMES
                                 )
 
                             if (result.error)
                                 throw new Error(result.error)
 
-                            transformation.source = result.templateFunction
+                            transformation.sourceRun = result.templateFunction
                         } else
-                            transformation.source = givenTransformation.source!
+                            transformation.sourceRun = transformation.source!
 
                     if (Object.prototype.hasOwnProperty.call(
-                        givenTransformation, 'target'
+                        transformation, 'target'
                     ))
-                        if (
-                            typeof givenTransformation.target === 'string'
-                        ) {
+                        if (typeof transformation.target === 'string') {
                             const result:CompilationResult<
                                 string|StringReplacer
                             > = Tools.stringCompile<string|StringReplacer>(
-                                givenTransformation.target,
-                                EVALUATION_SCOPE_NAMES
+                                transformation.target, EVALUATION_SCOPE_NAMES
                             )
 
                             if (result.error)
@@ -278,11 +273,10 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
 
                             transformation.target = result.templateFunction
                         } else
-                            transformation.target = givenTransformation.target!
+                            transformation.target = transformation.target!
 
                     headerTransformations[type].push(transformation)
                 }
-            }
             forwarder.headerTransformations = headerTransformations
             // endregion
             // region state apis
@@ -386,11 +380,12 @@ export const transformHeaders = (
     headerTransformations:Array<ResolvedHeaderTransformation>,
     parameters:EvaluationParameters
 ):string => {
-    for (const replacement of headerTransformations)
+    for (const transformation of headerTransformations)
         try {
-            const source:RegExp|string = replacement.source(...parameters)
+            const source:RegExp|string =
+                transformation.sourceRun(...parameters)
             const target:string|StringReplacer =
-                replacement.target(...parameters)
+                transformation.targetRun(...parameters)
 
             if (!(source instanceof RegExp) && source.trim() === '')
                 content = content.replace(
@@ -412,7 +407,18 @@ export const transformHeaders = (
                 content = content.replace(source, target as string)
         } catch (error) {
             console.warn(
-                'Could not apply header transformation:', error
+                'Could not apply header transformation with source "' +
+                (transformation.source ?
+                    Tools.represent(transformation.source) :
+                    '"add"'
+                ) +
+                '" and target "' +
+                (transformation.target ?
+                    Tools.represent(transformation.target) :
+                    '"remove"'
+                ) +
+                '":',
+                error
             )
         }
 

@@ -124,9 +124,9 @@ export interface HeaderTransformation {
         )
     )
 }
-export interface ResolvedHeaderTransformation {
-    source:(...parameters:EvaluationParameters) => RegExp|string
-    target:(...parameters:EvaluationParameters) => string|StringReplacer
+export interface ResolvedHeaderTransformation extends HeaderTransformation {
+    sourceRun:(...parameters:EvaluationParameters) => RegExp|string
+    targetRun:(...parameters:EvaluationParameters) => string|StringReplacer
 }
 export interface HeaderTransformations {
     retrieve?:Array<HeaderTransformation>|HeaderTransformation
