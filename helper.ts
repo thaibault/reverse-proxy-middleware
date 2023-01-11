@@ -382,13 +382,21 @@ export const transformHeaders = (
 ):string => {
     for (const transformation of headerTransformations)
         try {
-            const source:RegExp|string =
+            const source:null|RegExp|string|undefined =
                 transformation.sourceRun(...parameters)
-            const target:string|StringReplacer =
+            const target:null|string|StringReplacer|undefined =
                 transformation.targetRun(...parameters)
 
-            if (!(source instanceof RegExp) && source.trim() === '') {
-                if (typeof target === 'string' && target.trim() === '')
+            if (
+                [null, undefined].includes(source as null) ||
+                typeof source === 'string' &&
+                source.trim() === ''
+            ) {
+                if (
+                    [null, undefined].includes(target as null) ||
+                    typeof target === 'string' &&
+                    target.trim() === ''
+                )
                     continue
 
                 // Add new header.
@@ -402,7 +410,7 @@ export const transformHeaders = (
                         const result:string =
                             typeof target === 'string' ?
                                 target :
-                                target(substring, delimiter, ...parameters)
+                                target!(substring, delimiter, ...parameters)
 
                         return `${delimiter}${result}${substring}`
                     }
@@ -414,7 +422,7 @@ export const transformHeaders = (
                     `${Tools.represent(target)}.`
                 )
 
-                content = content.replace(source, target as string)
+                content = content.replace(source!, target as string)
             }
         } catch (error) {
             console.warn(
