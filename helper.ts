@@ -382,12 +382,23 @@ export const transformHeaders = (
 ):string => {
     for (const transformation of headerTransformations)
         try {
-            const source:RegExp|string =
+            const source:null|RegExp|string|undefined =
                 transformation.sourceRun(...parameters)
-            const target:string|StringReplacer =
+            const target:null|string|StringReplacer|undefined =
                 transformation.targetRun(...parameters)
 
-            if (!(source instanceof RegExp) && source.trim() === '')
+            if (
+                [null, undefined].includes(source as null) ||
+                typeof source === 'string' &&
+                source.trim() === ''
+            ) {
+                if (
+                    [null, undefined].includes(target as null) ||
+                    typeof target === 'string' &&
+                    target.trim() === ''
+                )
+                    continue
+
                 // Add new header.
                 content = content.replace(
                     /(\s*\n)\s*\n\s*/,
@@ -399,33 +410,33 @@ export const transformHeaders = (
                         const result:string =
                             typeof target === 'string' ?
                                 target :
-                                target(substring, delimiter, ...parameters)
+                                target!(substring, delimiter, ...parameters)
 
                         return `${delimiter}${result}${substring}`
                     }
                 )
-            else {
-                // Search and replace header.
+            } else {
+                // Search and replace (or remove) header.
                 console.info(
                     `Search for "${source as string}" and replace with`,
-                    `"${Tools.represent(target)}".`
+                    `${Tools.represent(target)}.`
                 )
 
-                content = content.replace(source, target as string)
+                content = content.replace(source!, target as string)
             }
         } catch (error) {
             console.warn(
-                'Could not apply header transformation with source "' +
+                'Could not apply header transformation with source ' +
                 (transformation.source ?
                     Tools.represent(transformation.source) :
                     '"add"'
                 ) +
-                '" and target "' +
+                ' and target ' +
                 (transformation.target ?
                     Tools.represent(transformation.target) :
                     '"remove"'
                 ) +
-                '":',
+                ':',
                 error
             )
         }
@@ -492,13 +503,13 @@ export const reverseProxyBufferedRequest = (
 
             let content:string = buffer.toString()
 
-            console.info(`\n\nGot response header from backend:\n\n${content}`)
+            console.info(`Got response header from backend:\n${content}`)
 
             content = transformHeaders(
                 content, forwarder.headerTransformations.retrieve, parameters
             )
 
-            console.info(`\n\nSend response header to client:\n\n${content}`)
+            console.info(`Send response header to client:\n${content}`)
 
             clientSocket.write(content)
 
@@ -513,9 +524,7 @@ export const reverseProxyBufferedRequest = (
             if (!headerProcessed) {
                 let content:string = buffer.toString()
 
-                console.info(
-                    `\n\nGot request header from client:\n\n${content}`
-                )
+                console.info(`Got request header from client:\n${content}`)
 
                 if (forwarder.tls)
                     // NOTE: TLS support was introduced in version 1.1.
@@ -530,9 +539,7 @@ export const reverseProxyBufferedRequest = (
                     content, forwarder.headerTransformations.send, parameters
                 )
 
-                console.info(
-                    `\n\nSend request header to backend:\n\n${content}`
-                )
+                console.info(`Send request header to backend:\n${content}`)
 
                 serverSocket.write(content)
 
