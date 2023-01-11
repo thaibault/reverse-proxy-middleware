@@ -417,7 +417,7 @@ export const transformHeaders = (
                 )
             } else {
                 // Search and replace (or remove) header.
-                console.info(
+                console.debug(
                     `Search for "${source as string}" and replace with`,
                     `${Tools.represent(target)}.`
                 )
@@ -431,7 +431,7 @@ export const transformHeaders = (
                     Tools.represent(transformation.source) :
                     '"add"'
                 ) +
-                ' and target ' +
+                ' and replacement ' +
                 (transformation.target ?
                     Tools.represent(transformation.target) :
                     '"remove"'
