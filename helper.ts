@@ -484,13 +484,13 @@ export const reverseProxyBufferedRequest = (
 
             let content:string = buffer.toString()
 
-            console.info('Got response from backend:\n', content)
+            console.info(`\nGot response from backend:\n\n${content}`)
 
             content = transformHeaders(
                 content, forwarder.headerTransformations.retrieve, parameters
             )
 
-            console.info('Send response to client:\n', content)
+            console.info(`\nSend response to client:\n\n${content}`)
 
             clientSocket.write(content)
 
@@ -514,13 +514,13 @@ export const reverseProxyBufferedRequest = (
                     /(($|\n)host: )[^\n]+/i, `$1${forwarder.host}${portSuffix}`
                 )
 
-                console.info('Got request from client:\n', content)
+                console.info(`\nGot request from client:\n\n${content}`)
 
                 content = transformHeaders(
                     content, forwarder.headerTransformations.send, parameters
                 )
 
-                console.info('Send request to backend:\n', content)
+                console.info(`\nSend request to backend:\n\n${content}`)
 
                 serverSocket.write(content)
 
