@@ -388,7 +388,7 @@ export const transformHeaders = (
                 transformation.targetRun(...parameters)
 
             if (!(source instanceof RegExp) && source.trim() === '') {
-                if (target.trim() === '')
+                if (typeof target === 'string' && target.trim() === '')
                     continue
 
                 // Add new header.
