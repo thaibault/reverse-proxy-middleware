@@ -505,6 +505,8 @@ export const reverseProxyBufferedRequest = (
             if (!headerProcessed) {
                 let content:string = buffer.toString()
 
+                console.info(`\nGot request from client:\n\n${content}`)
+
                 if (forwarder.tls)
                     // NOTE: TLS support was introduced in version 1.1.
                     content = content.replace(/HTTP\/1\.0/i, 'HTTP/1.1')
@@ -513,8 +515,6 @@ export const reverseProxyBufferedRequest = (
                 content = content.replace(
                     /(($|\n)host: )[^\n]+/i, `$1${forwarder.host}${portSuffix}`
                 )
-
-                console.info(`\nGot request from client:\n\n${content}`)
 
                 content = transformHeaders(
                     content, forwarder.headerTransformations.send, parameters
