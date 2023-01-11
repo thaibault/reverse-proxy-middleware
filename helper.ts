@@ -271,9 +271,9 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
                             if (result.error)
                                 throw new Error(result.error)
 
-                            transformation.target = result.templateFunction
+                            transformation.targetRun = result.templateFunction
                         } else
-                            transformation.target = transformation.target!
+                            transformation.targetRun = transformation.target!
 
                     headerTransformations[type].push(transformation)
                 }
@@ -492,13 +492,13 @@ export const reverseProxyBufferedRequest = (
 
             let content:string = buffer.toString()
 
-            console.info(`\nGot response from backend:\n\n${content}`)
+            console.info(`\n\nGot response header from backend:\n\n${content}`)
 
             content = transformHeaders(
                 content, forwarder.headerTransformations.retrieve, parameters
             )
 
-            console.info(`\nSend response to client:\n\n${content}`)
+            console.info(`\n\nSend response header to client:\n\n${content}`)
 
             clientSocket.write(content)
 
@@ -513,7 +513,9 @@ export const reverseProxyBufferedRequest = (
             if (!headerProcessed) {
                 let content:string = buffer.toString()
 
-                console.info(`\nGot request from client:\n\n${content}`)
+                console.info(
+                    `\n\nGot request header from client:\n\n${content}`
+                )
 
                 if (forwarder.tls)
                     // NOTE: TLS support was introduced in version 1.1.
@@ -528,7 +530,9 @@ export const reverseProxyBufferedRequest = (
                     content, forwarder.headerTransformations.send, parameters
                 )
 
-                console.info(`\nSend request to backend:\n\n${content}`)
+                console.info(
+                    `\n\nSend request header to backend:\n\n${content}`
+                )
 
                 serverSocket.write(content)
 
