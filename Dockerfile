@@ -17,8 +17,8 @@
 # Run the following command in the directory where this file lives to build a
 # new docker image:
 
-# - docker pull arm64v8/node && docker build --no-cache --tag ghcr.io/thaibault/reverse-proxy-middleware:latest https://github.com/thaibault/reverse-proxy-middleware.git#main
-# endregion
+# - docker pull arm64v8/node && docker build --no-cache --tag ghcr.io/thaibault/reverse-proxy-middleware:latest .
+# endregion 
 # region start container commands
 # Run the following command in the directory where this file lives to start:
 # podman / docker run --interactive --name reverse-proxy-middleware --publish 0.0.0.0:8080:8080 --rm --tty --volume "$(pwd):/application" ghcr.io/thaibault/reverse-proxy-middleware:latest
@@ -42,7 +42,8 @@ FROM        base as build
 
 COPY        . "$APPLICATION_PATH"
 
-# Install dev dependencies build and slice out dev dependencies afterwards.
+            # Install dev dependencies build and slice out dev dependencies
+            # afterwards.
             # NOTE: Use busybox compatible commands (shortoptions).
 RUN         yarn --production=false && \
             yarn unlink clientnode; \
