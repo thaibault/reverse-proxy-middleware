@@ -40,7 +40,7 @@ WORKDIR     "$APPLICATION_PATH"
 
 FROM        base as build
 
-COPY        . "$APPLICATION_PATH"
+COPY        --link . "$APPLICATION_PATH"
 
             # Install dev dependencies build and slice out dev dependencies
             # afterwards.
@@ -58,12 +58,15 @@ FROM        base as runtime
 RUN         yarn --production
 
 COPY        --from=build \
+            --link \
                 "${APPLICATION_PATH}index.js" \
                 "${APPLICATION_PATH}index.js"
 COPY        --from=build \
+            --link \
                 "${APPLICATION_PATH}node_modules" \
                 "${APPLICATION_PATH}node_modules"
 COPY        --from=build \
+            --link \
                 "${APPLICATION_PATH}package.json" \
                 "${APPLICATION_PATH}package.json"
 
