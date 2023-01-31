@@ -104,8 +104,7 @@ export interface ResolvedAPIExpressions {
             'break'|boolean|'continue'|number
     >
     post:Array<
-        (...parameters:EvaluationParameters) =>
-            'break'|number|'continue'|true
+        (...parameters:EvaluationParameters) => 'break'|number|'continue'|true
     >
 }
 export type ResolvedStateAPI =
