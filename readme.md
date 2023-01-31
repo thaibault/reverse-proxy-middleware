@@ -60,7 +60,7 @@ can check the configuration via a simple curl command:
 ```curl --verbose https://www.google.com```
 
 Behind there are a some commonly use defaults configured under key
-"configuration" in [package.json](blob/main/package.json). Please have a look.
+"configuration" in [package.json](package.json). Please have a look.
 
 #### Validating request via external service
 
