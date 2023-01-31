@@ -340,18 +340,17 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
             forwarder.stateAPIs = stateAPIs
             // endregion
             // region normalize use expression
-            if (typeof givenForwarder.useExpression === 'string') {
-                const result:CompilationResult<boolean> =
-                    Tools.stringCompile(
-                        givenForwarder.useExpression, EVALUATION_SCOPE_NAMES
-                    )
+            if (typeof forwarder.useExpression === 'string') {
+                const result:CompilationResult<boolean> = Tools.stringCompile(
+                    forwarder.useExpression, EVALUATION_SCOPE_NAMES
+                )
 
                 if (result.error)
                     throw new Error(result.error)
 
                 forwarder.useExpression = result.templateFunction
             } else
-                forwarder.useExpression = givenForwarder.useExpression!
+                forwarder.useExpression = forwarder.useExpression
             // endregion
             resolvedForwarders[name] = forwarder
         }
