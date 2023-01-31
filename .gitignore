@@ -160,6 +160,8 @@ __pycache__
 
 configuration.json
 secret-configuration.json
+
+examples/custom.json
 # ...
 
 # region vim modline
