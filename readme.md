@@ -39,6 +39,19 @@ forwarded requests.
 
 ### Quick start
 
+Simple reverse proxy request from `http://localhost:8080` to
+`https://www.google.com` without modifying the entire request.
+
+```
+{
+  "forwarders": {
+    "google": {
+      "host": "google.com"
+    }
+  }
+}
+```
+
 To configure the middleware for providing a bot-filtering mechanism add a
 `configure.json` file and mount them into a docker container.
 
