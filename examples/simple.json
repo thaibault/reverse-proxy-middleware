@@ -1,7 +1,7 @@
 {
   "forwarders": {
     "google": {
-      "host": "google.com"
+      "host": "www.google.com"
     }
   }
 }

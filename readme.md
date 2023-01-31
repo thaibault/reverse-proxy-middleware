@@ -39,6 +39,8 @@ forwarded requests.
 
 ### Quick start
 
+#### Simple forwarding
+
 Simple reverse proxy request from `http://localhost:8080` to
 `https://www.google.com` without modifying the entire request.
 
@@ -46,11 +48,21 @@ Simple reverse proxy request from `http://localhost:8080` to
 {
   "forwarders": {
     "google": {
-      "host": "google.com"
+      "host": "www.google.com"
     }
   }
 }
 ```
+
+Since the proxy starts at localhost on port 8080 as a default configuration you
+can check the configuration via a simple curl command:
+
+```curl --verbose https://www.google.com```
+
+Behind there are a some commonly use defaults configured under key
+"configuration" in [package.json](blob/main/package.json). Please have a look.
+
+#### Validating request via external service
 
 To configure the middleware for providing a bot-filtering mechanism add a
 `configure.json` file and mount them into a docker container.
