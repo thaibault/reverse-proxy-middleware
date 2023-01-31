@@ -62,6 +62,64 @@ can check the configuration via a simple curl command:
 Behind there are a some commonly use defaults configured under key
 "configuration" in [package.json](package.json). Please have a look.
 
+#### Distributing requests to different backends
+
+Here is how to distribute incoming requests randomly between google and bing:
+
+```
+{
+  "forwarders": {
+    "bing": {
+      "host": "www.bing.com",
+      "useExpression": "Math.random() < 0.5"
+    },
+    "google": {
+      "host": "www.google.com"
+    }
+  }
+}
+```
+
+Forwarders are iterated in alphabetical order of their name and `useExpression`
+are getting evaluated. Since "google" is always "used" it depends on the random
+outcome of bing's expression if it is beeing used or not.
+
+Since this proxy just streams the whole request through it could be used as
+basic load balancer with this configuration.
+
+#### Rewriting headers for underlying backend
+
+Headers can be replaced in both directions. Client-Request to forward or
+retrieved responses given from configured backend:
+
+# TODO
+
+```
+{
+  "forwarders": {
+    "bing": {
+      "host": "www.bing.com",
+      "headerTransformations": {
+        "retrieve": [
+            {
+                "source": "/X-Special-Backend-Header-Name: (.+)/",
+                "target": "'New-Header-Name: $1'"
+            }
+        ],
+        "send": [
+            {
+                "source": "/X-Special-Client-Header-Name: (.+)/",
+                "target": "'New-Header-Name: $1'"
+            }
+        ]
+      }
+    }
+  }
+}
+```
+
+```curl --header 'X-Special-Client-Header-Name: value' --verbose https://www.google.com```
+
 #### Validating request via external service
 
 To configure the middleware for providing a bot-filtering mechanism add a

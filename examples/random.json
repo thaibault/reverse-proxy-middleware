@@ -1,0 +1,11 @@
+{
+  "forwarders": {
+    "bing": {
+      "host": "www.bing.com",
+      "useExpression": "Math.random() < 0.5"
+    },
+    "google": {
+      "host": "www.google.com"
+    }
+  }
+}
