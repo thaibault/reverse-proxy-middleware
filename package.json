@@ -47,6 +47,7 @@
     "postversion": "yarn publish --non-interactive; git push --tags && git push",
     "prepare": "yarn build",
     "serve": "yarn build:plain && yarn start",
+    "serve:headers": "ln --force --symbolic examples/headers.json configuration.json && yarn serve",
     "serve:random": "ln --force --symbolic examples/random.json configuration.json && yarn serve",
     "serve:simple": "ln --force --symbolic examples/simple.json configuration.json && yarn serve",
     "start": "./index.js",

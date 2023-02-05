@@ -57,7 +57,7 @@ Simple reverse proxy request from `http://localhost:8080` to
 Since the proxy starts at localhost on port 8080 as a default configuration you
 can check the configuration via a simple curl command:
 
-```curl --verbose https://www.google.com```
+```curl --verbose http://localhost:8080```
 
 Behind there are a some commonly use defaults configured under key
 "configuration" in [package.json](package.json). Please have a look.
@@ -92,7 +92,7 @@ basic load balancer with this configuration.
 Headers can be replaced in both directions. Client-Request to forward or
 retrieved responses given from configured backend:
 
-# TODO
+# TODO test
 
 ```
 {
@@ -100,16 +100,17 @@ retrieved responses given from configured backend:
     "bing": {
       "host": "www.bing.com",
       "headerTransformations": {
-        "retrieve": [
-            {
-                "source": "/X-Special-Backend-Header-Name: (.+)/",
-                "target": "'New-Header-Name: $1'"
-            }
-        ],
         "send": [
             {
                 "source": "/X-Special-Client-Header-Name: (.+)/",
                 "target": "'New-Header-Name: $1'"
+            }
+        ],
+
+        "retrieve": [
+            {
+                "source": "/set-cookie: (.+)/",
+                "target": "'X-Prevented-Cookie: $1'"
             }
         ]
       }
@@ -118,7 +119,13 @@ retrieved responses given from configured backend:
 }
 ```
 
-```curl --header 'X-Special-Client-Header-Name: value' --verbose https://www.google.com```
+```
+    curl \
+        --header 'X-Special-Client-Header-Name: value' \
+        --verbose \
+        http://localhost:8080 \
+            1>/dev/null
+```
 
 #### Validating request via external service
 
