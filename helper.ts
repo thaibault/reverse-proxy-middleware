@@ -353,8 +353,7 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
                     throw new Error(result.error)
 
                 forwarder.useExpression = result.templateFunction
-            } else
-                forwarder.useExpression = forwarder.useExpression
+            }
             // endregion
             resolvedForwarders[name] = forwarder
         }
