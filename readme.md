@@ -39,6 +39,8 @@ forwarded requests.
 
 ### Quick start
 
+#### Simple forwarding
+
 Simple reverse proxy request from `http://localhost:8080` to
 `https://www.google.com` without modifying the entire request.
 
@@ -46,11 +48,86 @@ Simple reverse proxy request from `http://localhost:8080` to
 {
   "forwarders": {
     "google": {
-      "host": "google.com"
+      "host": "www.google.com"
     }
   }
 }
 ```
+
+Since the proxy starts at localhost on port 8080 as a default configuration you
+can check the configuration via a simple curl command:
+
+```curl --verbose http://localhost:8080```
+
+Behind there are a some commonly use defaults configured under key
+"configuration" in [package.json](package.json). Please have a look.
+
+#### Distributing requests to different backends
+
+Here is how to distribute incoming requests randomly between google and bing:
+
+```
+{
+  "forwarders": {
+    "bing": {
+      "host": "www.bing.com",
+      "useExpression": "Math.random() < 0.5"
+    },
+    "google": {
+      "host": "www.google.com"
+    }
+  }
+}
+```
+
+Forwarders are iterated in alphabetical order of their name and `useExpression`
+are getting evaluated. Since "google" is always "used" it depends on the random
+outcome of bing's expression if it is beeing used or not.
+
+Since this proxy just streams the whole request through it could be used as
+basic load balancer with this configuration.
+
+#### Rewriting headers for underlying backend
+
+Headers can be replaced in both directions. Client-Request to forward or
+retrieved responses given from configured backend:
+
+# TODO test
+
+```
+{
+  "forwarders": {
+    "bing": {
+      "host": "www.bing.com",
+      "headerTransformations": {
+        "send": [
+            {
+                "source": "/X-Special-Client-Header-Name: (.+)/",
+                "target": "'New-Header-Name: $1'"
+            }
+        ],
+
+        "retrieve": [
+            {
+                "source": "/set-cookie: (.+)/",
+                "target": "'X-Prevented-Cookie: $1'"
+            }
+        ]
+      }
+    }
+  }
+}
+```
+
+```
+    curl \
+        --header 'X-Special-Client-Header-Name: value' \
+        --verbose \
+        http://localhost:8080 \
+            1>/dev/null
+```
+
+#### Validating request via external service
 
 To configure the middleware for providing a bot-filtering mechanism add a
 `configure.json` file and mount them into a docker container.

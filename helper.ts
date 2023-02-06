@@ -182,7 +182,11 @@ export const determineForwarder = (
     response:HTTPServerResponse,
     forwarders:ResolvedForwarders
 ):ResolvedForwarder|null => {
-    for (const [name, forwarder] of Object.entries(forwarders))
+    for (const [name, forwarder] of Object.entries(forwarders)
+        .sort(([firstName], [secondName]) =>
+            firstName.localeCompare(secondName)
+        )
+    )
         if (forwarder.useExpression(
             forwarder,
             null,
