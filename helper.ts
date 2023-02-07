@@ -26,6 +26,8 @@ import {connect as createSecureConnection} from 'tls'
 import {
     APIPostEvaluationExpression,
     APIPreEvaluationExpression,
+    APIPostEvaluationResult,
+    APIPreEvaluationResult,
     BufferedHTTPServerRequest,
     EvaluationParameters,
     EvaluationScopeStateAPIs,
@@ -65,7 +67,7 @@ export const applyStateAPIs = async (
 
         let index = 1
         for (const expression of stateAPI.expressions.pre) {
-            let result:'break'|boolean|'continue'|number = 'break'
+            let result:APIPreEvaluationResult
             try {
                 result = expression(
                     stateAPI.data,
@@ -97,15 +99,13 @@ export const applyStateAPIs = async (
             if (result === 'break')
                 break
 
-            if (result === 'continue')
-                continue
-
-            if (result)
-                useStateAPI = true
-            else
-                break
-
             index += 1
+
+            if (typeof result === 'boolean')
+                if (result)
+                    useStateAPI = true
+                else
+                    break
         }
 
         if (useStateAPI) {
@@ -116,16 +116,38 @@ export const applyStateAPIs = async (
                 stateAPIScope[stateAPI.name].response = await fetch(
                     stateAPI.url, stateAPI.options
                 ) as Response & {data:Mapping<unknown>}
-
-                stateAPIScope[stateAPI.name].response!.data =
-                    await stateAPIScope[stateAPI.name].response!.json() as
-                        PlainObject
             } catch (givenError) {
                 error = givenError as Error
+
                 console.warn(
-                    `State api "${stateAPI.name}" throws error:`, error
+                    `Running state api request for "${stateAPI.name}" throws`,
+                    'error:',
+                    error
                 )
             }
+
+            if (
+                stateAPIScope[stateAPI.name].response &&
+                stateAPIScope[stateAPI.name].response!.headers.has(
+                    'content-type'
+                ) &&
+                stateAPIScope[stateAPI.name].response!.headers.get(
+                    'content-type'
+                )![0] === 'application/json'
+            )
+                try {
+                    stateAPIScope[stateAPI.name].response!.data =
+                        await stateAPIScope[stateAPI.name].response!.json() as
+                            PlainObject
+                } catch (givenError) {
+                    error = givenError as Error
+
+                    console.warn(
+                        'Parsing state api json response for',
+                        `"${stateAPI.name}" throws error:`,
+                        error
+                    )
+                }
 
             console.info(
                 `State api response is:`,
@@ -134,7 +156,7 @@ export const applyStateAPIs = async (
 
             index = 1
             for (const expression of stateAPI.expressions.post) {
-                let result:'break'|'continue'|number|true = 'break'
+                let result:APIPostEvaluationResult
                 try {
                     result = expression(
                         stateAPI.data,
@@ -166,9 +188,6 @@ export const applyStateAPIs = async (
 
                 if (result === 'break')
                     break
-
-                if (result === 'continue')
-                    continue
 
                 index += 1
             }
@@ -305,14 +324,16 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
                     )
             for (const api of extendedGivenStateAPIs) {
                 const expressions:ResolvedAPIExpressions = {pre: [], post: []}
+
                 for (const expression of (
                     [] as Array<APIPreEvaluationExpression>
                 ).concat(api.expressions?.pre || []))
                     if (typeof expression === 'string') {
-                        const result:CompilationResult<boolean|number> =
-                            Tools.stringCompile<boolean|number>(
-                                expression, EVALUATION_SCOPE_NAMES
-                            )
+                        const result:CompilationResult<
+                            APIPreEvaluationResult
+                        > = Tools.stringCompile<APIPreEvaluationResult>(
+                            expression, EVALUATION_SCOPE_NAMES
+                        )
 
                         if (result.error)
                             throw new Error(result.error)
@@ -320,14 +341,16 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
                         expressions.pre.push(result.templateFunction)
                     } else
                         expressions.pre.push(expression)
+
                 for (const expression of (
                     [] as Array<APIPostEvaluationExpression>
                 ).concat(api.expressions?.post || []))
                     if (typeof expression === 'string') {
-                        const result:CompilationResult<number|true> =
-                            Tools.stringCompile<number|true>(
-                                expression, EVALUATION_SCOPE_NAMES
-                            )
+                        const result:CompilationResult<
+                            APIPostEvaluationResult
+                        > = Tools.stringCompile<APIPostEvaluationResult>(
+                            expression, EVALUATION_SCOPE_NAMES
+                        )
 
                         if (result.error)
                             throw new Error(result.error)
@@ -335,6 +358,7 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
                         expressions.post.push(result.templateFunction)
                     } else
                         expressions.post.push(expression)
+
                 /* eslint-disable @typescript-eslint/no-extra-semi */
                 ;(api as unknown as ResolvedStateAPI).expressions = expressions
                 /* eslint-enable @typescript-eslint/no-extra-semi */

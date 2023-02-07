@@ -50,6 +50,7 @@
     "serve:headers": "ln --force --symbolic examples/headers.json configuration.json && yarn serve",
     "serve:random": "ln --force --symbolic examples/random.json configuration.json && yarn serve",
     "serve:simple": "ln --force --symbolic examples/simple.json configuration.json && yarn serve",
+    "serve:state-apis": "ln --force --symbolic examples/state-apis.json configuration.json && yarn serve",
     "start": "./index.js",
     "test": "weboptimizer test",
     "test:coverage": "weboptimizer test:coverage",
