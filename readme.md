@@ -137,31 +137,35 @@ or transform the final backend request.
 
 Here is an example:
 
-TODO
-
 ```
 {
   "forwarders": {
     "bing": {
       "host": "www.bing.com",
-      "headerTransformations": {...}
+
+      "stateAPIs": {
+        "data": {
+          "question": "What is the meaning of life?"
+        },
+        "expressions": {
+          "pre": "request.headers['ask-for-sence-of-live'] ? true : null",
+          "post": "response.statusCode >= 200 && response.statusCode < 300 ? null : response.statusCode"
+        },
+        "name": "sense",
+        "url": "https://www.google.com/search?q=${data.question}"
+      }
     }
   }
 }
 ```
 
-#### Use base State-APIs
-
-```
-{
-  "forwarders": {
-    "bing": {
-      "host": "www.bing.com",
-      "headerTransformations": {...}
-    }
-  }
-}
-```
+What is going on here?
+We generally forward requests to "www.bing.com" but if there is a header called
+"ask-for-sence-of-live" present in client request we will first ask google for
+the meaning of life. If google answers with a postive response code between
+200 and 300 we will just to the final forwarding to bing. If google responses
+with another response code we will just use this status code as final response
+code and do not forward anything to "www.bing.com".
 
 #### Validating request via external service
 
@@ -175,27 +179,39 @@ TODO
 ### Smart configurations
 
 Whenever you can configure list of items you can either use just one or a list
-of them. For example:
+of them. Consider this configuration example:
 
 ```
 {
   "forwarders": {
     "bing": {
       "host": "www.bing.com",
-      "headerTransformations": [{...}, {...}, ...]
+      "headerTransformations": [{...}, {...}, ...],
+      "stateAPIs": {
+        "expressions": {
+          "pre": ["...", "...", ...],
+          "post": ["...", "...", ...]
+        }
+      }
     }
   }
 }
 ```
 
-is possible and
+If only one item is needed please consider that:
 
 ```
 {
   "forwarders": {
     "bing": {
       "host": "www.bing.com",
-      "headerTransformations": [{...}]
+      "headerTransformations": [{...}],
+      "stateAPIs": {
+        "expressions": {
+          "pre": ["..."],
+          "post": ["..."]
+        }
+      }
     }
   }
 }
@@ -208,7 +224,13 @@ is equivalent to:
   "forwarders": {
     "bing": {
       "host": "www.bing.com",
-      "headerTransformations": {...}
+      "headerTransformations": {...},
+      "stateAPIs": {
+        "expressions": {
+          "pre": "...",
+          "post": "..."
+        }
+      }
     }
   }
 }
@@ -296,6 +318,14 @@ is equivalent to:
     }
   }
 }
+```
+
+#### Use base State-APIs
+
+TODO
+
+```
+TODO
 ```
 
 <!-- region modline

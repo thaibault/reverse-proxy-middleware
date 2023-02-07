@@ -26,6 +26,8 @@ import {connect as createSecureConnection} from 'tls'
 import {
     APIPostEvaluationExpression,
     APIPreEvaluationExpression,
+    APIPostEvaluationResult,
+    APIPreEvaluationResult,
     BufferedHTTPServerRequest,
     EvaluationParameters,
     EvaluationScopeStateAPIs,
@@ -65,7 +67,7 @@ export const applyStateAPIs = async (
 
         let index = 1
         for (const expression of stateAPI.expressions.pre) {
-            let result:'break'|boolean|'continue'|number = 'break'
+            let result:APIPreEvaluationResult
             try {
                 result = expression(
                     stateAPI.data,
@@ -97,15 +99,13 @@ export const applyStateAPIs = async (
             if (result === 'break')
                 break
 
-            if (result === 'continue')
-                continue
-
-            if (result)
-                useStateAPI = true
-            else
-                break
-
             index += 1
+
+            if (typeof result === 'boolean')
+                if (result)
+                    useStateAPI = true
+                else
+                    break
         }
 
         if (useStateAPI) {
@@ -134,7 +134,7 @@ export const applyStateAPIs = async (
 
             index = 1
             for (const expression of stateAPI.expressions.post) {
-                let result:'break'|'continue'|number|true = 'break'
+                let result:APIPostEvaluationResult
                 try {
                     result = expression(
                         stateAPI.data,
@@ -166,9 +166,6 @@ export const applyStateAPIs = async (
 
                 if (result === 'break')
                     break
-
-                if (result === 'continue')
-                    continue
 
                 index += 1
             }

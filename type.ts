@@ -79,14 +79,32 @@ export type EvaluationParameters = [
     EvaluationScope['Tools']
 ]
 
-export type APIPreEvaluationExpression = (
-    string |
-    ((...parameters:EvaluationParameters) => 'break'|boolean|'continue'|number)
-)
-export type APIPostEvaluationExpression = (
-    string |
-    ((...parameters:EvaluationParameters) => 'break'|'continue'|number|true)
-)
+/**
+ * break (string)    -> Do not evaluate subsequent pre evaluations.
+ * null or undefined -> Just jump to the next evaluation to run.
+ * true (boolean)    -> Use this state api configuration. Run the configured
+ *                      request.
+ * false (boolean)   -> Do not use this state api and to not run subsequent pre
+ *                      evaluations.
+ * code (number)     -> Answer client request with provided http status code
+ *                      and do not run any subsequent pre-evaluations,
+ *                      state-api request or request forwarding to the
+ *                      underlying backend.
+ */
+export type APIPreEvaluationResult = 'break'|boolean|null|number|undefined|void
+export type APIPreEvaluationExpression =
+    string|((...parameters:EvaluationParameters) => APIPreEvaluationResult)
+/**
+ * break (string)    -> Do not evaluate subsequent post evaluations.
+ * null or undefined -> Just jump to the next evaluation to run.
+ * code (number)     -> Answer client request with provided http status code
+ *                      and do not run any subsequent pre-evaluations,
+ *                      state-api request or request forwarding to the
+ *                      underlying backend.
+ */
+export type APIPostEvaluationResult = 'break'|null|number|void
+export type APIPostEvaluationExpression =
+    string|((...parameters:EvaluationParameters) => APIPostEvaluationResult)
 export interface APIExpressions {
     pre?:Array<APIPreEvaluationExpression>|APIPreEvaluationExpression
     post?:Array<APIPostEvaluationExpression>|APIPostEvaluationExpression
