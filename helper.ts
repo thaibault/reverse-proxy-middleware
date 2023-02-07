@@ -131,9 +131,11 @@ export const applyStateAPIs = async (
                 stateAPIScope[stateAPI.name].response!.headers.has(
                     'content-type'
                 ) &&
-                stateAPIScope[stateAPI.name].response!.headers.get(
-                    'content-type'
-                )![0] === 'application/json'
+                /application\/json(;.*)?$/.test(
+                    stateAPIScope[stateAPI.name].response!.headers.get(
+                        'content-type'
+                    )
+                )
             )
                 try {
                     stateAPIScope[stateAPI.name].response!.data =
@@ -388,7 +390,9 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
 export const addParsedContentToRequest = (
     bufferedRequest:BufferedHTTPServerRequest
 ):void => {
-    if (bufferedRequest.headers['content-type'] === 'application/json')
+    if (/application\/json(;.*)?$/.test(
+        bufferedRequest.headers['content-type']
+    ))
         try {
             const data:string =
                 Buffer.concat(bufferedRequest.socket.buffer.data)
