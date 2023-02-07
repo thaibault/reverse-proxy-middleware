@@ -98,7 +98,7 @@ export type APIPreEvaluationExpression =
  * break (string)    -> Do not evaluate subsequent post evaluations.
  * null or undefined -> Just jump to the next evaluation to run.
  * code (number)     -> Answer client request with provided http status code
- *                      and do not run any subsequent pre-evaluations,
+ *                      and do not run any subsequent post-evaluations,
  *                      state-api request or request forwarding to the
  *                      underlying backend.
  */

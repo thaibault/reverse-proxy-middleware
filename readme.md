@@ -167,6 +167,27 @@ the meaning of life. If google answers with a postive response code between
 with another response code we will just use this status code as final response
 code and do not forward anything to "www.bing.com".
 
+Pre and post evaluations can have various results. The meansings of them are
+described here:
+
+#### Pre-Evaluation Results
+
+| Result            | Measing                                                                                                                                                                |
+|-------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| break (string)    | Do not evaluate subsequent pre evaluations.                                                                                                                            |
+| null or undefined | Just jump to the next evaluation to run.                                                                                                                               |
+| true (boolean)    | Use this state api configuration. Run the configured request.                                                                                                          |
+| false (boolean)   | Do not use this state api and to not run subsequent pre evaluations.                                                                                                   |
+| code (number)     | Answer client request with provided http status code and do not run any subsequent pre-evaluations, state-api request or request forwarding to the underlying backend. |
+
+#### Post-Evaluation Results
+
+| Result            | Measing                                                                                                                                                                 |
+|-------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| break (string)    | Do not evaluate subsequent post evaluations.                                                                                                                            |
+| null or undefined | Just jump to the next evaluation to run.                                                                                                                                |
+| code (number)     | Answer client request with provided http status code and do not run any subsequent post-evaluations, state-api request or request forwarding to the underlying backend. |
+
 #### Validating request via external service
 
 To configure the middleware for providing a bot-filtering mechanism add a
