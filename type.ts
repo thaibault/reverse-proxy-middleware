@@ -79,7 +79,7 @@ export type EvaluationParameters = [
     EvaluationScope['Tools']
 ]
 
-/**
+/*
  * break (string)    -> Do not evaluate subsequent pre evaluations.
  * null or undefined -> Just jump to the next evaluation to run.
  * true (boolean)    -> Use this state api configuration. Run the configured
@@ -94,7 +94,7 @@ export type EvaluationParameters = [
 export type APIPreEvaluationResult = 'break'|boolean|null|number|undefined|void
 export type APIPreEvaluationExpression =
     string|((...parameters:EvaluationParameters) => APIPreEvaluationResult)
-/**
+/*
  * break (string)    -> Do not evaluate subsequent post evaluations.
  * null or undefined -> Just jump to the next evaluation to run.
  * code (number)     -> Answer client request with provided http status code
@@ -117,13 +117,8 @@ export interface StateAPI {
     url:string
 }
 export interface ResolvedAPIExpressions {
-    pre:Array<
-        (...parmaters:EvaluationParameters) =>
-            'break'|boolean|'continue'|number
-    >
-    post:Array<
-        (...parameters:EvaluationParameters) => 'break'|number|'continue'|true
-    >
+    pre:Array<(...parmaters:EvaluationParameters) => APIPreEvaluationResult>
+    post:Array<(...parameters:EvaluationParameters) => APIPostEvaluationResult>
 }
 export type ResolvedStateAPI =
     NonNullable<Omit<StateAPI, 'expressions'>> &

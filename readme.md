@@ -73,6 +73,7 @@ Here is how to distribute incoming requests randomly between google and bing:
       "host": "www.bing.com",
       "useExpression": "Math.random() < 0.5"
     },
+
     "google": {
       "host": "www.google.com"
     }
@@ -97,6 +98,7 @@ retrieved responses given from configured backend:
   "forwarders": {
     "bing": {
       "host": "www.bing.com",
+
       "headerTransformations": {
         "send": {
           "source": "/X-Special-Client-Header-Name: (.+)/gi",
@@ -144,15 +146,17 @@ Here is an example:
       "host": "www.bing.com",
 
       "stateAPIs": {
+        "name": "sense",
+        "url": "https://www.google.com/search?q=${data.question}",
+
         "data": {
           "question": "What is the meaning of life?"
         },
+
         "expressions": {
-          "pre": "request.headers['ask-for-sence-of-live'] ? true : null",
+          "pre": "request.headers['ask-for-sense-of-live'] ? true : null",
           "post": "response.statusCode >= 200 && response.statusCode < 300 ? null : response.statusCode"
-        },
-        "name": "sense",
-        "url": "https://www.google.com/search?q=${data.question}"
+        }
       }
     }
   }
@@ -161,19 +165,29 @@ Here is an example:
 
 What is going on here?
 We generally forward requests to "www.bing.com" but if there is a header called
-"ask-for-sence-of-live" present in client request we will first ask google for
-the meaning of life. If google answers with a postive response code between
-200 and 300 we will just to the final forwarding to bing. If google responses
-with another response code we will just use this status code as final response
-code and do not forward anything to "www.bing.com".
+"ask-for-sense-of-live" present in client request we will first ask google for
+the meaning of life. If google answers with a "negative" response code not
+between 200 and 300 we will just do the final forwarding to bing. If google
+responses in a positive manner the resulting status code we will be used for
+answering client and no forwarding to "www.bing.com" happens.
 
 Here es a test curl command:
 
 ```
-
+  curl \
+    --header 'ask-for-sense-of-live: value' \
+    --verbose \
+    http://localhost:8080 \
+      1>/dev/null
 ```
 
-Pre and post evaluations can have various results. The meansings of them are
+This should result in a simple response but:
+
+```curl --verbose http://localhost:8080 1>/dev/null```
+
+will finally request "www.bing.com".
+
+Pre and post evaluations can have various results. The meanings of them are
 described here:
 
 #### Pre-Evaluation Results
@@ -194,15 +208,6 @@ described here:
 | null or undefined | Just jump to the next evaluation to run.                                                                                                                                |
 | code (number)     | Answer client request with provided http status code and do not run any subsequent post-evaluations, state-api request or request forwarding to the underlying backend. |
 
-#### Validating request via external service
-
-To configure the middleware for providing a bot-filtering mechanism add a
-`configure.json` file and mount them into a docker container.
-
-```JavaScript
-TODO
-```
-
 ### Smart configurations
 
 Whenever you can configure list of items you can either use just one or a list
@@ -213,7 +218,9 @@ of them. Consider this configuration example:
   "forwarders": {
     "bing": {
       "host": "www.bing.com",
+
       "headerTransformations": [{...}, {...}, ...],
+
       "stateAPIs": {
         "expressions": {
           "pre": ["...", "...", ...],
@@ -232,7 +239,9 @@ If only one item is needed please consider that:
   "forwarders": {
     "bing": {
       "host": "www.bing.com",
+
       "headerTransformations": [{...}],
+
       "stateAPIs": {
         "expressions": {
           "pre": ["..."],
@@ -251,7 +260,9 @@ is equivalent to:
   "forwarders": {
     "bing": {
       "host": "www.bing.com",
+
       "headerTransformations": {...},
+
       "stateAPIs": {
         "expressions": {
           "pre": "...",
@@ -308,10 +319,12 @@ Base forwarder are inherited by every specific forwarder. This configuration:
         }
       }
     },
+
     "bing": {
       "host": "www.bing.com",
       "useExpression": "Math.random() < 0.5"
     },
+
     "google": {
       "host": "www.google.com"
     }
@@ -326,7 +339,9 @@ is equivalent to:
   "forwarders": {
     "bing": {
       "host": "www.bing.com",
+
       "useExpression": "Math.random() < 0.5",
+
       "headerTransformations": {
         "send": {
           "source": "/(GET|POST) \\/.* (.*)/",
@@ -334,8 +349,10 @@ is equivalent to:
         }
       }
     },
+
     "google": {
       "host": "www.google.com",
+
       "headerTransformations": {
         "send": {
           "source": "/(GET|POST) \\/.* (.*)/",
@@ -349,11 +366,64 @@ is equivalent to:
 
 #### Use base State-APIs
 
-TODO
+As we support generic base forwarder confgurations there are also base state
+api configuraton sections. Consider the follwing configuration example:
 
 ```
-TODO
+{
+  "forwarders": {
+    "bing": {
+      "host": "www.bing.com",
+
+      "stateAPIs": [
+        {
+          "name": "base",
+          "url": "https://www.google.com/search?q=${data.query}",
+
+          "expressions": {
+            "pre": "request.headers['ask-google'] ? true : null",
+            "post": "response.statusCode >= 200 && response.statusCode < 300 ? null : response.statusCode"
+          }
+        }
+
+        {
+          "name": "sense",
+
+          "data": {
+            "query": "What is the meaning of life?"
+          }
+        },
+
+        {
+          "name": "nonesense",
+
+          "data": {
+            "query": "baby cats"
+          }
+        }
+      ]
+    }
+  }
+}
 ```
+
+Note that url and expression are inherited to the state apis "sense" and
+"nonsense".
+The Data field can save various configuration items to be used in runtime
+expressions.
+Please also note that it is possible to access configuration, request or
+response informations from other state apis in every runtime expression.
+
+Every expression can access the following environment:
+
+| Name      | Meaning                                                |
+|-----------|--------------------------------------------------------|
+| data      | Generic configuration items.                           |
+| error     | Error object if some occured.                          |
+| request   | Client request informations.                           |
+| response  | Response informations (available in post evaluations). |
+| stateAPIs | Access oher state api informations.                    |
+| Tools     | [see](https://www.npmjs.com/package/clientnode)        |
 
 <!-- region modline
 vim: set tabstop=4 shiftwidth=4 expandtab:
