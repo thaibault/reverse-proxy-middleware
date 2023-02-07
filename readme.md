@@ -167,12 +167,18 @@ the meaning of life. If google answers with a postive response code between
 with another response code we will just use this status code as final response
 code and do not forward anything to "www.bing.com".
 
+Here es a test curl command:
+
+```
+
+```
+
 Pre and post evaluations can have various results. The meansings of them are
 described here:
 
 #### Pre-Evaluation Results
 
-| Result            | Measing                                                                                                                                                                |
+| Result            | Meaning                                                                                                                                                                |
 |-------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | break (string)    | Do not evaluate subsequent pre evaluations.                                                                                                                            |
 | null or undefined | Just jump to the next evaluation to run.                                                                                                                               |
@@ -182,7 +188,7 @@ described here:
 
 #### Post-Evaluation Results
 
-| Result            | Measing                                                                                                                                                                 |
+| Result            | Meaning                                                                                                                                                                 |
 |-------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | break (string)    | Do not evaluate subsequent post evaluations.                                                                                                                            |
 | null or undefined | Just jump to the next evaluation to run.                                                                                                                                |
