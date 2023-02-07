@@ -87,12 +87,10 @@ outcome of bing's expression if it is beeing used or not.
 Since this proxy just streams the whole request through it could be used as
 basic load balancer with this configuration.
 
-#### Rewriting headers for underlying backend
+### Rewriting headers for underlying backend
 
 Headers can be replaced in both directions. Client-Request to forward or
 retrieved responses given from configured backend:
-
-
 
 ```
   curl \
@@ -107,7 +105,7 @@ You should see a lot of cookie header ("set-cookie: ..." replaced by
 Note that muting the standart output ("1>/dev/null") enables you to focus on
 retrieved headers printed via secondary error output.
 
-#### Smart configurations
+### Smart configurations
 
 Whenever you can configure list of items you can either use just one or a list
 of them. For example:
@@ -137,6 +135,125 @@ is possible and
 ```
 
 is equivalent to:
+
+```
+{
+  "forwarders": {
+    "bing": {
+      "host": "www.bing.com",
+      "headerTransformations": {...}
+    }
+  }
+}
+```
+
+#### Use environment variables
+
+While some configuration values are interpret as expression to be evalued at
+runtime e.g. to decide which endpoint to use:
+
+```
+{
+  "forwarders": {
+    "endpoint": {
+      ...
+      "useExpression": "..."
+    }
+  }
+}
+```
+
+Every item can utilize expression to dynamically derive intial configurations:
+
+```
+{
+  "port": {
+    "__evaluate__": "environment.PORT ?? 8080"
+  },
+  ...
+}
+```
+
+If an environment variabel "PORT" is set it will be used or "8080" as a
+fallback.
+
+#### Use Base Forwarder
+
+Base forwarder are inherited by every specific forwarder. This configuration:
+
+```
+{
+  "forwarders": {
+    "base: {
+      "headerTransformations": {
+        "send": {
+          "source": "/(GET|POST) \\/.* (.*)/",
+          "target": "'$1 /sub/path/to/forward/to $2'"
+        }
+      }
+    },
+    "bing": {
+      "host": "www.bing.com",
+      "useExpression": "Math.random() < 0.5"
+    },
+    "google": {
+      "host": "www.google.com"
+    }
+  }
+}
+```
+
+is equivalent to:
+
+```
+{
+  "forwarders": {
+    "bing": {
+      "host": "www.bing.com",
+      "useExpression": "Math.random() < 0.5",
+      "headerTransformations": {
+        "send": {
+          "source": "/(GET|POST) \\/.* (.*)/",
+          "target": "'$1 /sub/path/to/forward/to $2'"
+        }
+      }
+    },
+    "google": {
+      "host": "www.google.com",
+      "headerTransformations": {
+        "send": {
+          "source": "/(GET|POST) \\/.* (.*)/",
+          "target": "'$1 /sub/path/to/forward/to $2'"
+        }
+      }
+    }
+  }
+}
+```
+
+### State-APIs
+
+State-APIs enables you to trigger requests conditionally to third party
+endpoints and use responses for further expressions.
+Expression which transform subsequent api requests, decide which backend to use
+or transform the final backend request.
+
+Here is an example:
+
+TODO
+
+```
+{
+  "forwarders": {
+    "bing": {
+      "host": "www.bing.com",
+      "headerTransformations": {...}
+    }
+  }
+}
+```
+
+#### Use base State-APIs
 
 ```
 {

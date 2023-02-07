@@ -1,0 +1,96 @@
+{
+  "port": {
+    "__evaluate__": "environment.PORT ?? 8080"
+  },
+
+  "forwarders": {
+    "base": {
+      "headerTransformations": {
+        "send": [
+          {
+            "source": "/(GET|POST) \\/.* (.*)/",
+            "target": "'$1 /services/data/v56.0/sobjects/Lead $2'"
+          },
+          {"source": "/g-recaptcha-response:.+\r?\n/i"},
+          {"source": "/g-recaptcha-skip:.+\r?\n/i"},
+          {"source": "/jobrad-form-register-contact-version:.+\r?\n/i"},
+          {"source": "/Authorization:.+\r?\n/i"},
+          {"target": "`Authorization: ${stateAPIs.salesforceSession.response.data.token_type} ${stateAPIs.salesforceSession.response.data.access_token}`"}
+        ]
+      },
+      "stateAPIs": {
+        "__append__": [
+          {
+            "data": {
+              "score": 0.01,
+              "secret": {
+                "__evaluate__": "environment.GOOGLE_RECAPTCHA_KEY"
+              },
+              "skipSecret": {
+                "__evaluate__": "environment.SKIP_SECRET"
+              }
+            },
+            "expressions": {
+              "pre": [
+                "data.skipSecret === request.headers['jobrad-bypass-captcha-skip-secret'] ? 'break' : 'continue'",
+                "request.headers['g-recaptcha-response'] ? true : 400"
+              ],
+              "post": [
+                "Boolean(error)",
+                "response.data.success",
+                "typeof response.data.score === 'number' && response.data.score >= data.score ? true : 420"
+              ]
+            },
+            "name": "googleReCaptchaV2-3",
+            "url": "https://www.google.com/recaptcha/api/siteverify?secret=${data.secret}&response=${headers['g-recaptcha-response']}"
+          },
+          {
+            "name": "salesforceSession",
+            "options": {
+              "headers": {
+                "Accept": "*/*",
+                "Content-Type": "application/x-www-form-urlencoded"
+              },
+              "method": "POST",
+              "redirect": "follow"
+            },
+            "expressions": {
+              "pre": "true",
+              "post": "stateAPIs.salesforceSession.response.data.access_token ? true : 401"
+            }
+          }
+        ]
+      }
+    },
+    "salesforceFreelancer": {
+      "host": "jobrad--staging.sandbox.my.salesforce.com",
+      "stateAPIs": {
+        "__2__": {
+          "options": {
+            "body": {
+              "__evaluate__": "`grant_type=password&client_id=${environment.FREELANCER_CLIENT_ID}&client_secret=${environment.FREELANCER_CLIENT_SECRET}&username=${environment.FREELANCER_USERNAME}&password=${environment.FREELANCER_PASSWORD}`"
+            }
+          },
+          "url": "https://jobrad--staging.sandbox.my.salesforce.com"
+        }
+      },
+      "useExpression": "request.headers['jobrad-type'] === 'freelancer'"
+    },
+    "salesforceSales": {
+      "alternate host": "jobradgmbh--leadform.sandbox.my.salesforce.com",
+      "host": "jobrad--staging.sandbox.my.salesforce.com",
+      "stateAPIs": {
+        "__2__": {
+          "options": {
+            "body": {
+              "__evaluate__": "`grant_type=password&client_id=${environment.SALES_CLIENT_ID}&client_secret=${environment.SALES_CLIENT_SECRET}&username=${environment.SALES_USERNAME}&password=${environment.SALES_PASSWORD}`"
+            }
+          },
+          "alternate url": "https://jobradgmbh--leadform.sandbox.my.salesforce.com/services/oauth2/token",
+          "url": "https://jobrad--staging.sandbox.my.salesforce.com/services/oauth2/token"
+        }
+      },
+      "useExpression": "request.method === 'OPTIONS' || request.headers['jobrad-type'] === 'sales'"
+    }
+  }
+}
