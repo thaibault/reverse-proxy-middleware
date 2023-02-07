@@ -92,39 +92,61 @@ basic load balancer with this configuration.
 Headers can be replaced in both directions. Client-Request to forward or
 retrieved responses given from configured backend:
 
-# TODO test
+
+
+```
+  curl \
+    --header 'X-Special-Client-Header-Name: value' \
+    --verbose \
+    http://localhost:8080 \
+      1>/dev/null
+```
+
+You should see a lot of cookie header ("set-cookie: ..." replaced by
+"X-Prevented-Cookie: ...".
+Note that muting the standart output ("1>/dev/null") enables you to focus on
+retrieved headers printed via secondary error output.
+
+#### Smart configurations
+
+Whenever you can configure list of items you can either use just one or a list
+of them. For example:
 
 ```
 {
   "forwarders": {
     "bing": {
       "host": "www.bing.com",
-      "headerTransformations": {
-        "send": [
-            {
-                "source": "/X-Special-Client-Header-Name: (.+)/",
-                "target": "'New-Header-Name: $1'"
-            }
-        ],
-
-        "retrieve": [
-            {
-                "source": "/set-cookie: (.+)/",
-                "target": "'X-Prevented-Cookie: $1'"
-            }
-        ]
-      }
+      "headerTransformations": [{...}, {...}, ...]
     }
   }
 }
 ```
 
+is possible and
+
 ```
-    curl \
-        --header 'X-Special-Client-Header-Name: value' \
-        --verbose \
-        http://localhost:8080 \
-            1>/dev/null
+{
+  "forwarders": {
+    "bing": {
+      "host": "www.bing.com",
+      "headerTransformations": [{...}]
+    }
+  }
+}
+```
+
+is equivalent to:
+
+```
+{
+  "forwarders": {
+    "bing": {
+      "host": "www.bing.com",
+      "headerTransformations": {...}
+    }
+  }
+}
 ```
 
 #### Validating request via external service

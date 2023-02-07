@@ -3,18 +3,15 @@
     "bing": {
       "host": "www.bing.com",
       "headerTransformations": {
-        "retrieve": [
-            {
-                "source": "/X-Special-Backend-Header-Name: (.+)/",
-                "target": "'New-Header-Name: $1'"
-            }
-        ],
-        "send": [
-            {
-                "source": "/X-Special-Client-Header-Name: (.+)/",
-                "target": "'New-Header-Name: $1'"
-            }
-        ]
+        "send": {
+          "source": "/X-Special-Client-Header-Name: (.+)/gi",
+          "target": "'New-Header-Name: $1'"
+        },
+
+        "retrieve": {
+          "source": "/set-cookie: (.+)/gi",
+          "target": "'X-Prevented-Cookie: $1'"
+        }
       }
     }
   }
