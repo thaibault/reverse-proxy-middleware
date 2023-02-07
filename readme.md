@@ -93,6 +93,29 @@ Headers can be replaced in both directions. Client-Request to forward or
 retrieved responses given from configured backend:
 
 ```
+{
+  "forwarders": {
+    "bing": {
+      "host": "www.bing.com",
+      "headerTransformations": {
+        "send": {
+          "source": "/X-Special-Client-Header-Name: (.+)/gi",
+          "target": "'New-Header-Name: $1'"
+        },
+
+        "retrieve": {
+          "source": "/set-cookie: (.+)/gi",
+          "target": "'X-Prevented-Cookie: $1'"
+        }
+      }
+    }
+  }
+}
+```
+
+Test via:
+
+```
   curl \
     --header 'X-Special-Client-Header-Name: value' \
     --verbose \
@@ -104,6 +127,50 @@ You should see a lot of cookie header ("set-cookie: ..." replaced by
 "X-Prevented-Cookie: ...".
 Note that muting the standart output ("1>/dev/null") enables you to focus on
 retrieved headers printed via secondary error output.
+
+### State-APIs
+
+State-APIs enables you to trigger requests conditionally to third party
+endpoints and use responses for further expressions.
+Expression which transform subsequent api requests, decide which backend to use
+or transform the final backend request.
+
+Here is an example:
+
+TODO
+
+```
+{
+  "forwarders": {
+    "bing": {
+      "host": "www.bing.com",
+      "headerTransformations": {...}
+    }
+  }
+}
+```
+
+#### Use base State-APIs
+
+```
+{
+  "forwarders": {
+    "bing": {
+      "host": "www.bing.com",
+      "headerTransformations": {...}
+    }
+  }
+}
+```
+
+#### Validating request via external service
+
+To configure the middleware for providing a bot-filtering mechanism add a
+`configure.json` file and mount them into a docker container.
+
+```JavaScript
+TODO
+```
 
 ### Smart configurations
 
@@ -229,50 +296,6 @@ is equivalent to:
     }
   }
 }
-```
-
-### State-APIs
-
-State-APIs enables you to trigger requests conditionally to third party
-endpoints and use responses for further expressions.
-Expression which transform subsequent api requests, decide which backend to use
-or transform the final backend request.
-
-Here is an example:
-
-TODO
-
-```
-{
-  "forwarders": {
-    "bing": {
-      "host": "www.bing.com",
-      "headerTransformations": {...}
-    }
-  }
-}
-```
-
-#### Use base State-APIs
-
-```
-{
-  "forwarders": {
-    "bing": {
-      "host": "www.bing.com",
-      "headerTransformations": {...}
-    }
-  }
-}
-```
-
-#### Validating request via external service
-
-To configure the middleware for providing a bot-filtering mechanism add a
-`configure.json` file and mount them into a docker container.
-
-```JavaScript
-TODO
 ```
 
 <!-- region modline
