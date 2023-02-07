@@ -132,10 +132,16 @@ retrieved headers printed via secondary error output.
 
 ### State-APIs
 
-State-APIs enables you to trigger requests conditionally to third party
-endpoints and use responses for further expressions.
-Expression which transform subsequent api requests, decide which backend to use
+State-APIs enables you to conditionally trigger requests to third party
+endpoints and use responses for further decisions how to proceed.
+When a state api is used for a specified request that response can be used via
+expressions to transform subsequent api requests, decide which backend to use
 or transform the final backend request.
+
+In the following example you can see how a state api is configured to catch
+specific request to deal with. The last running pre expressions which results
+in a boolean value will trigger if the referenced state api should be used for
+given request.
 
 Here is an example:
 
