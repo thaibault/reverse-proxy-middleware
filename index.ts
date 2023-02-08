@@ -28,6 +28,7 @@ import reverseProxyBufferedRequest, {
     addParsedContentToRequest,
     applyStateAPIs,
     determineForwarder,
+    logging,
     resolveForwarders
 } from './helper'
 import packageConfiguration from './package.json'
@@ -53,6 +54,11 @@ const onIncomingMessage = (
         request as BufferedHTTPServerRequest
 
     void (async ():Promise<void> => {
+        void logging.info(
+            `|${'-'.repeat(80 - 2)}|\nStart processing`,
+            `${bufferedRequest.method} request: ${bufferedRequest.url}\n`
+        )
+
         // NOTE: We have to wait until client request is fully buffered.
         while (true) {
             await Tools.timeout()
@@ -68,7 +74,7 @@ const onIncomingMessage = (
             determineForwarder(bufferedRequest, response, FORWARDERS)
 
         if (forwarder === null) {
-            console.error(
+            void logging.error(
                 'No forwarder found for given request:', bufferedRequest
             )
 
@@ -78,19 +84,29 @@ const onIncomingMessage = (
             return
         }
 
-        const {result, scope} =
-            await applyStateAPIs(bufferedRequest, response, forwarder)
-        if (result)
-            reverseProxyBufferedRequest(
-                bufferedRequest, response, forwarder, scope
-            )
+        try {
+            const {result, scope} =
+                await applyStateAPIs(bufferedRequest, response, forwarder)
+            if (result)
+                await reverseProxyBufferedRequest(
+                    bufferedRequest, response, forwarder, scope
+                )
+        } catch (error) {
+            void logging.error(error)
+        }
+
+        void logging.info(
+            `\nEnd processing`,
+            `${bufferedRequest.method} request: ${bufferedRequest.url}\n` +
+            `|${'-'.repeat(80 - 2)}|`
+        )
     })()
 }
 
 const onIncomingStream = (
     stream:HTTPStream, headers:OutgoingHTTPHeaders
 ):void => {
-    console.info('Got stream', stream, headers)
+    void logging.info('Got stream', stream, headers)
 }
 // endregion
 // region configuration
@@ -137,16 +153,17 @@ const server:Server = {
     start: ():void => {
         server.instance.listen(
             CONFIGURATION.port,
-            ():void =>
-                console.info(
+            ():void => {
+                void logging.info(
                     `Listen on port ${CONFIGURATION.port} for incoming ` +
                     'requests.'
                 )
+            }
         )
     },
     stop: ():void => {
         server.instance.close(():void => {
-            console.info('Shut server down.')
+            void logging.info('Shut server down.')
         })
 
         for (const connections of [server.sockets, server.streams])
@@ -210,16 +227,16 @@ if (
     typeof ORIGINAL_MAIN_MODULE !== 'undefined' &&
     ORIGINAL_MAIN_MODULE === eval('require.main')
 ) {
-    console.info(
+    void logging.info(
         'Start server with configuration:', Tools.represent(CONFIGURATION)
     )
-    console.debug('Apply resolved forwarder:', Tools.represent(FORWARDERS))
+    void logging.debug('Apply resolved forwarder:', Tools.represent(FORWARDERS))
 
     server.start()
 
     for (const name of CloseEventNames)
         process.on(name, ():void => {
-            console.info(`\nGot "${name}" signal: stopping server.`)
+            void logging.info(`\nGot "${name}" signal: stopping server.`)
 
             server.stop()
         })
