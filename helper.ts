@@ -529,8 +529,8 @@ export const reverseProxyBufferedRequest = async (
             },
             () => {
                 void logging.info(
-                    `Proxy to: http${forwarder.tls ? 's' : ''}://` +
-                    `${forwarder.host}${portSuffix}`
+                    `\nConnection to: http${forwarder.tls ? 's' : ''}://` +
+                    `${forwarder.host}${portSuffix} established.`
                 )
             }
         )
@@ -562,7 +562,7 @@ export const reverseProxyBufferedRequest = async (
                 let content:string = buffer.toString()
 
                 void logging.info(
-                    `\nGot response header from backend:\n\n${content}\n`
+                    `\n <=== Got response header from backend:\n\n${content}`
                 )
 
                 content = transformHeaders(
@@ -572,7 +572,7 @@ export const reverseProxyBufferedRequest = async (
                 )
 
                 void logging.info(
-                    `\nSend response header to client:\n\n${content}`
+                    `\n <<<< Send response header to client:\n\n${content}`
                 )
 
                 clientSocket.write(content)
@@ -591,7 +591,7 @@ export const reverseProxyBufferedRequest = async (
                     let content:string = buffer.toString()
 
                     void logging.debug(
-                        `\nGot request header from client:\n\n${content}`
+                        `\n ===> Got request header from client:\n\n${content}`
                     )
 
                     if (forwarder.tls)
@@ -611,7 +611,7 @@ export const reverseProxyBufferedRequest = async (
                     )
 
                     void logging.debug(
-                        `\nSend request header to backend:\n\n${content}`
+                        `\n >>>> Send request header to backend:\n\n${content}`
                     )
 
                     serverSocket.write(content)
