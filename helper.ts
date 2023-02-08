@@ -49,6 +49,22 @@ import {
 export const EVALUATION_SCOPE_NAMES:Array<string> = [
     'data', 'error', 'request', 'response', 'stateAPIs', 'Tools'
 ]
+
+const log = async (...parameters:Array<unknown>):Promise<void> =>
+    new Promise((resolve:() => void, reject:(error:Error) => void):void => {
+        process.stdout.write(
+            `${parameters.join(' ')}\n`,
+            (error?:Error):void => error ? reject(error) : resolve()
+        )
+    })
+export const logging = {
+    log,
+    debug: log,
+    info: log,
+    error: log,
+    warn: log
+}
+
 // region forwarder
 export const applyStateAPIs = async (
     request:BufferedHTTPServerRequest,
@@ -78,14 +94,14 @@ export const applyStateAPIs = async (
                     Tools
                 )
             } catch (error) {
-                console.warn(
+                void logging.warn(
                     `Failed running pre ${index}. expression of state api:`,
                     error
                 )
             }
 
             if (typeof result === 'number') {
-                console.info(
+                void logging.info(
                     'Break request caused by state api ' +
                     `"${stateAPI.name}" with status code ${result}.`
                 )
@@ -109,7 +125,10 @@ export const applyStateAPIs = async (
         }
 
         if (useStateAPI) {
-            console.info(`Use state api:`, Tools.represent(stateAPI))
+            void logging.info(`Use state api: "${stateAPI.name}"`)
+            void logging.debug(
+                `\nState api configuration is: ${Tools.represent(stateAPI)}`
+            )
 
             let error:Error|null = null
             try {
@@ -119,7 +138,7 @@ export const applyStateAPIs = async (
             } catch (givenError) {
                 error = givenError as Error
 
-                console.warn(
+                void logging.warn(
                     `Running state api request for "${stateAPI.name}" throws`,
                     'error:',
                     error
@@ -144,15 +163,15 @@ export const applyStateAPIs = async (
                 } catch (givenError) {
                     error = givenError as Error
 
-                    console.warn(
+                    void logging.warn(
                         'Parsing state api json response for',
                         `"${stateAPI.name}" throws error:`,
                         error
                     )
                 }
 
-            console.info(
-                `State api response is:`,
+            void logging.debug(
+                `\nState api response is:`,
                 Tools.represent(stateAPIScope[stateAPI.name].response)
             )
 
@@ -169,7 +188,7 @@ export const applyStateAPIs = async (
                         Tools
                     )
                 } catch (error) {
-                    console.warn(
+                    void logging.warn(
                         `Failed running ${index}. post expression of state ` +
                         'api:',
                         error
@@ -177,7 +196,7 @@ export const applyStateAPIs = async (
                 }
 
                 if (typeof result === 'number') {
-                    console.info(
+                    void logging.info(
                         'Break request caused by state api ' +
                         `"${stateAPI.name}" with status code ${result}.`
                     )
@@ -222,7 +241,7 @@ export const determineForwarder = (
             },
             Tools
         )) {
-            console.info(`Determined forwarder "${name}".`)
+            void logging.info(`Determined forwarder is: "${name}".`)
 
             return forwarder
         }
@@ -405,7 +424,7 @@ export const addParsedContentToRequest = (
             bufferedRequest.socket.buffer.content =
                 JSON.parse(bufferedRequest.socket.buffer.body) as ParsedContent
         } catch (error) {
-            console.warn('Error parsing given request.', bufferedRequest)
+            void logging.warn('Error parsing given request.', bufferedRequest)
         }
 }
 export const transformHeaders = (
@@ -413,6 +432,7 @@ export const transformHeaders = (
     headerTransformations:Array<ResolvedHeaderTransformation>,
     parameters:EvaluationParameters
 ):string => {
+    let newLinePrinted = false
     for (const transformation of headerTransformations)
         try {
             const source:null|RegExp|string|undefined =
@@ -449,8 +469,12 @@ export const transformHeaders = (
                     }
                 )
             } else {
+                if (!newLinePrinted) {
+                    void logging.debug()
+                    newLinePrinted = true
+                }
                 // Search and replace (or remove) header.
-                console.debug(
+                void logging.debug(
                     `Search for "${source as string}" and replace with`,
                     `${Tools.represent(target)}.`
                 )
@@ -458,8 +482,8 @@ export const transformHeaders = (
                 content = content.replace(source!, target as string)
             }
         } catch (error) {
-            console.warn(
-                'Could not apply header transformation with source ' +
+            void logging.warn(
+                '\nCould not apply header transformation with source ' +
                 (transformation.source ?
                     Tools.represent(transformation.source) :
                     '"add"'
@@ -476,114 +500,130 @@ export const transformHeaders = (
 
     return content
 }
-export const reverseProxyBufferedRequest = (
+export const reverseProxyBufferedRequest = async (
     request:BufferedHTTPServerRequest,
     response:HTTPServerResponse,
     forwarder:ResolvedForwarder,
     stateAPIScope:EvaluationScopeStateAPIs
-):void => {
-    const clientSocket:Socket = response.socket
-    const createConnection:typeof createSecureConnection = forwarder.tls ?
-        createSecureConnection :
-        createPlainConnection as unknown as typeof createSecureConnection
-    const portSuffix:string = (
-        forwarder.tls &&
-        forwarder.port !== 443 ||
-        !forwarder.tls &&
-        forwarder.port !== 80
-    ) ?
-        `:${String(forwarder.port)}` :
-        ''
+):Promise<void> =>
+    new Promise((resolve:() => void, reject:(error:Error) => void):void => {
+        const clientSocket:Socket = response.socket
+        const createConnection:typeof createSecureConnection = forwarder.tls ?
+            createSecureConnection :
+            createPlainConnection as unknown as typeof createSecureConnection
+        const portSuffix:string = (
+            forwarder.tls && forwarder.port !== 443 ||
+            !forwarder.tls && forwarder.port !== 80
+        ) ?
+            `:${String(forwarder.port)}` :
+            ''
 
-    const serverSocket = createConnection(
-        {
-            host: forwarder.host,
-            port: forwarder.port,
-            ...(forwarder.tls ?
-                {servername: forwarder.host, rejectUnauthorized: false} :
-                {}
-            )
-        },
-        () => {
-            console.info(
-                `Proxy to: http${forwarder.tls ? 's' : ''}://` +
-                `${forwarder.host}${portSuffix}`
-            )
-        }
-    )
-    serverSocket.on('error', (error:Error) => {
-        console.error('Proxy to server error', error)
-    })
-
-    const parameters:EvaluationParameters = [
-        {clientSocket, serverSocket},
-        null,
-        request,
-        response,
-        stateAPIScope,
-        Tools
-    ]
-
-    // Send data from server back to client.
-    if (forwarder.headerTransformations.retrieve.length) {
-        let headerProcessed = false
-        serverSocket.on('data', (buffer:Buffer):void => {
-            if (headerProcessed) {
-                clientSocket.write(buffer)
-
-                return
+        const serverSocket = createConnection(
+            {
+                host: forwarder.host,
+                port: forwarder.port,
+                ...(forwarder.tls ?
+                    {servername: forwarder.host, rejectUnauthorized: false} :
+                    {}
+                )
+            },
+            () => {
+                void logging.info(
+                    `Proxy to: http${forwarder.tls ? 's' : ''}://` +
+                    `${forwarder.host}${portSuffix}`
+                )
             }
+        )
+        serverSocket.on('error', (error:Error) => {
+            void logging.error('Proxy to server error', error)
 
-            let content:string = buffer.toString()
-
-            console.info(`Got response header from backend:\n${content}`)
-
-            content = transformHeaders(
-                content, forwarder.headerTransformations.retrieve, parameters
-            )
-
-            console.info(`Send response header to client:\n${content}`)
-
-            clientSocket.write(content)
-
-            headerProcessed = true
+            reject(error)
         })
-    } else
-        serverSocket.pipe(clientSocket)
 
-    serverSocket.on('connect', () => {
-        let headerProcessed = false
-        for (const buffer of request.socket.buffer.data) {
-            if (!headerProcessed) {
+        const parameters:EvaluationParameters = [
+            {clientSocket, serverSocket},
+            null,
+            request,
+            response,
+            stateAPIScope,
+            Tools
+        ]
+
+        // Send data from server back to client.
+        if (forwarder.headerTransformations.retrieve.length) {
+            let headerProcessed = false
+            serverSocket.on('data', (buffer:Buffer):void => {
+                if (headerProcessed) {
+                    clientSocket.write(buffer)
+
+                    return
+                }
+
                 let content:string = buffer.toString()
 
-                console.info(`Got request header from client:\n${content}`)
-
-                if (forwarder.tls)
-                    // NOTE: TLS support was introduced in version 1.1.
-                    content = content.replace(/HTTP\/1\.0/i, 'HTTP/1.1')
-
-                // Overwrite proxy host with destination one.
-                content = content.replace(
-                    /(($|\n)host: )[^\n]+/i, `$1${forwarder.host}${portSuffix}`
+                void logging.info(
+                    `\nGot response header from backend:\n\n${content}\n`
                 )
 
                 content = transformHeaders(
-                    content, forwarder.headerTransformations.send, parameters
+                    content,
+                    forwarder.headerTransformations.retrieve,
+                    parameters
                 )
 
-                console.info(`Send request header to backend:\n${content}`)
+                void logging.info(
+                    `\nSend response header to client:\n\n${content}`
+                )
 
-                serverSocket.write(content)
+                clientSocket.write(content)
 
                 headerProcessed = true
-                continue
-            }
 
-            serverSocket.write(buffer)
-        }
+                resolve()
+            })
+        } else
+            serverSocket.pipe(clientSocket)
+
+        serverSocket.on('connect', () => {
+            let headerProcessed = false
+            for (const buffer of request.socket.buffer.data) {
+                if (!headerProcessed) {
+                    let content:string = buffer.toString()
+
+                    void logging.debug(
+                        `\nGot request header from client:\n\n${content}`
+                    )
+
+                    if (forwarder.tls)
+                        // NOTE: TLS support was introduced in version 1.1.
+                        content = content.replace(/HTTP\/1\.0/i, 'HTTP/1.1')
+
+                    // Overwrite proxy host with destination one.
+                    content = content.replace(
+                        /(($|\n)host: )[^\n]+/i,
+                        `$1${forwarder.host}${portSuffix}`
+                    )
+
+                    content = transformHeaders(
+                        content,
+                        forwarder.headerTransformations.send,
+                        parameters
+                    )
+
+                    void logging.debug(
+                        `\nSend request header to backend:\n\n${content}`
+                    )
+
+                    serverSocket.write(content)
+
+                    headerProcessed = true
+                    continue
+                }
+
+                serverSocket.write(buffer)
+            }
+        })
     })
-}
 
 export default reverseProxyBufferedRequest
 // region vim modline
