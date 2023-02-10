@@ -114,15 +114,19 @@ export interface StateAPI {
     name:string
     options?:RequestInit
     expressions?:APIExpressions
-    url:string
+    url?:string
+    urlExpression?:string|((...parameters:EvaluationParameters) => string)
 }
 export interface ResolvedAPIExpressions {
     pre:Array<(...parmaters:EvaluationParameters) => APIPreEvaluationResult>
     post:Array<(...parameters:EvaluationParameters) => APIPostEvaluationResult>
 }
 export type ResolvedStateAPI =
-    NonNullable<Omit<StateAPI, 'expressions'>> &
-    {expressions:ResolvedAPIExpressions}
+    NonNullable<Omit<StateAPI, 'expressions'|'urlExpression'>> &
+    {
+        expressions:ResolvedAPIExpressions
+        urlExpression?:(...parameters:EvaluationParameters) => string
+    }
 export interface HeaderTransformation {
     source?:(
         string |
