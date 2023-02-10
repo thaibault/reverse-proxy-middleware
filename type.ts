@@ -57,16 +57,18 @@ export interface BufferedHTTPServerRequest extends HTTPServerRequest {
 export type StringReplacer =
     (substring:string, ...parameters:Array<unknown>) => string
 
-export type EvaluationScopeStateAPIs = Mapping<{
+export interface EvaluationScopeStateAPI {
     configuration:ResolvedForwarder|ResolvedStateAPI
     error:Error|null
     response:(Response & {data:Mapping<unknown>})|null
-}>
+}
+export type EvaluationScopeStateAPIs = Mapping<EvaluationScopeStateAPI>
 export interface EvaluationScope {
     data?:Mapping<unknown>
     error?:Error|null
     request?:HTTPServerRequest
     response?:HTTPServerResponse
+    stateAPI?:EvaluationScopeStateAPI|null
     stateAPIs?:EvaluationScopeStateAPIs
     Tools:typeof Tools
 }
@@ -75,6 +77,7 @@ export type EvaluationParameters = [
     EvaluationScope['error'],
     EvaluationScope['request'],
     EvaluationScope['response'],
+    EvaluationScope['stateAPI'],
     EvaluationScope['stateAPIs'],
     EvaluationScope['Tools']
 ]
