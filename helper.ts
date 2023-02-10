@@ -30,6 +30,7 @@ import {
     APIPreEvaluationResult,
     BufferedHTTPServerRequest,
     EvaluationParameters,
+    EvaluationScopeStateAPI,
     EvaluationScopeStateAPIs,
     Forwarders,
     HeaderTransformation,
@@ -47,7 +48,7 @@ import {
 } from './type'
 // endregion
 export const EVALUATION_SCOPE_NAMES:Array<string> = [
-    'data', 'error', 'request', 'response', 'stateAPIs', 'Tools'
+    'data', 'error', 'request', 'response', 'stateAPI', 'stateAPIs', 'Tools'
 ]
 
 const log = async (...parameters:Array<unknown>):Promise<void> =>
@@ -73,12 +74,15 @@ export const applyStateAPIs = async (
 ):Promise<{result:boolean, scope:EvaluationScopeStateAPIs}> => {
     const stateAPIScope:EvaluationScopeStateAPIs = {}
 
+    let state:EvaluationScopeStateAPI
     for (const stateAPI of forwarder.stateAPIs) {
-        stateAPIScope[stateAPI.name] = {
-            configuration: stateAPI,
-            error: null,
-            response: null
-        }
+        state =
+            stateAPIScope[stateAPI.name] =
+            {
+                configuration: stateAPI,
+                error: null,
+                response: null
+            }
         let useStateAPI = false
 
         let index = 1
@@ -90,6 +94,7 @@ export const applyStateAPIs = async (
                     null,
                     request,
                     response,
+                    state,
                     stateAPIScope,
                     Tools
                 )
@@ -136,6 +141,7 @@ export const applyStateAPIs = async (
                         null,
                         request,
                         response,
+                        state,
                         stateAPIScope,
                         Tools
                     )
@@ -148,9 +154,9 @@ export const applyStateAPIs = async (
             )
 
             try {
-                stateAPIScope[stateAPI.name].response = await fetch(
-                    stateAPI.url!, stateAPI.options
-                ) as Response & {data:Mapping<unknown>}
+                state.response =
+                    await fetch(stateAPI.url!, stateAPI.options) as
+                        Response & {data:Mapping<unknown>}
             } catch (givenError) {
                 error = givenError as Error
 
@@ -162,20 +168,15 @@ export const applyStateAPIs = async (
             }
 
             if (
-                stateAPIScope[stateAPI.name].response &&
-                stateAPIScope[stateAPI.name].response!.headers.has(
-                    'content-type'
-                ) &&
+                state.response &&
+                state.response.headers.has('content-type') &&
                 /application\/json(;.*)?$/.test(
-                    stateAPIScope[stateAPI.name].response!.headers.get(
-                        'content-type'
-                    )!
+                    state.response.headers.get('content-type')!
                 )
             )
                 try {
-                    stateAPIScope[stateAPI.name].response!.data =
-                        await stateAPIScope[stateAPI.name].response!.json() as
-                            PlainObject
+                    state.response.data =
+                        await state.response.json() as PlainObject
                 } catch (givenError) {
                     error = givenError as Error
 
@@ -187,8 +188,7 @@ export const applyStateAPIs = async (
                 }
 
             void logging.debug(
-                `\nState api response is:`,
-                Tools.represent(stateAPIScope[stateAPI.name].response)
+                `\nState api response is:`, Tools.represent(state.response)
             )
 
             index = 1
@@ -200,6 +200,7 @@ export const applyStateAPIs = async (
                         error,
                         request,
                         response,
+                        state,
                         stateAPIScope,
                         Tools
                     )
@@ -242,25 +243,27 @@ export const determineForwarder = (
         .sort(([firstName], [secondName]) =>
             firstName.localeCompare(secondName)
         )
-    )
+    ) {
+        const state:EvaluationScopeStateAPI = {
+            configuration: forwarder,
+            error: null,
+            response: null
+        }
+
         if (forwarder.useExpression(
             forwarder,
             null,
             request,
             response,
-            {
-                [name]: {
-                    configuration: forwarder,
-                    error: null,
-                    response: null
-                }
-            },
+            state,
+            {[name]: state},
             Tools
         )) {
             void logging.info(`Determined forwarder is: "${name}".`)
 
             return forwarder
         }
+    }
 
     return null
 }
@@ -578,6 +581,7 @@ export const reverseProxyBufferedRequest = async (
             null,
             request,
             response,
+            null,
             stateAPIScope,
             Tools
         ]
