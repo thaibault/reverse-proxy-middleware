@@ -126,16 +126,12 @@ export const applyStateAPIs = async (
 
         if (useStateAPI) {
             void logging.info(`Use state api: "${stateAPI.name}"`)
-            void logging.debug(
-                `\nState api configuration is: ${Tools.represent(stateAPI)}`
-            )
 
             let error:Error|null = null
 
-            let url:string|undefined = stateAPI.url
             if (stateAPI.urlExpression)
                 try {
-                    url = stateAPI.urlExpression(
+                    stateAPI.url = stateAPI.urlExpression(
                         stateAPI.data,
                         null,
                         request,
@@ -147,9 +143,13 @@ export const applyStateAPIs = async (
                     void logging.warn(`Failed running url expression:`, error)
                 }
 
+            void logging.debug(
+                `\nState api configuration is: ${Tools.represent(stateAPI)}`
+            )
+
             try {
                 stateAPIScope[stateAPI.name].response = await fetch(
-                    url!, stateAPI.options
+                    stateAPI.url!, stateAPI.options
                 ) as Response & {data:Mapping<unknown>}
             } catch (givenError) {
                 error = givenError as Error
