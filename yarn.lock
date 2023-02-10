@@ -964,6 +964,11 @@
     "@babel/helper-validator-option" "^7.18.6"
     "@babel/plugin-transform-typescript" "^7.18.6"
 
+"@babel/regjsgen@^0.8.0":
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/@babel/regjsgen/-/regjsgen-0.8.0.tgz#f0ba69b075e1f05fb2825b7fad991e7adbb18310"
+  integrity sha512-x/rqGMdzj+fWZvCOYForTghzbtqPDZ5gPwaoNGHdgDfF2QA/XZbCBp4Moo5scrkAMPhB7z26XM/AaHuIJdgauA==
+
 "@babel/runtime@*", "@babel/runtime@^7.8.4":
   version "7.20.13"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.20.13.tgz#7055ab8a7cff2b8f6058bf6ae45ff84ad2aded4b"
@@ -2860,9 +2865,9 @@ camelcase@^6.2.0:
   integrity sha512-Gmy6FhYlCY7uOElZUSbxo2UCDH8owEk996gkbrpsgGtrJLM3J7jGxl9Ic7Qwwj4ivOE5AWZWRMecDdF7hqGjFA==
 
 caniuse-lite@^1.0.30000844, caniuse-lite@^1.0.30001449:
-  version "1.0.30001450"
-  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001450.tgz#022225b91200589196b814b51b1bbe45144cf74f"
-  integrity sha512-qMBmvmQmFXaSxexkjjfMvD5rnDL0+m+dUMZKoDYsGG8iZN29RuYh9eRoMvKsT6uMAWlyUUGDEQGJJYjzCIO9ew==
+  version "1.0.30001451"
+  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001451.tgz#2e197c698fc1373d63e1406d6607ea4617c613f1"
+  integrity sha512-XY7UbUpGRatZzoRft//5xOa69/1iGJRBlrieH6QYrkKLIFn3m7OVEJ81dSrKoy2BnKsdbX5cLrOispZNYo9v2w==
 
 catharsis@^0.9.0:
   version "0.9.0"
@@ -2966,9 +2971,9 @@ cli-table3@^0.5.0:
     colors "^1.1.2"
 
 clientnode@*:
-  version "3.0.1020"
-  resolved "https://registry.yarnpkg.com/clientnode/-/clientnode-3.0.1020.tgz#a49c80657b9cf72f9b6bb8935237cb9603c8db7d"
-  integrity sha512-Ld26ZQWJ7FWh7JPjqvchsixLkOiVxkDUdRmb9b+IBf564+kE1P289r4C/rZCbVW4j5DOGnCZ/rfpg2kuiwNG0w==
+  version "3.0.1022"
+  resolved "https://registry.yarnpkg.com/clientnode/-/clientnode-3.0.1022.tgz#6410e1db115f552d6257e54df40e7e83e92abf40"
+  integrity sha512-FxrDsrQs/rgi2/setuzsyxwDHnNEPYTdTHlAfyavGMXByv3RVBga30kfmo9TxSlywSkEtlG4/fDYBFcZGEZCqA==
 
 cliui@^4.0.0:
   version "4.1.0"
@@ -3319,9 +3324,9 @@ ejs@*:
     jake "^10.8.5"
 
 electron-to-chromium@^1.3.47, electron-to-chromium@^1.4.284:
-  version "1.4.288"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.288.tgz#bbce00eb03c1819fe3d0d0d861374b76c53f7507"
-  integrity sha512-8s9aJf3YiokIrR+HOQzNOGmEHFXVUQzXM/JaViVvKdCkNUjS+lEa/uT7xw3nDVG/IgfxiIwUGkwJ6AR1pTpYsQ==
+  version "1.4.294"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.294.tgz#ad80317b85f0859a9454680fbc1c726fefa7e6fd"
+  integrity sha512-PuHZB3jEN7D8WPPjLmBQAsqQz8tWHlkkB4n0E2OYw8RwVdmBYV0Wn+rUFH8JqYyIRb4HQhhedgxlZL163wqLrQ==
 
 emittery@^0.13.1:
   version "0.13.1"
@@ -5019,9 +5024,9 @@ minimatch@^5.0.1:
     brace-expansion "^2.0.1"
 
 minimist@^1.2.0, minimist@^1.2.6:
-  version "1.2.7"
-  resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.7.tgz#daa1c4d91f507390437c6a8bc01078e7000c4d18"
-  integrity sha512-bzfL1YUZsP41gmu/qjrEk0Q6i2ix/cVeAhbCbqH9u3zYutS1cLg00qhrD0M2MVdCcx4Sc0UpP2eBWo9rotpq6g==
+  version "1.2.8"
+  resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.8.tgz#c1a464e7693302e082a075cee0c057741ac4772c"
+  integrity sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA==
 
 mkdirp@^0.5.1:
   version "0.5.6"
@@ -5507,13 +5512,13 @@ regexpu-core@^2.0.0:
     regjsparser "^0.1.4"
 
 regexpu-core@^5.2.1:
-  version "5.2.2"
-  resolved "https://registry.yarnpkg.com/regexpu-core/-/regexpu-core-5.2.2.tgz#3e4e5d12103b64748711c3aad69934d7718e75fc"
-  integrity sha512-T0+1Zp2wjF/juXMrMxHxidqGYn8U4R+zleSJhX9tQ1PUsS8a9UtYfbsF9LdiVgNX3kiX8RNaKM42nfSgvFJjmw==
+  version "5.3.0"
+  resolved "https://registry.yarnpkg.com/regexpu-core/-/regexpu-core-5.3.0.tgz#4d0d044b76fedbad6238703ae84bfdedee2cf074"
+  integrity sha512-ZdhUQlng0RoscyW7jADnUZ25F5eVtHdMyXSb2PiwafvteRAOJUjFoUPEYZSIfP99fBIs3maLIRfpEddT78wAAQ==
   dependencies:
+    "@babel/regjsgen" "^0.8.0"
     regenerate "^1.4.2"
     regenerate-unicode-properties "^10.1.0"
-    regjsgen "^0.7.1"
     regjsparser "^0.9.1"
     unicode-match-property-ecmascript "^2.0.0"
     unicode-match-property-value-ecmascript "^2.1.0"
@@ -5522,11 +5527,6 @@ regjsgen@^0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/regjsgen/-/regjsgen-0.2.0.tgz#6c016adeac554f75823fe37ac05b92d5a4edb1f7"
   integrity sha512-x+Y3yA24uF68m5GA+tBjbGYo64xXVJpbToBaWCoSNSc1hdk6dfctaRWrNFTVJZIIhL5GxW8zwjoixbnifnK59g==
-
-regjsgen@^0.7.1:
-  version "0.7.1"
-  resolved "https://registry.yarnpkg.com/regjsgen/-/regjsgen-0.7.1.tgz#ee5ef30e18d3f09b7c369b76e7c2373ed25546f6"
-  integrity sha512-RAt+8H2ZEzHeYWxZ3H2z6tF18zyyOnlcdaafLrm21Bguj7uZy6ULibiAFdXEtKQY4Sy7wDTwDiOazasMLc4KPA==
 
 regjsparser@^0.1.4:
   version "0.1.5"
@@ -6207,9 +6207,9 @@ webidl-conversions@^7.0.0:
   integrity sha512-VwddBukDzu71offAQR975unBIGqfKZpM+8ZX6ySk8nYhVoo5CYaZyzt3YBvYtRtO+aoGlqxPg/B87NGVZ/fu6g==
 
 weboptimizer@*:
-  version "2.0.1288"
-  resolved "https://registry.yarnpkg.com/weboptimizer/-/weboptimizer-2.0.1288.tgz#1b69e1a56401fad437ef02d4f426b9259d3d557b"
-  integrity sha512-qCv//WfH2/v7pRyciaaNshC0dsCWsa0IObusDlnEoRRwgfMlh8X960b+R61+b0OcM4raTKFMZoacVY62jgOaKA==
+  version "2.0.1292"
+  resolved "https://registry.yarnpkg.com/weboptimizer/-/weboptimizer-2.0.1292.tgz#cfb1abc1165e96035ea6d6c0d1c670b3e38996d6"
+  integrity sha512-0kHuUd+TG7zBSlfZU1TIZ5KbUsnBhKtRpd6arZSTL2rd23loTO1HU3xAmFpeunGnpst/p22au+Kq+AA6D6ZS1g==
   dependencies:
     "@babel/core" "*"
     "@babel/plugin-proposal-decorators" "*"

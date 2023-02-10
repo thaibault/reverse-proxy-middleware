@@ -102,7 +102,7 @@ export const applyStateAPIs = async (
 
             if (typeof result === 'number') {
                 void logging.info(
-                    'Break request caused by state api ' +
+                    'Break request caused by state api',
                     `"${stateAPI.name}" with status code ${result}.`
                 )
 
@@ -131,9 +131,25 @@ export const applyStateAPIs = async (
             )
 
             let error:Error|null = null
+
+            let url:string|undefined = stateAPI.url
+            if (stateAPI.urlExpression)
+                try {
+                    url = stateAPI.urlExpression(
+                        stateAPI.data,
+                        null,
+                        request,
+                        response,
+                        stateAPIScope,
+                        Tools
+                    )
+                } catch (error) {
+                    void logging.warn(`Failed running url expression:`, error)
+                }
+
             try {
                 stateAPIScope[stateAPI.name].response = await fetch(
-                    stateAPI.url, stateAPI.options
+                    url!, stateAPI.options
                 ) as Response & {data:Mapping<unknown>}
             } catch (givenError) {
                 error = givenError as Error
@@ -197,7 +213,7 @@ export const applyStateAPIs = async (
 
                 if (typeof result === 'number') {
                     void logging.info(
-                        'Break request caused by state api ' +
+                        'Break request caused by state api',
                         `"${stateAPI.name}" with status code ${result}.`
                     )
 
@@ -330,6 +346,7 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
             const baseAPI:StateAPI = givenStateAPIs.filter(
                 (api:StateAPI):boolean => api.name === 'base'
             )[0]
+
             const extendedGivenStateAPIs:Array<StateAPI> = []
             for (const api of givenStateAPIs)
                 if (api.name !== 'base')
@@ -343,7 +360,22 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
                             api
                         )
                     )
+
             for (const api of extendedGivenStateAPIs) {
+                // region normalize url expression
+                if (typeof api.urlExpression === 'string') {
+                    const result:CompilationResult<string> =
+                        Tools.stringCompile<string>(
+                            api.urlExpression, EVALUATION_SCOPE_NAMES
+                        )
+
+                    if (result.error)
+                        throw new Error(result.error)
+
+                    api.urlExpression = result.templateFunction
+                }
+                // endregion
+                // region normalize pre / post expressions
                 const expressions:ResolvedAPIExpressions = {pre: [], post: []}
 
                 for (const expression of (
@@ -383,6 +415,7 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
                 /* eslint-disable @typescript-eslint/no-extra-semi */
                 ;(api as unknown as ResolvedStateAPI).expressions = expressions
                 /* eslint-enable @typescript-eslint/no-extra-semi */
+                // endregion
                 stateAPIs.push(api as unknown as ResolvedStateAPI)
             }
 
