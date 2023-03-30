@@ -56,7 +56,8 @@ const onIncomingMessage = (
     void (async ():Promise<void> => {
         void logging.info(
             `|${'-'.repeat(80 - 2)}|\nStart processing`,
-            `${bufferedRequest.method} request: ${bufferedRequest.url}\n${bufferedRequest}`
+            `${bufferedRequest.method} request: ${bufferedRequest.url}\n` +
+            (bufferedRequest as unknown as string)
         )
 
         // NOTE: We have to wait until client request is fully buffered.
@@ -97,8 +98,8 @@ const onIncomingMessage = (
 
         void logging.info(
             `\nEnd processing`,
-            `${bufferedRequest.method} request: ${bufferedRequest.url}\n${bufferedRequest}` +
-            `|${'-'.repeat(80 - 2)}|`
+            `${bufferedRequest.method} request: ${bufferedRequest.url}\n` +
+            `${bufferedRequest as unknown as string}|${'-'.repeat(80 - 2)}|`
         )
     })()
 }
