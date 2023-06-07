@@ -193,7 +193,7 @@ export const applyStateAPIs = async (
 
             index = 1
             for (const expression of stateAPI.expressions.post) {
-                let result:APIPostEvaluationResult
+                let result:APIPostEvaluationResult = null
                 try {
                     result = expression(
                         stateAPI.data,
