@@ -3,7 +3,8 @@ name: Build image and push
 on:
   # NOTE: Runs on branch or tag creation.
   create:
-    branches: [ main ]
+    branches:
+      - main
   schedule:
     # Run every Sunday at 2am o'clock.
     - cron: '0 2 * * 0'
@@ -20,16 +21,16 @@ on:
           - x86-64
       build-args:
         description: List of build-time variables.
-      no-cache:
-        description: Do not use cache when building the image.
-        default: false
+      use-cache:
+        description: Use cache when building the image.
+        default: true
         type: boolean
       tags:
         description: Image tags to use for registering.
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: ${{ github.event.repository.name }}
 
 jobs:
   build-image-and-push:
@@ -41,9 +42,22 @@ jobs:
     steps:
       - uses: thaibault/build-image-push-action@main
         with:
-          build-args: ${{ inputs.build-args }}
           name: ${{ env.IMAGE_NAME }}
-          no-cache: ${{ inputs.no-cache }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          tags: ${{ inputs.tags || 'CURRENT_TAG_OR_BRANCH latest' }}
+
+          architecture: ${{ inputs.architecture || 'all' }}
+          build-args: |
+            BRANCH_NAME=${{ github.ref_name || 'main' }}
+            ${{ inputs.build-args }}
+
+          cache-key: ${{ runner.os }}-buildx-layer-${{ github.sha }}
+          cache-restore-keys: ${{ runner.os }}-buildx-layer-
+          use-cache: ${{ inputs.use-cache && github.event_name != 'schedule' }}
+
+          alternate-registry: docker.io
+          alternate-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          alternate-password: ${{ secrets.DOCKERHUB_TOKEN }}
+
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
