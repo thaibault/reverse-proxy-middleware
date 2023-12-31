@@ -1,6 +1,6 @@
 {
   "name": "reverse-proxy-middleware",
-  "version": "0.0.76",
+  "version": "0.0.77",
   "description": "A reverse proxy blocking bot requests.",
   "keywords": [
     "api",
