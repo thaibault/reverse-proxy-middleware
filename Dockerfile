@@ -19,7 +19,7 @@
 # new docker image:
 
 # - docker pull node:current-alpine && docker buildx build --no-cache --tag ghcr.io/thaibault/reverse-proxy-middleware:latest .
-# endregion 
+# endregion
 # region start container commands
 # Run the following command in the directory where this file lives to start:
 # podman / docker run --interactive --name reverse-proxy-middleware --publish 0.0.0.0:8080:8080 --rm --tty --volume "$(pwd):/application" ghcr.io/thaibault/reverse-proxy-middleware:latest
@@ -46,12 +46,11 @@ COPY       --link . "$APPLICATION_PATH"
            # Install dev dependencies build and slice out dev dependencies
            # afterwards.
            # NOTE: Use busybox compatible commands (shortoptions).
-RUN        yarn --production=false && \
+RUN        corepack enable && \
            yarn unlink clientnode; \
-           yarn install --force --production=false && \
+           yarn install && \
            yarn build && \
-           rm node_modules -f -r && \
-           yarn --production=true && \
+           yarn workspaces focus --production && \
            rm -f -r /tmp/*
 
 FROM       base as runtime
