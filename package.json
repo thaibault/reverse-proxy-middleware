@@ -42,7 +42,6 @@
     "clear": "weboptimizer clear",
     "document": "weboptimizer document",
     "lint": "weboptimizer lint",
-    "postversion": "yarn publish --non-interactive; git push --tags && git push",
     "prepare": "yarn build",
     "serve": "yarn build:plain && yarn start",
     "serve:custom": "ln --force --symbolic examples/custom.json configuration.json && yarn serve",
