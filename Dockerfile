@@ -8,7 +8,7 @@
 # -------
 
 # This library written by Torben Sickert stand under a creative commons naming
-# 3.0 unported license.
+# 4.0 unported license.
 # See https://creativecommons.org/licenses/by/3.0/deed.de
 
 # Basic ArchLinux with user-mapping, AUR integration and support for decryption
@@ -26,20 +26,26 @@
 # endregion
 ARG        BASE_IMAGE
 
-FROM       ${BASE_IMAGE:-'node:current-alpine'} as base
+FROM       ${BASE_IMAGE:-'node:current-alpine'} AS base
 
-LABEL      maintainer="Torben Sickert <info@torben.website>"
-LABEL      Description="base" Vendor="thaibault products" Version="1.0"
+LABEL      org.opencontainers.image.title='Node reverse proxy.'
+LABEL      org.opencontainers.image.description='An easy configurable reverse proxy.'
+LABEL      org.opencontainers.image.authors='Torben Sickert <info@torben.website> (@thaibault)'
+LABEL      org.opencontainers.image.url=https://github.com/thaibault/reverse-proxy-middleware/pkgs/container/reverse-proxy-middleware
+LABEL      org.opencontainers.image.documentation=https://github.com/thaibault/reverse-proxy-middleware/blob/main/readme.md
+LABEL      org.opencontainers.image.source=https://github.com/thaibault/reverse-proxy-middleware
+LABEL      org.opencontainers.image.licenses=CC-4.0
+LABEL      org.opencontainers.image.version=0.0.1
 
-ENV        APPLICATION_PATH /application/
-ENV        PORT 8080
-ENV        NODE_ENV production
+ENV        APPLICATION_PATH=/application/
+ENV        PORT=8080
+ENV        NODE_ENV=production
 
 RUN        mkdir --parents "$APPLICATION_PATH"
 
 WORKDIR    "$APPLICATION_PATH"
 
-FROM       base as build
+FROM       base AS build
 
 COPY       --link . "$APPLICATION_PATH"
 
@@ -53,7 +59,7 @@ RUN        corepack enable && \
            yarn workspaces focus --production && \
            rm -f -r /tmp/*
 
-FROM       base as runtime
+FROM       base AS runtime
 
 RUN        yarn --production
 
