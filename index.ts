@@ -18,8 +18,17 @@
 */
 // region imports
 // NOTE: http2 compatibility mode does work for unencrypted connections yet.
-import Tools, {CloseEventNames} from 'clientnode'
-import {RecursivePartial} from 'clientnode/type'
+import {
+    CLOSE_EVENT_NAMES,
+    evaluateDynamicData,
+    extend,
+    isFileSync,
+    modifyObject,
+    RecursivePartial,
+    represent,
+    timeout,
+    UTILITY_SCOPE
+} from 'clientnode'
 import {createServer as createHTTP1Server} from 'http'
 import {createServer, createSecureServer} from 'http2'
 import {resolve} from 'path'
@@ -62,7 +71,7 @@ const onIncomingMessage = (
 
         // NOTE: We have to wait until client request is fully buffered.
         while (true) {
-            await Tools.timeout()
+            await timeout()
 
             if (bufferedRequest.socket.buffer.finished)
                 break
@@ -106,7 +115,7 @@ const onIncomingMessage = (
 
 const onIncomingStream = (
     stream:HTTPStream, headers:OutgoingHTTPHeaders
-):void => {
+) => {
     void logging.info('Got stream', stream, headers)
 }
 // endregion
@@ -117,23 +126,25 @@ for (const path of [
     'configuration.json', 'secure-configuration.json'
 ] as const) {
     const configurationPath:string = resolve(process.cwd(), path)
-    if (Tools.isFileSync(configurationPath)) {
+    if (isFileSync(configurationPath)) {
         const configuration:RecursivePartial<Configuration> =
             eval(`require('${configurationPath}')`) as
                 RecursivePartial<Configuration>
 
-        Tools.extend(
+        extend(
             true,
-            Tools.modifyObject<Configuration>(
-                BASE_CONFIGURATION, configuration
-            )!,
+            modifyObject<Configuration>(BASE_CONFIGURATION, configuration)!,
             configuration
         )
     }
 }
-const CONFIGURATION:Configuration = Tools.evaluateDynamicData<Configuration>(
+const CONFIGURATION:Configuration = evaluateDynamicData<Configuration>(
     BASE_CONFIGURATION,
-    {configuration: BASE_CONFIGURATION, environment: process.env, Tools}
+    {
+        ...UTILITY_SCOPE,
+        configuration: BASE_CONFIGURATION,
+        environment: process.env
+    }
 )
 const FORWARDERS:ResolvedForwarders =
     resolveForwarders(CONFIGURATION.forwarders)
@@ -151,7 +162,7 @@ const server:Server = {
     streams: [],
     sockets: [],
 
-    start: ():void => {
+    start: () => {
         server.instance.listen(
             CONFIGURATION.port,
             ():void => {
@@ -162,7 +173,7 @@ const server:Server = {
             }
         )
     },
-    stop: ():void => {
+    stop: () => {
         server.instance.close(():void => {
             void logging.info('Shut server down.')
         })
@@ -183,24 +194,24 @@ server.instance.on(
             data: [],
             finished: false
         }
-        socket.on('data', (data:Buffer):void => {
+        socket.on('data', (data:Buffer) => {
             socket.buffer.data.push(data)
         })
         for (const name of [
             'done', 'finish', 'writableEnded', 'writableFinished'
         ])
-            socket.on(name, ():void => {
+            socket.on(name, () => {
                 socket.buffer.finished = true
             })
         /*
             NOTE: Workaround since none of the events above trigger before
             responding to client occurred.
         */
-        void Tools.timeout(():void => {
+        void timeout(() => {
             socket.buffer.finished = true
         })
 
-        socket.on('close', ():void => {
+        socket.on('close', () => {
             socket.buffer.finished = true
 
             server.sockets.splice(server.sockets.indexOf(socket), 1)
@@ -210,12 +221,12 @@ server.instance.on(
 
 server.instance.on(
     'stream',
-    (stream:HTTPStream, headers:OutgoingHTTPHeaders):void => {
+    (stream:HTTPStream, headers:OutgoingHTTPHeaders) => {
         server.streams.push(stream)
 
         onIncomingStream(stream, headers)
 
-        stream.on('close', ():void => {
+        stream.on('close', () => {
             server.streams.splice(server.streams.indexOf(stream), 1)
         })
     }
@@ -229,14 +240,14 @@ if (
     ORIGINAL_MAIN_MODULE === eval('require.main')
 ) {
     void logging.info(
-        'Start server with configuration:', Tools.represent(CONFIGURATION)
+        'Start server with configuration:', represent(CONFIGURATION)
     )
-    void logging.debug('Apply resolved forwarder:', Tools.represent(FORWARDERS))
+    void logging.debug('Apply resolved forwarder:', represent(FORWARDERS))
 
     server.start()
 
-    for (const name of CloseEventNames)
-        process.on(name, ():void => {
+    for (const name of CLOSE_EVENT_NAMES)
+        process.on(name, () => {
             void logging.info(`\nGot "${name}" signal: stopping server.`)
 
             server.stop()
@@ -244,7 +255,3 @@ if (
 }
 // endregion
 export default server
-// region vim modline
-// vim: set tabstop=4 shiftwidth=4 expandtab:
-// vim: foldmethod=marker foldmarker=region,endregion:
-// endregion

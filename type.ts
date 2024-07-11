@@ -17,8 +17,9 @@
     endregion
 */
 // region imports
-import Tools from 'clientnode'
-import {Mapping, PlainObject, Primitive} from 'clientnode/type'
+import {
+    Mapping, PlainObject, Primitive, UTILITY_SCOPE, UTILITY_SCOPE_VALUES
+} from 'clientnode'
 import {
     Http2SecureServer as HTTPSecureServer,
     Http2Server as HttpServer,
@@ -63,23 +64,24 @@ export interface EvaluationScopeStateAPI {
     response:(Response & {data:Mapping<unknown>})|null
 }
 export type EvaluationScopeStateAPIs = Mapping<EvaluationScopeStateAPI>
-export interface EvaluationScope {
-    data?:Mapping<unknown>
-    error?:Error|null
-    request?:HTTPServerRequest
-    response?:HTTPServerResponse
-    stateAPI?:EvaluationScopeStateAPI|null
-    stateAPIs?:EvaluationScopeStateAPIs
-    Tools:typeof Tools
-}
+export type EvaluationScope =
+    typeof UTILITY_SCOPE &
+    {
+        data?:Mapping<unknown>
+        error?:Error|null
+        request?:HTTPServerRequest
+        response?:HTTPServerResponse
+        stateAPI?:EvaluationScopeStateAPI|null
+        stateAPIs?:EvaluationScopeStateAPIs
+    }
 export type EvaluationParameters = [
+    ...typeof UTILITY_SCOPE_VALUES,
     EvaluationScope['data'],
     EvaluationScope['error'],
     EvaluationScope['request'],
     EvaluationScope['response'],
     EvaluationScope['stateAPI'],
-    EvaluationScope['stateAPIs'],
-    EvaluationScope['Tools']
+    EvaluationScope['stateAPIs']
 ]
 
 /*
@@ -121,7 +123,7 @@ export interface StateAPI {
     urlExpression?:string|((...parameters:EvaluationParameters) => string)
 }
 export interface ResolvedAPIExpressions {
-    pre:Array<(...parmaters:EvaluationParameters) => APIPreEvaluationResult>
+    pre:Array<(...parameters:EvaluationParameters) => APIPreEvaluationResult>
     post:Array<(...parameters:EvaluationParameters) => APIPostEvaluationResult>
 }
 export type ResolvedStateAPI =
@@ -203,7 +205,3 @@ export interface Server {
     start:() => void
     stop:() => void
 }
-// region vim modline
-// vim: set tabstop=4 shiftwidth=4 expandtab:
-// vim: foldmethod=marker foldmarker=region,endregion:
-// endregion

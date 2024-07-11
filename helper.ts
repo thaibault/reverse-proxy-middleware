@@ -18,8 +18,18 @@
 */
 // region imports
 // NOTE: http2 compatibility mode does work for unencrypted connections yet.
-import Tools from 'clientnode'
-import {CompilationResult, Mapping, PlainObject} from 'clientnode/type'
+import {
+    CompilationResult,
+    compile,
+    copy,
+    extend,
+    Mapping,
+    modifyObject,
+    PlainObject,
+    represent,
+    UTILITY_SCOPE_NAMES,
+    UTILITY_SCOPE_VALUES
+} from 'clientnode'
 import {createConnection as createPlainConnection} from 'net'
 import {connect as createSecureConnection} from 'tls'
 
@@ -47,9 +57,15 @@ import {
     StringReplacer
 } from './type'
 // endregion
-export const EVALUATION_SCOPE_NAMES:Array<string> = [
-    'data', 'error', 'request', 'response', 'stateAPI', 'stateAPIs', 'Tools'
-]
+export const EVALUATION_SCOPE_NAMES = [
+    ...UTILITY_SCOPE_NAMES,
+    'data',
+    'error',
+    'request',
+    'response',
+    'stateAPI',
+    'stateAPIs'
+] as const
 
 const log = async (...parameters:Array<unknown>):Promise<void> =>
     new Promise((resolve:() => void, reject:(error:Error) => void):void => {
@@ -90,13 +106,13 @@ export const applyStateAPIs = async (
             let result:APIPreEvaluationResult
             try {
                 result = expression(
+                    ...UTILITY_SCOPE_VALUES,
                     stateAPI.data,
                     null,
                     request,
                     response,
                     state,
-                    stateAPIScope,
-                    Tools
+                    stateAPIScope
                 )
             } catch (error) {
                 void logging.warn(
@@ -137,20 +153,20 @@ export const applyStateAPIs = async (
             if (stateAPI.urlExpression)
                 try {
                     stateAPI.url = stateAPI.urlExpression(
+                        ...UTILITY_SCOPE_VALUES,
                         stateAPI.data,
                         null,
                         request,
                         response,
                         state,
-                        stateAPIScope,
-                        Tools
+                        stateAPIScope
                     )
                 } catch (error) {
                     void logging.warn(`Failed running url expression:`, error)
                 }
 
             void logging.debug(
-                `\nState api configuration is: ${Tools.represent(stateAPI)}`
+                `\nState api configuration is: ${represent(stateAPI)}`
             )
 
             try {
@@ -188,7 +204,7 @@ export const applyStateAPIs = async (
                 }
 
             void logging.debug(
-                `\nState api response is:`, Tools.represent(state.response)
+                `\nState api response is:`, represent(state.response)
             )
 
             index = 1
@@ -196,13 +212,13 @@ export const applyStateAPIs = async (
                 let result:APIPostEvaluationResult = null
                 try {
                     result = expression(
+                        ...UTILITY_SCOPE_VALUES,
                         stateAPI.data,
                         error,
                         request,
                         response,
                         state,
-                        stateAPIScope,
-                        Tools
+                        stateAPIScope
                     )
                 } catch (error) {
                     void logging.warn(
@@ -251,13 +267,13 @@ export const determineForwarder = (
         }
 
         if (forwarder.useExpression(
+            ...UTILITY_SCOPE_VALUES,
             forwarder,
             null,
             request,
             response,
             state,
-            {[name]: state},
-            Tools
+            {[name]: state}
         )) {
             void logging.info(`Determined forwarder is: "${name}".`)
 
@@ -271,13 +287,11 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
     const resolvedForwarders:ResolvedForwarders = {}
     for (const [name, givenForwarder] of Object.entries(forwarders))
         if (name !== 'base') {
-            const forwarder:ResolvedForwarder = Tools.extend(
+            const forwarder:ResolvedForwarder = extend(
                 true,
                 {name},
-                Tools.modifyObject<ResolvedForwarder>(
-                    Tools.copy(forwarders.base) as
-                        unknown as
-                        ResolvedForwarder,
+                modifyObject<ResolvedForwarder>(
+                    copy(forwarders.base) as unknown as ResolvedForwarder,
                     givenForwarder as unknown as ResolvedForwarder
                 )!,
                 givenForwarder as unknown as ResolvedForwarder
@@ -309,9 +323,11 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
                                 transformation.source as RegExp
                         else if (typeof transformation.source === 'string') {
                             const result:CompilationResult<RegExp|string> =
-                                Tools.stringCompile<RegExp|string>(
+                                compile<RegExp|string>(
                                     transformation.source,
-                                    EVALUATION_SCOPE_NAMES
+                                    EVALUATION_SCOPE_NAMES as
+                                        unknown as
+                                        Array<string>
                                 )
 
                             if (result.error)
@@ -327,8 +343,11 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
                         if (typeof transformation.target === 'string') {
                             const result:CompilationResult<
                                 string|StringReplacer
-                            > = Tools.stringCompile<string|StringReplacer>(
-                                transformation.target, EVALUATION_SCOPE_NAMES
+                            > = compile<string|StringReplacer>(
+                                transformation.target,
+                                EVALUATION_SCOPE_NAMES as
+                                    unknown as
+                                    Array<string>
                             )
 
                             if (result.error)
@@ -354,12 +373,10 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
             for (const api of givenStateAPIs)
                 if (api.name !== 'base')
                     extendedGivenStateAPIs.push(
-                        Tools.extend(
+                        extend(
                             true,
                             {},
-                            Tools.modifyObject<StateAPI>(
-                                Tools.copy(baseAPI), api
-                            )!,
+                            modifyObject<StateAPI>(copy(baseAPI), api)!,
                             api
                         )
                     )
@@ -368,8 +385,11 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
                 // region normalize url expression
                 if (typeof api.urlExpression === 'string') {
                     const result:CompilationResult<string> =
-                        Tools.stringCompile<string>(
-                            api.urlExpression, EVALUATION_SCOPE_NAMES
+                        compile<string>(
+                            api.urlExpression,
+                            EVALUATION_SCOPE_NAMES as
+                                unknown as
+                                Array<string>
                         )
 
                     if (result.error)
@@ -387,8 +407,11 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
                     if (typeof expression === 'string') {
                         const result:CompilationResult<
                             APIPreEvaluationResult
-                        > = Tools.stringCompile<APIPreEvaluationResult>(
-                            expression, EVALUATION_SCOPE_NAMES
+                        > = compile<APIPreEvaluationResult>(
+                            expression,
+                            EVALUATION_SCOPE_NAMES as
+                                unknown as
+                                Array<string>
                         )
 
                         if (result.error)
@@ -404,8 +427,11 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
                     if (typeof expression === 'string') {
                         const result:CompilationResult<
                             APIPostEvaluationResult
-                        > = Tools.stringCompile<APIPostEvaluationResult>(
-                            expression, EVALUATION_SCOPE_NAMES
+                        > = compile<APIPostEvaluationResult>(
+                            expression,
+                            EVALUATION_SCOPE_NAMES as
+                                unknown as
+                                Array<string>
                         )
 
                         if (result.error)
@@ -415,9 +441,7 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
                     } else
                         expressions.post.push(expression)
 
-                /* eslint-disable @typescript-eslint/no-extra-semi */
                 ;(api as unknown as ResolvedStateAPI).expressions = expressions
-                /* eslint-enable @typescript-eslint/no-extra-semi */
                 // endregion
                 stateAPIs.push(api as unknown as ResolvedStateAPI)
             }
@@ -426,8 +450,11 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
             // endregion
             // region normalize use expression
             if (typeof forwarder.useExpression === 'string') {
-                const result:CompilationResult<boolean> = Tools.stringCompile(
-                    forwarder.useExpression, EVALUATION_SCOPE_NAMES
+                const result:CompilationResult<boolean> = compile(
+                    forwarder.useExpression,
+                    EVALUATION_SCOPE_NAMES as
+                        unknown as
+                        Array<string>
                 )
 
                 if (result.error)
@@ -512,7 +539,7 @@ export const transformHeaders = (
                 // Search and replace (or remove) header.
                 void logging.debug(
                     `Search for "${source as string}" and replace with`,
-                    `${Tools.represent(target)}.`
+                    `${represent(target)}.`
                 )
 
                 content = content.replace(source!, target as string)
@@ -521,12 +548,12 @@ export const transformHeaders = (
             void logging.warn(
                 '\nCould not apply header transformation with source ' +
                 (transformation.source ?
-                    Tools.represent(transformation.source) :
+                    represent(transformation.source) :
                     '"add"'
                 ) +
                 ' and replacement ' +
                 (transformation.target ?
-                    Tools.represent(transformation.target) :
+                    represent(transformation.target) :
                     '"remove"'
                 ) +
                 ':',
@@ -577,13 +604,13 @@ export const reverseProxyBufferedRequest = async (
         })
 
         const parameters:EvaluationParameters = [
+            ...UTILITY_SCOPE_VALUES,
             {clientSocket, serverSocket},
             null,
             request,
             response,
             null,
-            stateAPIScope,
-            Tools
+            stateAPIScope
         ]
 
         // Send data from server back to client.
@@ -663,7 +690,3 @@ export const reverseProxyBufferedRequest = async (
     })
 
 export default reverseProxyBufferedRequest
-// region vim modline
-// vim: set tabstop=4 shiftwidth=4 expandtab:
-// vim: foldmethod=marker foldmarker=region,endregion:
-// endregion
