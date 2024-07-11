@@ -15,7 +15,7 @@
 */
 // region imports
 import {describe} from '@jest/globals'
-import {testEach} from 'clientnode/testHelper'
+import {testEach} from 'clientnode/dist/test-helper'
 
 import {resolveForwarders} from './helper'
 import packageConfiguration from './package.json'
@@ -52,7 +52,3 @@ describe('helper', ():void => {
         ]
     )
 })
-// region vim modline
-// vim: set tabstop=4 shiftwidth=4 expandtab:
-// vim: foldmethod=marker foldmarker=region,endregion:
-// endregion
