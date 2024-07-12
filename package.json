@@ -59,8 +59,8 @@
   },
   "runkitExample": "require('@babel/runtime/package.json')\n",
   "devDependencies": {
-    "@babel/cli": "^7.24.7",
-    "@babel/eslint-parser": "^7.24.7",
+    "@babel/cli": "^7.24.8",
+    "@babel/eslint-parser": "^7.24.8",
     "@types/node": "^20.14.10",
     "@typescript-eslint/eslint-plugin": "^7.16.0",
     "@typescript-eslint/parser": "^7.16.0",
@@ -74,7 +74,7 @@
     "weboptimizer": "^2.0.1483"
   },
   "dependencies": {
-    "@babel/runtime": "^7.24.7",
+    "@babel/runtime": "^7.24.8",
     "clientnode": "^3.0.1163"
   },
   "engines": {
