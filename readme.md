@@ -431,8 +431,3 @@ Every expression can access the following environment:
 | response  | Response informations (available in post evaluations). |
 | stateAPIs | Access oher state api informations.                    |
 | Tools     | [see](https://www.npmjs.com/package/clientnode)        |
-
-<!-- region modline
-vim: set tabstop=4 shiftwidth=4 expandtab:
-vim: foldmethod=marker foldmarker=region,endregion:
-endregion -->
