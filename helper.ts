@@ -295,7 +295,7 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
     const resolvedForwarders:ResolvedForwarders = {}
     for (const [name, givenForwarder] of Object.entries(forwarders))
         if (name !== 'base') {
-            const forwarder:ResolvedForwarder = extend(
+            const forwarder = extend(
                 true,
                 {name},
                 modifyObject<ResolvedForwarder>(
@@ -342,7 +342,7 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
                                 throw new Error(result.error)
 
                             transformation.sourceRun = result.templateFunction
-                        } else
+                        } else if (transformation.source)
                             transformation.sourceRun = transformation.source
 
                     if (Object.prototype.hasOwnProperty.call(
@@ -362,7 +362,7 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
                                 throw new Error(result.error)
 
                             transformation.targetRun = result.templateFunction
-                        } else
+                        } else if (transformation.target)
                             transformation.targetRun = transformation.target
 
                     headerTransformations[type].push(transformation)
@@ -371,8 +371,10 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
             // endregion
             // region state apis
             const stateAPIs:Array<ResolvedStateAPI> = []
-            const givenStateAPIs:Array<StateAPI> =
-                ([] as Array<StateAPI>).concat(forwarder.stateAPIs || [])
+            const givenStateAPIs:Array<StateAPI> = ([] as Array<StateAPI>)
+                .concat(
+                    (forwarder as Partial<ResolvedForwarder>).stateAPIs || []
+                )
             const baseAPI:StateAPI = givenStateAPIs.filter(
                 (api:StateAPI):boolean => api.name === 'base'
             )[0]
@@ -532,7 +534,11 @@ export const transformHeaders = (
                         const result:string =
                             typeof target === 'string' ?
                                 target :
-                                target!(substring, delimiter, ...parameters)
+                                target ?
+                                    target(
+                                        substring, delimiter, ...parameters
+                                    ) :
+                                    ''
 
                         return `${delimiter}${result}${substring}`
                     }
@@ -548,7 +554,8 @@ export const transformHeaders = (
                     `${represent(target)}.`
                 )
 
-                content = content.replace(source!, target as string)
+                if (source)
+                    content = content.replace(source, target as string)
             }
         } catch (error) {
             void logging.warn(
