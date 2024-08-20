@@ -96,7 +96,7 @@ export type EvaluationParameters = [
  *                      state-api request or request forwarding to the
  *                      underlying backend.
  */
-export type APIPreEvaluationResult = 'break'|boolean|null|number|undefined|void
+export type APIPreEvaluationResult = 'break'|boolean|null|number|undefined
 export type APIPreEvaluationExpression =
     string|((...parameters:EvaluationParameters) => APIPreEvaluationResult)
 /*
@@ -107,7 +107,7 @@ export type APIPreEvaluationExpression =
  *                      state-api request or request forwarding to the
  *                      underlying backend.
  */
-export type APIPostEvaluationResult = 'break'|null|number|void
+export type APIPostEvaluationResult = 'break'|null|number|undefined
 export type APIPostEvaluationExpression =
     string|((...parameters:EvaluationParameters) => APIPostEvaluationResult)
 export interface APIExpressions {

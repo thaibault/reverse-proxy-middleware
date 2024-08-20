@@ -71,7 +71,13 @@ const log = async (...parameters:Array<unknown>):Promise<void> =>
     new Promise((resolve:() => void, reject:(error:Error) => void):void => {
         process.stdout.write(
             `${parameters.join(' ')}\n`,
-            (error?:Error):void => error ? reject(error) : resolve()
+            (error?:unknown) => {
+                if (error)
+                    // eslint-disable-next-line prefer-promise-reject-errors
+                    reject(error as Error)
+                else
+                    resolve()
+            }
         )
     })
 export const logging = {
@@ -116,7 +122,8 @@ export const applyStateAPIs = async (
                 )
             } catch (error) {
                 void logging.warn(
-                    `Failed running pre ${index}. expression of state api:`,
+                    `Failed running pre ${String(index)}. expression of ` +
+                    'state api:',
                     error
                 )
             }
@@ -124,7 +131,7 @@ export const applyStateAPIs = async (
             if (typeof result === 'number') {
                 void logging.info(
                     'Break request caused by state api',
-                    `"${stateAPI.name}" with status code ${result}.`
+                    `"${stateAPI.name}" with status code ${String(result)}.`
                 )
 
                 response.statusCode = result
@@ -170,9 +177,9 @@ export const applyStateAPIs = async (
             )
 
             try {
-                state.response =
-                    await fetch(stateAPI.url!, stateAPI.options) as
-                        Response & {data:Mapping<unknown>}
+                // @ts-expect-error "stateAPI.url" may not be defined.
+                state.response = await fetch(stateAPI.url, stateAPI.options) as
+                    Response & {data:Mapping<unknown>}
             } catch (givenError) {
                 error = givenError as Error
 
@@ -187,7 +194,7 @@ export const applyStateAPIs = async (
                 state.response &&
                 state.response.headers.has('content-type') &&
                 /application\/json(;.*)?$/.test(
-                    state.response.headers.get('content-type')!
+                    state.response.headers.get('content-type') as string
                 )
             )
                 try {
@@ -222,8 +229,8 @@ export const applyStateAPIs = async (
                     )
                 } catch (error) {
                     void logging.warn(
-                        `Failed running ${index}. post expression of state ` +
-                        'api:',
+                        `Failed running ${String(index)}. post ` +
+                        'expression of state api:',
                         error
                     )
                 }
@@ -231,7 +238,8 @@ export const applyStateAPIs = async (
                 if (typeof result === 'number') {
                     void logging.info(
                         'Break request caused by state api',
-                        `"${stateAPI.name}" with status code ${result}.`
+                        `"${stateAPI.name}" with status code ` +
+                        `${String(result)}.`
                     )
 
                     response.statusCode = result
@@ -287,13 +295,13 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
     const resolvedForwarders:ResolvedForwarders = {}
     for (const [name, givenForwarder] of Object.entries(forwarders))
         if (name !== 'base') {
-            const forwarder:ResolvedForwarder = extend(
+            const forwarder = extend(
                 true,
                 {name},
                 modifyObject<ResolvedForwarder>(
                     copy(forwarders.base) as unknown as ResolvedForwarder,
                     givenForwarder as unknown as ResolvedForwarder
-                )!,
+                ),
                 givenForwarder as unknown as ResolvedForwarder
             ) as unknown as ResolvedForwarder
             // region normalize header transformations
@@ -334,8 +342,8 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
                                 throw new Error(result.error)
 
                             transformation.sourceRun = result.templateFunction
-                        } else
-                            transformation.sourceRun = transformation.source!
+                        } else if (transformation.source)
+                            transformation.sourceRun = transformation.source
 
                     if (Object.prototype.hasOwnProperty.call(
                         transformation, 'target'
@@ -354,8 +362,8 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
                                 throw new Error(result.error)
 
                             transformation.targetRun = result.templateFunction
-                        } else
-                            transformation.targetRun = transformation.target!
+                        } else if (transformation.target)
+                            transformation.targetRun = transformation.target
 
                     headerTransformations[type].push(transformation)
                 }
@@ -363,8 +371,10 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
             // endregion
             // region state apis
             const stateAPIs:Array<ResolvedStateAPI> = []
-            const givenStateAPIs:Array<StateAPI> =
-                ([] as Array<StateAPI>).concat(forwarder.stateAPIs || [])
+            const givenStateAPIs:Array<StateAPI> = ([] as Array<StateAPI>)
+                .concat(
+                    (forwarder as Partial<ResolvedForwarder>).stateAPIs || []
+                )
             const baseAPI:StateAPI = givenStateAPIs.filter(
                 (api:StateAPI):boolean => api.name === 'base'
             )[0]
@@ -376,7 +386,7 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
                         extend(
                             true,
                             {},
-                            modifyObject<StateAPI>(copy(baseAPI), api)!,
+                            modifyObject<StateAPI>(copy(baseAPI), api),
                             api
                         )
                     )
@@ -384,12 +394,10 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
             for (const api of extendedGivenStateAPIs) {
                 // region normalize url expression
                 if (typeof api.urlExpression === 'string') {
-                    const result:CompilationResult<string> =
-                        compile<string>(
+                    const result:CompilationResult =
+                        compile(
                             api.urlExpression,
-                            EVALUATION_SCOPE_NAMES as
-                                unknown as
-                                Array<string>
+                            EVALUATION_SCOPE_NAMES as unknown as Array<string>
                         )
 
                     if (result.error)
@@ -486,7 +494,7 @@ export const addParsedContentToRequest = (
                 data.replace(/^[\s\S]+\s*\n\s*\n\s*([\s\S]+)$/m, '$1')
             bufferedRequest.socket.buffer.content =
                 JSON.parse(bufferedRequest.socket.buffer.body) as ParsedContent
-        } catch (error) {
+        } catch (_error) {
             void logging.warn('Error parsing given request.', bufferedRequest)
         }
 }
@@ -526,7 +534,11 @@ export const transformHeaders = (
                         const result:string =
                             typeof target === 'string' ?
                                 target :
-                                target!(substring, delimiter, ...parameters)
+                                target ?
+                                    target(
+                                        substring, delimiter, ...parameters
+                                    ) :
+                                    ''
 
                         return `${delimiter}${result}${substring}`
                     }
@@ -542,7 +554,8 @@ export const transformHeaders = (
                     `${represent(target)}.`
                 )
 
-                content = content.replace(source!, target as string)
+                if (source)
+                    content = content.replace(source, target as string)
             }
         } catch (error) {
             void logging.warn(
