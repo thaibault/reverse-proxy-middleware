@@ -23,6 +23,7 @@ import {
     evaluateDynamicData,
     extend,
     isFileSync,
+    MAXIMAL_NUMBER_OF_ITERATIONS,
     modifyObject,
     RecursivePartial,
     represent,
@@ -70,7 +71,11 @@ const onIncomingMessage = (
         )
 
         // NOTE: We have to wait until client request is fully buffered.
-        while (true) {
+        for (
+            let index = 0;
+            index < (MAXIMAL_NUMBER_OF_ITERATIONS.value * 1000);
+            index++
+        ) {
             await timeout()
 
             if (bufferedRequest.socket.buffer.finished)
@@ -133,7 +138,7 @@ for (const path of [
 
         extend(
             true,
-            modifyObject<Configuration>(BASE_CONFIGURATION, configuration)!,
+            modifyObject<Configuration>(BASE_CONFIGURATION, configuration),
             configuration
         )
     }
@@ -167,8 +172,8 @@ const server:Server = {
             CONFIGURATION.port,
             ():void => {
                 void logging.info(
-                    `Listen on port ${CONFIGURATION.port} for incoming ` +
-                    'requests.'
+                    `Listen on port ${String(CONFIGURATION.port)} for ` +
+                    'incoming requests.'
                 )
             }
         )
