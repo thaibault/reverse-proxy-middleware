@@ -44,35 +44,35 @@ export type ParsedContent = Array<PlainObject|Primitive>|PlainObject
 export type BufferedSocket =
     Socket &
     {
-        buffer:{
-            body?:string
-            content?:ParsedContent
-            data:Array<Buffer>
-            finished:boolean
+        buffer: {
+            body?: string
+            content?: ParsedContent
+            data: Array<Buffer>
+            finished: boolean
         }
     }
 export interface BufferedHTTPServerRequest extends HTTPServerRequest {
-    socket:BufferedSocket
+    socket: BufferedSocket
 }
 
 export type StringReplacer =
-    (substring:string, ...parameters:Array<unknown>) => string
+    (substring: string, ...parameters: Array<unknown>) => string
 
 export interface EvaluationScopeStateAPI {
-    configuration:ResolvedForwarder|ResolvedStateAPI
-    error:Error|null
-    response:(Response & {data:Mapping<unknown>})|null
+    configuration: ResolvedForwarder|ResolvedStateAPI
+    error: Error|null
+    response: (Response & {data: Mapping<unknown>})|null
 }
 export type EvaluationScopeStateAPIs = Mapping<EvaluationScopeStateAPI>
 export type EvaluationScope =
     typeof UTILITY_SCOPE &
     {
-        data?:Mapping<unknown>
-        error?:Error|null
-        request?:HTTPServerRequest
-        response?:HTTPServerResponse
-        stateAPI?:EvaluationScopeStateAPI|null
-        stateAPIs?:EvaluationScopeStateAPIs
+        data?: Mapping<unknown>
+        error?: Error|null
+        request?: HTTPServerRequest
+        response?: HTTPServerResponse
+        stateAPI?: EvaluationScopeStateAPI|null
+        stateAPIs?: EvaluationScopeStateAPIs
     }
 export type EvaluationParameters = [
     ...typeof UTILITY_SCOPE_VALUES,
@@ -98,7 +98,7 @@ export type EvaluationParameters = [
  */
 export type APIPreEvaluationResult = 'break'|boolean|null|number|undefined
 export type APIPreEvaluationExpression =
-    string|((...parameters:EvaluationParameters) => APIPreEvaluationResult)
+    string|((...parameters: EvaluationParameters) => APIPreEvaluationResult)
 /*
  * break (string)    -> Do not evaluate subsequent post evaluations.
  * null or undefined -> Just jump to the next evaluation to run.
@@ -109,99 +109,101 @@ export type APIPreEvaluationExpression =
  */
 export type APIPostEvaluationResult = 'break'|null|number|undefined
 export type APIPostEvaluationExpression =
-    string|((...parameters:EvaluationParameters) => APIPostEvaluationResult)
+    string|((...parameters: EvaluationParameters) => APIPostEvaluationResult)
 export interface APIExpressions {
-    pre?:Array<APIPreEvaluationExpression>|APIPreEvaluationExpression
-    post?:Array<APIPostEvaluationExpression>|APIPostEvaluationExpression
+    pre?: Array<APIPreEvaluationExpression>|APIPreEvaluationExpression
+    post?: Array<APIPostEvaluationExpression>|APIPostEvaluationExpression
 }
 export interface StateAPI {
-    data?:Mapping<unknown>
-    name:string
-    options?:RequestInit
-    expressions?:APIExpressions
-    url?:string
-    urlExpression?:string|((...parameters:EvaluationParameters) => string)
+    data?: Mapping<unknown>
+    name: string
+    options?: RequestInit
+    expressions?: APIExpressions
+    url?: string
+    urlExpression?: string|((...parameters: EvaluationParameters) => string)
 }
 export interface ResolvedAPIExpressions {
-    pre:Array<(...parameters:EvaluationParameters) => APIPreEvaluationResult>
-    post:Array<(...parameters:EvaluationParameters) => APIPostEvaluationResult>
+    pre: Array<(...parameters: EvaluationParameters) => APIPreEvaluationResult>
+    post: Array<(...parameters: EvaluationParameters) =>
+        APIPostEvaluationResult>
 }
 export type ResolvedStateAPI =
     NonNullable<Omit<StateAPI, 'expressions'|'urlExpression'>> &
     {
-        expressions:ResolvedAPIExpressions
-        urlExpression?:(...parameters:EvaluationParameters) => string
+        expressions: ResolvedAPIExpressions
+        urlExpression?: (...parameters: EvaluationParameters) => string
     }
 export interface HeaderTransformation {
-    source?:(
+    source?: (
         string |
         RegExp |
-        ((...parameters:EvaluationParameters) => RegExp|string)
+        ((...parameters: EvaluationParameters) => RegExp|string)
     )
-    target?:(
+    target?: (
         string |
-        ((...parameters:EvaluationParameters) =>
-            string|((substring:string, ...parameters:Array<unknown>) => string)
+        ((...parameters: EvaluationParameters) =>
+            string |
+            ((substring: string, ...parameters: Array<unknown>) => string)
         )
     )
 }
 export interface ResolvedHeaderTransformation extends HeaderTransformation {
-    sourceRun:(...parameters:EvaluationParameters) =>
+    sourceRun: (...parameters: EvaluationParameters) =>
         null|RegExp|string|undefined
-    targetRun:(...parameters:EvaluationParameters) =>
+    targetRun: (...parameters: EvaluationParameters) =>
         null|string|StringReplacer|undefined
 }
 export interface HeaderTransformations {
-    retrieve?:Array<HeaderTransformation>|HeaderTransformation
-    send?:Array<HeaderTransformation>|HeaderTransformation
+    retrieve?: Array<HeaderTransformation>|HeaderTransformation
+    send?: Array<HeaderTransformation>|HeaderTransformation
 }
 export interface ResolvedHeaderTransformations {
-    retrieve:Array<ResolvedHeaderTransformation>
-    send:Array<ResolvedHeaderTransformation>
+    retrieve: Array<ResolvedHeaderTransformation>
+    send: Array<ResolvedHeaderTransformation>
 }
 export interface Forwarder {
-    headerTransformations?:HeaderTransformations
-    host:string
-    port?:number
-    stateAPIs?:StateAPI|Array<StateAPI>
-    tls?:boolean
-    useExpression?:string|((...parameters:EvaluationParameters) => boolean)
+    headerTransformations?: HeaderTransformations
+    host: string
+    port?: number
+    stateAPIs?: StateAPI|Array<StateAPI>
+    tls?: boolean
+    useExpression?: string|((...parameters: EvaluationParameters) => boolean)
 }
 export interface Forwarders {
-    base:Forwarder
-    [key:string]:Partial<Forwarder>
+    base: Forwarder
+    [key: string]: Partial<Forwarder>
 }
 export type ResolvedForwarder =
     NonNullable<Omit<
         Forwarder, 'headerTransformations'|'stateAPIs'|'useExpression'
     >> &
     {
-        headerTransformations:ResolvedHeaderTransformations
-        name:string
-        stateAPIs:Array<ResolvedStateAPI>
-        useExpression:(...parameters:EvaluationParameters) => boolean
+        headerTransformations: ResolvedHeaderTransformations
+        name: string
+        stateAPIs: Array<ResolvedStateAPI>
+        useExpression: (...parameters: EvaluationParameters) => boolean
     }
 export type ResolvedForwarders = Mapping<ResolvedForwarder>
 
 export interface Configuration {
-    privateKeyPath:string
-    publicKeyPath:string
+    privateKeyPath: string
+    publicKeyPath: string
 
-    nodeServerOptions:SecureServerOptions
-    host:string
-    port:number
+    nodeServerOptions: SecureServerOptions
+    host: string
+    port: number
 
-    parseBody:boolean
-    forwarders:Forwarders
+    parseBody: boolean
+    forwarders: Forwarders
 }
 export type ResolvedConfiguration =
-    Omit<Configuration, 'forwarders'> & {forwarders:ResolvedForwarders}
+    Omit<Configuration, 'forwarders'> & {forwarders: ResolvedForwarders}
 
 export interface Server {
-    instance:HTTPServer
-    streams:Array<HTTPStream>
-    sockets:Array<Socket>
+    instance: HTTPServer
+    streams: Array<HTTPStream>
+    sockets: Array<Socket>
 
-    start:() => void
-    stop:() => void
+    start: () => void
+    stop: () => void
 }

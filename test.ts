@@ -22,9 +22,9 @@ import packageConfiguration from './package.json'
 // endregion
 const {configuration: BASE_CONFIGURATION} = packageConfiguration
 
-const positiveUseExpression = ():true => true
+const positiveUseExpression = () => true
 
-describe('helper', ():void => {
+describe('helper', (): void => {
     testEach<typeof resolveForwarders>(
         'resolveForwarders',
         resolveForwarders,

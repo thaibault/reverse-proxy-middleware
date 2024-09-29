@@ -67,11 +67,11 @@ export const EVALUATION_SCOPE_NAMES = [
     'stateAPIs'
 ] as const
 
-const log = async (...parameters:Array<unknown>):Promise<void> =>
-    new Promise((resolve:() => void, reject:(error:Error) => void):void => {
+const log = async (...parameters: Array<unknown>): Promise<void> =>
+    new Promise((resolve: () => void, reject: (error: Error) => void) => {
         process.stdout.write(
             `${parameters.join(' ')}\n`,
-            (error?:unknown) => {
+            (error?: unknown) => {
                 if (error)
                     // eslint-disable-next-line prefer-promise-reject-errors
                     reject(error as Error)
@@ -90,13 +90,13 @@ export const logging = {
 
 // region forwarder
 export const applyStateAPIs = async (
-    request:BufferedHTTPServerRequest,
-    response:HTTPServerResponse,
-    forwarder:ResolvedForwarder
-):Promise<{result:boolean, scope:EvaluationScopeStateAPIs}> => {
-    const stateAPIScope:EvaluationScopeStateAPIs = {}
+    request: BufferedHTTPServerRequest,
+    response: HTTPServerResponse,
+    forwarder: ResolvedForwarder
+): Promise<{result: boolean, scope: EvaluationScopeStateAPIs}> => {
+    const stateAPIScope: EvaluationScopeStateAPIs = {}
 
-    let state:EvaluationScopeStateAPI
+    let state: EvaluationScopeStateAPI
     for (const stateAPI of forwarder.stateAPIs) {
         state =
             stateAPIScope[stateAPI.name] =
@@ -109,7 +109,7 @@ export const applyStateAPIs = async (
 
         let index = 1
         for (const expression of stateAPI.expressions.pre) {
-            let result:APIPreEvaluationResult
+            let result: APIPreEvaluationResult
             try {
                 result = expression(
                     ...UTILITY_SCOPE_VALUES,
@@ -155,7 +155,7 @@ export const applyStateAPIs = async (
         if (useStateAPI) {
             void logging.info(`Use state api: "${stateAPI.name}"`)
 
-            let error:Error|null = null
+            let error: Error|null = null
 
             if (stateAPI.urlExpression)
                 try {
@@ -179,7 +179,7 @@ export const applyStateAPIs = async (
             try {
                 // @ts-expect-error "stateAPI.url" may not be defined.
                 state.response = await fetch(stateAPI.url, stateAPI.options) as
-                    Response & {data:Mapping<unknown>}
+                    Response & {data: Mapping<unknown>}
             } catch (givenError) {
                 error = givenError as Error
 
@@ -216,7 +216,7 @@ export const applyStateAPIs = async (
 
             index = 1
             for (const expression of stateAPI.expressions.post) {
-                let result:APIPostEvaluationResult = null
+                let result: APIPostEvaluationResult = null
                 try {
                     result = expression(
                         ...UTILITY_SCOPE_VALUES,
@@ -259,16 +259,16 @@ export const applyStateAPIs = async (
     return {result: true, scope: stateAPIScope}
 }
 export const determineForwarder = (
-    request:BufferedHTTPServerRequest,
-    response:HTTPServerResponse,
-    forwarders:ResolvedForwarders
-):ResolvedForwarder|null => {
+    request: BufferedHTTPServerRequest,
+    response: HTTPServerResponse,
+    forwarders: ResolvedForwarders
+): ResolvedForwarder|null => {
     for (const [name, forwarder] of Object.entries(forwarders)
         .sort(([firstName], [secondName]) =>
             firstName.localeCompare(secondName)
         )
     ) {
-        const state:EvaluationScopeStateAPI = {
+        const state: EvaluationScopeStateAPI = {
             configuration: forwarder,
             error: null,
             response: null
@@ -291,8 +291,10 @@ export const determineForwarder = (
 
     return null
 }
-export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
-    const resolvedForwarders:ResolvedForwarders = {}
+export const resolveForwarders = (
+    forwarders: Forwarders
+): ResolvedForwarders => {
+    const resolvedForwarders: ResolvedForwarders = {}
     for (const [name, givenForwarder] of Object.entries(forwarders))
         if (name !== 'base') {
             const forwarder = extend(
@@ -305,7 +307,7 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
                 givenForwarder as unknown as ResolvedForwarder
             ) as unknown as ResolvedForwarder
             // region normalize header transformations
-            const headerTransformations:ResolvedHeaderTransformations = {
+            const headerTransformations: ResolvedHeaderTransformations = {
                 retrieve: [],
                 send: []
             }
@@ -317,20 +319,20 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
                         unknown as
                         HeaderTransformation
                 )) {
-                    const transformation:ResolvedHeaderTransformation = {
+                    const transformation: ResolvedHeaderTransformation = {
                         ...givenTransformation,
-                        sourceRun: ():string => '',
-                        targetRun: ():string => ''
+                        sourceRun: () => '',
+                        targetRun: () => ''
                     }
 
                     if (Object.prototype.hasOwnProperty.call(
                         transformation, 'source'
                     ))
                         if (transformation.source instanceof RegExp)
-                            transformation.sourceRun = ():RegExp =>
+                            transformation.sourceRun = (): RegExp =>
                                 transformation.source as RegExp
                         else if (typeof transformation.source === 'string') {
-                            const result:CompilationResult<RegExp|string> =
+                            const result: CompilationResult<RegExp|string> =
                                 compile<RegExp|string>(
                                     transformation.source,
                                     EVALUATION_SCOPE_NAMES as
@@ -349,7 +351,7 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
                         transformation, 'target'
                     ))
                         if (typeof transformation.target === 'string') {
-                            const result:CompilationResult<
+                            const result: CompilationResult<
                                 string|StringReplacer
                             > = compile<string|StringReplacer>(
                                 transformation.target,
@@ -370,16 +372,16 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
             forwarder.headerTransformations = headerTransformations
             // endregion
             // region state apis
-            const stateAPIs:Array<ResolvedStateAPI> = []
-            const givenStateAPIs:Array<StateAPI> = ([] as Array<StateAPI>)
+            const stateAPIs: Array<ResolvedStateAPI> = []
+            const givenStateAPIs: Array<StateAPI> = ([] as Array<StateAPI>)
                 .concat(
                     (forwarder as Partial<ResolvedForwarder>).stateAPIs || []
                 )
-            const baseAPI:StateAPI = givenStateAPIs.filter(
-                (api:StateAPI):boolean => api.name === 'base'
+            const baseAPI: StateAPI = givenStateAPIs.filter(
+                (api: StateAPI): boolean => api.name === 'base'
             )[0]
 
-            const extendedGivenStateAPIs:Array<StateAPI> = []
+            const extendedGivenStateAPIs: Array<StateAPI> = []
             for (const api of givenStateAPIs)
                 if (api.name !== 'base')
                     extendedGivenStateAPIs.push(
@@ -394,7 +396,7 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
             for (const api of extendedGivenStateAPIs) {
                 // region normalize url expression
                 if (typeof api.urlExpression === 'string') {
-                    const result:CompilationResult =
+                    const result: CompilationResult =
                         compile(
                             api.urlExpression,
                             EVALUATION_SCOPE_NAMES as unknown as Array<string>
@@ -407,13 +409,13 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
                 }
                 // endregion
                 // region normalize pre / post expressions
-                const expressions:ResolvedAPIExpressions = {pre: [], post: []}
+                const expressions: ResolvedAPIExpressions = {pre: [], post: []}
 
                 for (const expression of (
                     [] as Array<APIPreEvaluationExpression>
                 ).concat(api.expressions?.pre || []))
                     if (typeof expression === 'string') {
-                        const result:CompilationResult<
+                        const result: CompilationResult<
                             APIPreEvaluationResult
                         > = compile<APIPreEvaluationResult>(
                             expression,
@@ -433,7 +435,7 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
                     [] as Array<APIPostEvaluationExpression>
                 ).concat(api.expressions?.post || []))
                     if (typeof expression === 'string') {
-                        const result:CompilationResult<
+                        const result: CompilationResult<
                             APIPostEvaluationResult
                         > = compile<APIPostEvaluationResult>(
                             expression,
@@ -458,7 +460,7 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
             // endregion
             // region normalize use expression
             if (typeof forwarder.useExpression === 'string') {
-                const result:CompilationResult<boolean> = compile(
+                const result: CompilationResult<boolean> = compile(
                     forwarder.useExpression,
                     EVALUATION_SCOPE_NAMES as
                         unknown as
@@ -478,8 +480,8 @@ export const resolveForwarders = (forwarders:Forwarders):ResolvedForwarders => {
 }
 // endregion
 export const addParsedContentToRequest = (
-    bufferedRequest:BufferedHTTPServerRequest
-):void => {
+    bufferedRequest: BufferedHTTPServerRequest
+): void => {
     if (
         bufferedRequest.headers['content-type'] &&
         /application\/json(;.*)?$/.test(
@@ -487,7 +489,7 @@ export const addParsedContentToRequest = (
         )
     )
         try {
-            const data:string =
+            const data: string =
                 Buffer.concat(bufferedRequest.socket.buffer.data)
                     .toString()
             bufferedRequest.socket.buffer.body =
@@ -499,16 +501,16 @@ export const addParsedContentToRequest = (
         }
 }
 export const transformHeaders = (
-    content:string,
-    headerTransformations:Array<ResolvedHeaderTransformation>,
-    parameters:EvaluationParameters
-):string => {
+    content: string,
+    headerTransformations: Array<ResolvedHeaderTransformation>,
+    parameters: EvaluationParameters
+): string => {
     let newLinePrinted = false
     for (const transformation of headerTransformations)
         try {
-            const source:null|RegExp|string|undefined =
+            const source: null|RegExp|string|undefined =
                 transformation.sourceRun(...parameters)
-            const target:null|string|StringReplacer|undefined =
+            const target: null|string|StringReplacer|undefined =
                 transformation.targetRun(...parameters)
 
             if (
@@ -527,11 +529,11 @@ export const transformHeaders = (
                 content = content.replace(
                     /(\s*\n)\s*\n\s*/,
                     (
-                        substring:string,
-                        delimiter:string,
-                        ...parameters:Array<unknown>
-                    ):string => {
-                        const result:string =
+                        substring: string,
+                        delimiter: string,
+                        ...parameters: Array<unknown>
+                    ): string => {
+                        const result: string =
                             typeof target === 'string' ?
                                 target :
                                 target ?
@@ -577,17 +579,17 @@ export const transformHeaders = (
     return content
 }
 export const reverseProxyBufferedRequest = async (
-    request:BufferedHTTPServerRequest,
-    response:HTTPServerResponse,
-    forwarder:ResolvedForwarder,
-    stateAPIScope:EvaluationScopeStateAPIs
-):Promise<void> =>
-    new Promise((resolve:() => void, reject:(error:Error) => void):void => {
-        const clientSocket:Socket = response.socket
-        const createConnection:typeof createSecureConnection = forwarder.tls ?
+    request: BufferedHTTPServerRequest,
+    response: HTTPServerResponse,
+    forwarder: ResolvedForwarder,
+    stateAPIScope: EvaluationScopeStateAPIs
+): Promise<void> =>
+    new Promise((resolve: () => void, reject: (error: Error) => void): void => {
+        const clientSocket: Socket = response.socket
+        const createConnection: typeof createSecureConnection = forwarder.tls ?
             createSecureConnection :
             createPlainConnection as unknown as typeof createSecureConnection
-        const portSuffix:string = (
+        const portSuffix: string = (
             forwarder.tls && forwarder.port !== 443 ||
             !forwarder.tls && forwarder.port !== 80
         ) ?
@@ -610,13 +612,13 @@ export const reverseProxyBufferedRequest = async (
                 )
             }
         )
-        serverSocket.on('error', (error:Error) => {
+        serverSocket.on('error', (error: Error) => {
             void logging.error('Proxy to server error', error)
 
             reject(error)
         })
 
-        const parameters:EvaluationParameters = [
+        const parameters: EvaluationParameters = [
             ...UTILITY_SCOPE_VALUES,
             {clientSocket, serverSocket},
             null,
@@ -629,14 +631,14 @@ export const reverseProxyBufferedRequest = async (
         // Send data from server back to client.
         if (forwarder.headerTransformations.retrieve.length) {
             let headerProcessed = false
-            serverSocket.on('data', (buffer:Buffer):void => {
+            serverSocket.on('data', (buffer: Buffer): void => {
                 if (headerProcessed) {
                     clientSocket.write(buffer)
 
                     return
                 }
 
-                let content:string = buffer.toString()
+                let content: string = buffer.toString()
 
                 void logging.info(
                     `\n <=== Got response header from backend:\n\n${content}`
@@ -665,7 +667,7 @@ export const reverseProxyBufferedRequest = async (
             let headerProcessed = false
             for (const buffer of request.socket.buffer.data) {
                 if (!headerProcessed) {
-                    let content:string = buffer.toString()
+                    let content: string = buffer.toString()
 
                     void logging.debug(
                         `\n ===> Got request header from client:\n\n${content}`
