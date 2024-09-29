@@ -55,15 +55,15 @@ import {
     Server
 } from './type'
 // endregion
-declare const ORIGINAL_MAIN_MODULE:object
+declare const ORIGINAL_MAIN_MODULE: object
 // region live cycle methods
 const onIncomingMessage = (
-    request:HTTPServerRequest, response:HTTPServerResponse
-):void => {
-    const bufferedRequest:BufferedHTTPServerRequest =
+    request: HTTPServerRequest, response: HTTPServerResponse
+): void => {
+    const bufferedRequest: BufferedHTTPServerRequest =
         request as BufferedHTTPServerRequest
 
-    void (async ():Promise<void> => {
+    void (async (): Promise<void> => {
         void logging.info(
             `|${'-'.repeat(80 - 2)}|\nStart processing`,
             `${bufferedRequest.method} request: ${bufferedRequest.url}\n` +
@@ -85,7 +85,7 @@ const onIncomingMessage = (
         if (CONFIGURATION.parseBody)
             addParsedContentToRequest(bufferedRequest)
 
-        const forwarder:ResolvedForwarder|null =
+        const forwarder: ResolvedForwarder|null =
             determineForwarder(bufferedRequest, response, FORWARDERS)
 
         if (forwarder === null) {
@@ -119,20 +119,20 @@ const onIncomingMessage = (
 }
 
 const onIncomingStream = (
-    stream:HTTPStream, headers:OutgoingHTTPHeaders
+    stream: HTTPStream, headers: OutgoingHTTPHeaders
 ) => {
     void logging.info('Got stream', stream, headers)
 }
 // endregion
 // region configuration
-const BASE_CONFIGURATION:Configuration = packageConfiguration.configuration
+const BASE_CONFIGURATION: Configuration = packageConfiguration.configuration
 
 for (const path of [
     'configuration.json', 'secure-configuration.json'
 ] as const) {
-    const configurationPath:string = resolve(process.cwd(), path)
+    const configurationPath: string = resolve(process.cwd(), path)
     if (isFileSync(configurationPath)) {
-        const configuration:RecursivePartial<Configuration> =
+        const configuration: RecursivePartial<Configuration> =
             eval(`require('${configurationPath}')`) as
                 RecursivePartial<Configuration>
 
@@ -143,7 +143,7 @@ for (const path of [
         )
     }
 }
-const CONFIGURATION:Configuration = evaluateDynamicData<Configuration>(
+const CONFIGURATION: Configuration = evaluateDynamicData<Configuration>(
     BASE_CONFIGURATION,
     {
         ...UTILITY_SCOPE,
@@ -151,11 +151,11 @@ const CONFIGURATION:Configuration = evaluateDynamicData<Configuration>(
         environment: process.env
     }
 )
-const FORWARDERS:ResolvedForwarders =
+const FORWARDERS: ResolvedForwarders =
     resolveForwarders(CONFIGURATION.forwarders)
 // endregion
 // region initialize server
-const server:Server = {
+const server: Server = {
     instance: CONFIGURATION.publicKeyPath && CONFIGURATION.privateKeyPath ?
         createSecureServer(
             CONFIGURATION.nodeServerOptions, onIncomingMessage
@@ -170,7 +170,7 @@ const server:Server = {
     start: () => {
         server.instance.listen(
             CONFIGURATION.port,
-            ():void => {
+            () => {
                 void logging.info(
                     `Listen on port ${String(CONFIGURATION.port)} for ` +
                     'incoming requests.'
@@ -179,7 +179,7 @@ const server:Server = {
         )
     },
     stop: () => {
-        server.instance.close(():void => {
+        server.instance.close(() => {
             void logging.info('Shut server down.')
         })
 
@@ -192,14 +192,14 @@ const server:Server = {
 
 server.instance.on(
     'connection',
-    (socket:BufferedSocket):void => {
+    (socket: BufferedSocket): void => {
         server.sockets.push(socket)
 
         socket.buffer = {
             data: [],
             finished: false
         }
-        socket.on('data', (data:Buffer) => {
+        socket.on('data', (data: Buffer) => {
             socket.buffer.data.push(data)
         })
         for (const name of [
@@ -226,7 +226,7 @@ server.instance.on(
 
 server.instance.on(
     'stream',
-    (stream:HTTPStream, headers:OutgoingHTTPHeaders) => {
+    (stream: HTTPStream, headers: OutgoingHTTPHeaders) => {
         server.streams.push(stream)
 
         onIncomingStream(stream, headers)
