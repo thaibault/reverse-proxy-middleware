@@ -72,9 +72,9 @@ const onIncomingMessage = (
 
         // NOTE: We have to wait until client request is fully buffered.
         for (
-            let index = 0;
-            index < (MAXIMAL_NUMBER_OF_ITERATIONS.value * 1000);
-            index++
+            let iteration = 0;
+            iteration < (MAXIMAL_NUMBER_OF_ITERATIONS.value * 1000);
+            iteration++
         ) {
             await timeout()
 
