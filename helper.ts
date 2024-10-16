@@ -155,7 +155,7 @@ export const applyStateAPIs = async (
         if (useStateAPI) {
             void logging.info(`Use state api: "${stateAPI.name}"`)
 
-            let error: Error|null = null
+            let error: Error | null = null
 
             if (stateAPI.urlExpression)
                 try {
@@ -262,7 +262,7 @@ export const determineForwarder = (
     request: BufferedHTTPServerRequest,
     response: HTTPServerResponse,
     forwarders: ResolvedForwarders
-): ResolvedForwarder|null => {
+): null | ResolvedForwarder => {
     for (const [name, forwarder] of Object.entries(forwarders)
         .sort(([firstName], [secondName]) =>
             firstName.localeCompare(secondName)
@@ -333,7 +333,7 @@ export const resolveForwarders = (
                                 transformation.source as RegExp
                         else if (typeof transformation.source === 'string') {
                             const result: CompilationResult<RegExp|string> =
-                                compile<RegExp|string>(
+                                compile<RegExp | string>(
                                     transformation.source,
                                     EVALUATION_SCOPE_NAMES as
                                         unknown as
@@ -352,8 +352,8 @@ export const resolveForwarders = (
                     ))
                         if (typeof transformation.target === 'string') {
                             const result: CompilationResult<
-                                string|StringReplacer
-                            > = compile<string|StringReplacer>(
+                                string | StringReplacer
+                            > = compile<string | StringReplacer>(
                                 transformation.target,
                                 EVALUATION_SCOPE_NAMES as
                                     unknown as
@@ -508,9 +508,9 @@ export const transformHeaders = (
     let newLinePrinted = false
     for (const transformation of headerTransformations)
         try {
-            const source: null|RegExp|string|undefined =
+            const source: null | RegExp | string | undefined =
                 transformation.sourceRun(...parameters)
-            const target: null|string|StringReplacer|undefined =
+            const target: null | string | StringReplacer | undefined =
                 transformation.targetRun(...parameters)
 
             if (

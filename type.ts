@@ -32,15 +32,15 @@ import {
 import {Socket as PlainSocket} from 'net'
 import {TLSSocket} from 'tls'
 // endregion
-export type HTTPServer = HttpServer|HTTPSecureServer
+export type HTTPServer = HttpServer | HTTPSecureServer
 export type HTTPServerRequest = Http2ServerRequest
 export type HTTPServerResponse = Http2ServerResponse
 export type HTTPStream = Http2Stream
 
 export type OutgoingHTTPHeaders = OutgoingHttpHeaders
 
-export type Socket = PlainSocket|TLSSocket
-export type ParsedContent = Array<PlainObject|Primitive>|PlainObject
+export type Socket = PlainSocket | TLSSocket
+export type ParsedContent = Array<PlainObject | Primitive> | PlainObject
 export type BufferedSocket =
     Socket &
     {
@@ -59,19 +59,19 @@ export type StringReplacer =
     (substring: string, ...parameters: Array<unknown>) => string
 
 export interface EvaluationScopeStateAPI {
-    configuration: ResolvedForwarder|ResolvedStateAPI
-    error: Error|null
-    response: (Response & {data: Mapping<unknown>})|null
+    configuration: ResolvedForwarder | ResolvedStateAPI
+    error: Error | null
+    response: (Response & {data: Mapping<unknown>}) | null
 }
 export type EvaluationScopeStateAPIs = Mapping<EvaluationScopeStateAPI>
 export type EvaluationScope =
     typeof UTILITY_SCOPE &
     {
         data?: Mapping<unknown>
-        error?: Error|null
+        error?: Error | null
         request?: HTTPServerRequest
         response?: HTTPServerResponse
-        stateAPI?: EvaluationScopeStateAPI|null
+        stateAPI?: EvaluationScopeStateAPI | null
         stateAPIs?: EvaluationScopeStateAPIs
     }
 export type EvaluationParameters = [
@@ -96,9 +96,10 @@ export type EvaluationParameters = [
  *                      state-api request or request forwarding to the
  *                      underlying backend.
  */
-export type APIPreEvaluationResult = 'break'|boolean|null|number|undefined
+export type APIPreEvaluationResult =
+    'break' | boolean | null | number | undefined
 export type APIPreEvaluationExpression =
-    string|((...parameters: EvaluationParameters) => APIPreEvaluationResult)
+    string | ((...parameters: EvaluationParameters) => APIPreEvaluationResult)
 /*
  * break (string)    -> Do not evaluate subsequent post evaluations.
  * null or undefined -> Just jump to the next evaluation to run.
@@ -107,12 +108,12 @@ export type APIPreEvaluationExpression =
  *                      state-api request or request forwarding to the
  *                      underlying backend.
  */
-export type APIPostEvaluationResult = 'break'|null|number|undefined
+export type APIPostEvaluationResult = 'break' | null | number | undefined
 export type APIPostEvaluationExpression =
-    string|((...parameters: EvaluationParameters) => APIPostEvaluationResult)
+    string | ((...parameters: EvaluationParameters) => APIPostEvaluationResult)
 export interface APIExpressions {
-    pre?: Array<APIPreEvaluationExpression>|APIPreEvaluationExpression
-    post?: Array<APIPostEvaluationExpression>|APIPostEvaluationExpression
+    pre?: Array<APIPreEvaluationExpression> | APIPreEvaluationExpression
+    post?: Array<APIPostEvaluationExpression> | APIPostEvaluationExpression
 }
 export interface StateAPI {
     data?: Mapping<unknown>
@@ -120,7 +121,7 @@ export interface StateAPI {
     options?: RequestInit
     expressions?: APIExpressions
     url?: string
-    urlExpression?: string|((...parameters: EvaluationParameters) => string)
+    urlExpression?: string | ((...parameters: EvaluationParameters) => string)
 }
 export interface ResolvedAPIExpressions {
     pre: Array<(...parameters: EvaluationParameters) => APIPreEvaluationResult>
@@ -128,7 +129,7 @@ export interface ResolvedAPIExpressions {
         APIPostEvaluationResult>
 }
 export type ResolvedStateAPI =
-    NonNullable<Omit<StateAPI, 'expressions'|'urlExpression'>> &
+    NonNullable<Omit<StateAPI, 'expressions' | 'urlExpression'>> &
     {
         expressions: ResolvedAPIExpressions
         urlExpression?: (...parameters: EvaluationParameters) => string
@@ -137,7 +138,7 @@ export interface HeaderTransformation {
     source?: (
         string |
         RegExp |
-        ((...parameters: EvaluationParameters) => RegExp|string)
+        ((...parameters: EvaluationParameters) => RegExp | string)
     )
     target?: (
         string |
@@ -149,13 +150,13 @@ export interface HeaderTransformation {
 }
 export interface ResolvedHeaderTransformation extends HeaderTransformation {
     sourceRun: (...parameters: EvaluationParameters) =>
-        null|RegExp|string|undefined
+        null | RegExp | string | undefined
     targetRun: (...parameters: EvaluationParameters) =>
-        null|string|StringReplacer|undefined
+        null | string | StringReplacer | undefined
 }
 export interface HeaderTransformations {
-    retrieve?: Array<HeaderTransformation>|HeaderTransformation
-    send?: Array<HeaderTransformation>|HeaderTransformation
+    retrieve?: Array<HeaderTransformation> | HeaderTransformation
+    send?: Array<HeaderTransformation> | HeaderTransformation
 }
 export interface ResolvedHeaderTransformations {
     retrieve: Array<ResolvedHeaderTransformation>
@@ -165,9 +166,9 @@ export interface Forwarder {
     headerTransformations?: HeaderTransformations
     host: string
     port?: number
-    stateAPIs?: StateAPI|Array<StateAPI>
+    stateAPIs?: Array<StateAPI> | StateAPI
     tls?: boolean
-    useExpression?: string|((...parameters: EvaluationParameters) => boolean)
+    useExpression?: string | ((...parameters: EvaluationParameters) => boolean)
 }
 export interface Forwarders {
     base: Forwarder
@@ -175,7 +176,7 @@ export interface Forwarders {
 }
 export type ResolvedForwarder =
     NonNullable<Omit<
-        Forwarder, 'headerTransformations'|'stateAPIs'|'useExpression'
+        Forwarder, 'headerTransformations' | 'stateAPIs' | 'useExpression'
     >> &
     {
         headerTransformations: ResolvedHeaderTransformations

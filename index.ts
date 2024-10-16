@@ -85,7 +85,7 @@ const onIncomingMessage = (
         if (CONFIGURATION.parseBody)
             addParsedContentToRequest(bufferedRequest)
 
-        const forwarder: ResolvedForwarder|null =
+        const forwarder: null | ResolvedForwarder =
             determineForwarder(bufferedRequest, response, FORWARDERS)
 
         if (forwarder === null) {
