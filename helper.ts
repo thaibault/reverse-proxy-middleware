@@ -496,7 +496,7 @@ export const addParsedContentToRequest = (
                 data.replace(/^[\s\S]+\s*\n\s*\n\s*([\s\S]+)$/m, '$1')
             bufferedRequest.socket.buffer.content =
                 JSON.parse(bufferedRequest.socket.buffer.body) as ParsedContent
-        } catch (_error) {
+        } catch {
             void logging.warn('Error parsing given request.', bufferedRequest)
         }
 }
