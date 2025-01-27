@@ -17,6 +17,7 @@ Project status
 [![npm downloads](https://img.shields.io/npm/dy/reverse-proxy-middleware.svg?style=for-the-badge)](https://www.npmjs.com/package/reverse-proxy-middleware)
 
 [![build](https://img.shields.io/github/actions/workflow/status/thaibault/reverse-proxy-middleware/build.yaml?style=for-the-badge)](https://github.com/thaibault/reverse-proxy-middleware/actions/workflows/build.yaml)
+[![build push package](https://img.shields.io/github/actions/workflow/status/thaibault/reverse-proxy-middleware/build-package-and-push.yaml?label=build%20push%20package&style=for-the-badge)](https://github.com/thaibault/reverse-proxy-middleware/actions/workflows/build-package-and-push.yaml)
 
 [![check types](https://img.shields.io/github/actions/workflow/status/thaibault/reverse-proxy-middleware/check-types.yaml?label=check%20types&style=for-the-badge)](https://github.com/thaibault/reverse-proxy-middleware/actions/workflows/check-types.yaml)
 [![lint](https://img.shields.io/github/actions/workflow/status/thaibault/reverse-proxy-middleware/lint.yaml?label=lint&style=for-the-badge)](https://github.com/thaibault/reverse-proxy-middleware/actions/workflows/lint.yaml)
