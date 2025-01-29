@@ -23,7 +23,7 @@ Project status
 [![lint](https://img.shields.io/github/actions/workflow/status/thaibault/reverse-proxy-middleware/lint.yaml?label=lint&style=for-the-badge)](https://github.com/thaibault/reverse-proxy-middleware/actions/workflows/lint.yaml)
 [![test](https://img.shields.io/github/actions/workflow/status/thaibault/reverse-proxy-middleware/test-coverage-report.yaml?label=test&style=for-the-badge)](https://github.com/thaibault/reverse-proxy-middleware/actions/workflows/test-coverage-report.yaml)
 
-[![build push image](https://img.shields.io/github/actions/workflow/status/thaibault/reverse-proxy-middleware/build-image-periodically-2-branches.yaml?label=build%20push%20image&style=for-the-badge)](https://github.com/thaibault/reverse-proxy-middleware/actions/workflows/build-image-periodically-2-branches.yaml)
+[![build push image](https://img.shields.io/github/actions/workflow/status/thaibault/reverse-proxy-middleware/build-image-and-push-periodically-2.yaml?label=build%20push%20image&style=for-the-badge)](https://github.com/thaibault/reverse-proxy-middleware/actions/workflows/build-image-and-push-periodically-2.yaml)
 
 [![code coverage](https://img.shields.io/coverallsCoverage/github/thaibault/reverse-proxy-middleware?label=code%20coverage&style=for-the-badge)](https://coveralls.io/github/thaibault/reverse-proxy-middleware)
 
