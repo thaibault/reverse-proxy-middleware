@@ -59,23 +59,23 @@
   "runkitExample": "require('@babel/runtime/package.json')\n",
   "devDependencies": {
     "@babel/cli": "^7.28.3",
-    "@babel/eslint-parser": "^7.28.4",
-    "@stylistic/eslint-plugin": "^5.4.0",
-    "@types/node": "^24.7.0",
-    "@typescript-eslint/eslint-plugin": "^8.45.0",
-    "@typescript-eslint/parser": "^8.45.0",
+    "@babel/eslint-parser": "^7.28.5",
+    "@stylistic/eslint-plugin": "^5.5.0",
+    "@types/node": "^24.9.1",
+    "@typescript-eslint/eslint-plugin": "^8.46.2",
+    "@typescript-eslint/parser": "^8.46.2",
     "documentation-website": "^1.0.394",
-    "eslint": "^9.37.0",
+    "eslint": "^9.38.0",
     "eslint-config-google": "^0.14.0",
-    "eslint-plugin-jsdoc": "^60.8.2",
+    "eslint-plugin-jsdoc": "^61.1.9",
     "jest": "^30.2.0",
-    "jsdoc": "^4.0.4",
-    "typescript-eslint": "^8.45.0",
-    "weboptimizer": "^2.0.1615"
+    "jsdoc": "^4.0.5",
+    "typescript-eslint": "^8.46.2",
+    "weboptimizer": "^2.0.1618"
   },
   "dependencies": {
     "@babel/runtime": "^7.28.4",
-    "clientnode": "^3.0.1312"
+    "clientnode": "^3.0.1314"
   },
   "engines": {
     "node": ">=20",
