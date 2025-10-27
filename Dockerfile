@@ -52,7 +52,13 @@ COPY       --link . "$APPLICATION_PATH"
            # Install dev dependencies build and slice out dev dependencies
            # afterwards.
            # NOTE: Use busybox compatible commands (shortoptions).
-RUN        npm uninstall -g yarn && \
+RUN        path="${APPLICATION_PATH}certificate.pem" && \
+           if [ -f "$path" ]; then \
+               echo Integrate provided root certificate \"${path}\".; \
+               export NODE_EXTRA_CA_CERTS="$path"; \
+           fi && \
+           npm uninstall -g yarn && \
+           rm /usr/local/bin/yarn /usr/local/bin/yarnpkg; \
            npm install -g corepack@latest && \
            corepack enable && \
            corepack install && \
