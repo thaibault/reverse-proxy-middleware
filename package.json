@@ -58,24 +58,25 @@
   },
   "runkitExample": "require('@babel/runtime/package.json')\n",
   "devDependencies": {
-    "@babel/cli": "^7.28.3",
-    "@babel/eslint-parser": "^7.28.5",
-    "@stylistic/eslint-plugin": "^5.6.1",
-    "@types/node": "^25.0.3",
-    "@typescript-eslint/eslint-plugin": "^8.50.0",
-    "@typescript-eslint/parser": "^8.50.0",
-    "documentation-website": "^1.0.397",
-    "eslint": "^9.39.2",
+    "@babel/cli": "^7.28.6",
+    "@babel/eslint-parser": "^7.28.6",
+    "@eslint/js": "^10.0.1",
+    "@stylistic/eslint-plugin": "^5.8.0",
+    "@types/node": "^25.2.2",
+    "@typescript-eslint/eslint-plugin": "^8.54.0",
+    "@typescript-eslint/parser": "^8.54.0",
+    "documentation-website": "^1.0.398",
+    "eslint": "^10.0.0",
     "eslint-config-google": "^0.14.0",
-    "eslint-plugin-jsdoc": "^61.5.0",
+    "eslint-plugin-jsdoc": "^62.5.4",
     "jest": "^30.2.0",
     "jsdoc": "^4.0.5",
-    "typescript-eslint": "^8.50.0",
-    "weboptimizer": "^2.0.1635"
+    "typescript-eslint": "^8.54.0",
+    "weboptimizer": "^2.0.1645"
   },
   "dependencies": {
-    "@babel/runtime": "^7.28.4",
-    "clientnode": "^3.0.1338"
+    "@babel/runtime": "^7.28.6",
+    "clientnode": "^3.0.1345"
   },
   "engines": {
     "node": ">=20",
