@@ -25,7 +25,7 @@ const {configuration: BASE_CONFIGURATION} = packageConfiguration
 const positiveUseExpression = () => true
 
 describe('helper', (): void => {
-    testEach<typeof resolveForwarders>(
+    testEach(
         'resolveForwarders',
         resolveForwarders,
 

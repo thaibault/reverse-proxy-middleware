@@ -300,7 +300,7 @@ export const resolveForwarders = (
             const forwarder = extend(
                 true,
                 {name},
-                modifyObject<ResolvedForwarder>(
+                modifyObject(
                     copy(forwarders.base) as unknown as ResolvedForwarder,
                     givenForwarder as unknown as ResolvedForwarder
                 ),
@@ -388,7 +388,7 @@ export const resolveForwarders = (
                         extend(
                             true,
                             {},
-                            modifyObject<StateAPI>(copy(baseAPI), api),
+                            modifyObject(copy(baseAPI), api),
                             api
                         )
                     )
