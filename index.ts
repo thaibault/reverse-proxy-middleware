@@ -138,7 +138,7 @@ for (const path of [
 
         extend(
             true,
-            modifyObject<Configuration>(BASE_CONFIGURATION, configuration),
+            modifyObject(BASE_CONFIGURATION, configuration),
             configuration
         )
     }
