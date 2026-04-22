@@ -71,7 +71,7 @@
     "jest": "^30.3.0",
     "jsdoc": "^4.0.5",
     "typescript-eslint": "^8.59.0",
-    "web-documentation": "^1.0.2",
+    "web-documentation": "^1.0.3",
     "weboptimizer": "^3.0.22"
   },
   "dependencies": {
