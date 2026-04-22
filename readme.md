@@ -27,7 +27,7 @@ Project status
 
 [![code coverage](https://img.shields.io/coverallsCoverage/github/thaibault/reverse-proxy-middleware?label=code%20coverage&style=for-the-badge)](https://coveralls.io/github/thaibault/reverse-proxy-middleware)
 
-[![deploy documentation website](https://img.shields.io/github/actions/workflow/status/thaibault/reverse-proxy-middleware/deploy-documentation-website.yaml?label=deploy%20documentation%20website&style=for-the-badge)](https://github.com/thaibault/reverse-proxy-middleware/actions/workflows/deploy-documentation-website.yaml)
+[![deploy web documentation](https://img.shields.io/github/actions/workflow/status/thaibault/reverse-proxy-middleware/deploy-web-documentation.yaml?label=deploy%20web%20documentation&style=for-the-badge)](https://github.com/thaibault/reverse-proxy-middleware/actions/workflows/deploy-web-documentation.yaml)
 [![documentation website](https://img.shields.io/website-up-down-green-red/https/torben.website/reverse-proxy-middleware.svg?label=documentation-website&style=for-the-badge)](https://torben.website/reverse-proxy-middleware)
 
 Use case
