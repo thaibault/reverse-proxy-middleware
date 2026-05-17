@@ -42,6 +42,7 @@ ENV        PORT=8080
 ENV        NODE_ENV=production
 
 RUN        mkdir --parents "$APPLICATION_PATH"
+COPY       --link . "$APPLICATION_PATH"
 
            # Install package manager.
            # NOTE: Use busybox compatible commands (shortoptions).
@@ -51,7 +52,7 @@ RUN        path="${APPLICATION_PATH}certificate.pem" && \
                export NODE_EXTRA_CA_CERTS="$path"; \
            fi && \
            npm uninstall -g yarn && \
-           rm /usr/local/bin/yarn /usr/local/bin/yarnpkg || true; \
+           rm /usr/local/bin/yarn /usr/local/bin/yarnpkg &>/dev/null || true; \
            npm install -g corepack@latest && \
            corepack enable && \
            corepack install && \
@@ -62,9 +63,6 @@ RUN        corepack install --global /corepack.tgz
 WORKDIR    "$APPLICATION_PATH"
 
 FROM       base AS build
-
-COPY       --link . "$APPLICATION_PATH"
-
            # Install dev dependencies build and slice out dev dependencies
            # afterwards.
 RUN        yarn unlink clientnode
@@ -73,8 +71,6 @@ RUN        yarn build
 
 FROM       base AS runtime
 
-COPY       --from=build --link /corepack.tgz /corepack.tgz
-RUN        corepack install --global /corepack.tgz
 RUN        yarn unlink clientnode
 RUN        yarn workspaces focus --production
 
