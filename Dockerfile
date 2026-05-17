@@ -65,15 +65,15 @@ RUN        path="${APPLICATION_PATH}certificate.pem" && \
            rm -f -r /tmp/*
 RUN        corepack pack --output /corepack.tgz
 RUN        corepack install --global /corepack.tgz
-RUN        yarn unlink clientnode; \
-           yarn install && \
-           yarn build && \
-           yarn workspaces focus --production && \
-           rm -f -r /tmp/*
+RUN        yarn unlink clientnode
+RUN        yarn install
+RUN        yarn build
 
 FROM       base AS runtime
 
-RUN        yarn --production
+COPY       --from=build --link /corepack.tgz /corepack.tgz
+RUN        corepack install --global /corepack.tgz
+RUN        yarn workspaces focus --production
 
 COPY       --from=build \
            --link \
