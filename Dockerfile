@@ -51,7 +51,7 @@ RUN        path="${APPLICATION_PATH}certificate.pem" && \
                export NODE_EXTRA_CA_CERTS="$path"; \
            fi && \
            npm uninstall -g yarn && \
-           rm /usr/local/bin/yarn /usr/local/bin/yarnpkg; \
+           rm /usr/local/bin/yarn /usr/local/bin/yarnpkg || true; \
            npm install -g corepack@latest && \
            corepack enable && \
            corepack install && \
