@@ -43,14 +43,7 @@ ENV        NODE_ENV=production
 
 RUN        mkdir --parents "$APPLICATION_PATH"
 
-WORKDIR    "$APPLICATION_PATH"
-
-FROM       base AS build
-
-COPY       --link . "$APPLICATION_PATH"
-
-           # Install dev dependencies build and slice out dev dependencies
-           # afterwards.
+           # Install package manager.
            # NOTE: Use busybox compatible commands (shortoptions).
 RUN        path="${APPLICATION_PATH}certificate.pem" && \
            if [ -f "$path" ]; then \
@@ -65,6 +58,15 @@ RUN        path="${APPLICATION_PATH}certificate.pem" && \
            rm -f -r /tmp/*
 RUN        corepack pack --output /corepack.tgz
 RUN        corepack install --global /corepack.tgz
+
+WORKDIR    "$APPLICATION_PATH"
+
+FROM       base AS build
+
+COPY       --link . "$APPLICATION_PATH"
+
+           # Install dev dependencies build and slice out dev dependencies
+           # afterwards.
 RUN        yarn unlink clientnode
 RUN        yarn install
 RUN        yarn build
@@ -73,6 +75,7 @@ FROM       base AS runtime
 
 COPY       --from=build --link /corepack.tgz /corepack.tgz
 RUN        corepack install --global /corepack.tgz
+RUN        yarn unlink clientnode
 RUN        yarn workspaces focus --production
 
 COPY       --from=build \
