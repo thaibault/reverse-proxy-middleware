@@ -61,16 +61,15 @@ RUN        corepack pack --output /corepack.tgz
 RUN        corepack install --global /corepack.tgz
 
 FROM       base AS build
-           # Install dev dependencies build and slice out dev dependencies
-           # afterwards.
+           # Install dev dependencies build and ignore those for production
+           # build.
 RUN        yarn unlink clientnode
 RUN        yarn install
 RUN        yarn build
-
-FROM       base AS runtime
-
 RUN        yarn unlink clientnode
 RUN        yarn workspaces focus --production
+
+FROM       base AS runtime
 
 COPY       --from=build \
            --link \
