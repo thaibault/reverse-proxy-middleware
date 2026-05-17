@@ -41,8 +41,8 @@ ENV        APPLICATION_PATH=/application/
 ENV        PORT=8080
 ENV        NODE_ENV=production
 
-RUN        mkdir --parents "$APPLICATION_PATH"
 COPY       --link . "$APPLICATION_PATH"
+WORKDIR    "$APPLICATION_PATH"
 
            # Install package manager.
            # NOTE: Use busybox compatible commands (shortoptions).
@@ -59,8 +59,6 @@ RUN        path="${APPLICATION_PATH}certificate.pem" && \
            rm -f -r /tmp/*
 RUN        corepack pack --output /corepack.tgz
 RUN        corepack install --global /corepack.tgz
-
-WORKDIR    "$APPLICATION_PATH"
 
 FROM       base AS build
            # Install dev dependencies build and slice out dev dependencies
