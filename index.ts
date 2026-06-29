@@ -143,12 +143,14 @@ for (const path of [
         )
     }
 }
-const CONFIGURATION: Configuration = evaluateDynamicData<Configuration>(
+const CONFIGURATION: Configuration = await evaluateDynamicData<Configuration>(
     BASE_CONFIGURATION,
     {
-        ...UTILITY_SCOPE,
-        configuration: BASE_CONFIGURATION,
-        environment: process.env
+        scope: {
+            ...UTILITY_SCOPE,
+            configuration: BASE_CONFIGURATION,
+            environment: process.env
+        }
     }
 )
 const FORWARDERS: ResolvedForwarders =
