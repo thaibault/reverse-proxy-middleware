@@ -11,21 +11,36 @@
     License
     -------
 
-    This library written by Torben Sickert stand under a creative commons
+    This library written by Torben Sickert stands under a creative commons
     naming 3.0 unported license.
     See https://creativecommons.org/licenses/by/3.0/deed.de
     endregion
 */
 // region imports
+import type {RecursivePartial} from 'clientnode'
+import type {
+    BufferedHTTPServerRequest,
+    BufferedSocket,
+    Configuration,
+    HTTPServerResponse,
+    HTTPServerRequest,
+    HTTPStream,
+    OutgoingHTTPHeaders,
+    ResolvedForwarder,
+    ResolvedForwarders,
+    Server
+} from './type'
+
 // NOTE: http2 compatibility mode does work for unencrypted connections yet.
 import {
     CLOSE_EVENT_NAMES,
+    evaluateAsyncDynamicData,
     evaluateDynamicData,
     extend,
-    isFileSync,
+    importsPromise,
+    isFile,
     MAXIMAL_NUMBER_OF_ITERATIONS,
     modifyObject,
-    RecursivePartial,
     represent,
     timeout,
     UTILITY_SCOPE
@@ -42,20 +57,8 @@ import reverseProxyBufferedRequest, {
     resolveForwarders
 } from './helper'
 import packageConfiguration from './package.json'
-import {
-    BufferedHTTPServerRequest,
-    BufferedSocket,
-    Configuration,
-    HTTPServerResponse,
-    HTTPServerRequest,
-    HTTPStream,
-    OutgoingHTTPHeaders,
-    ResolvedForwarder,
-    ResolvedForwarders,
-    Server
-} from './type'
 // endregion
-declare const ORIGINAL_MAIN_MODULE: object
+await importsPromise
 // region live cycle methods
 const onIncomingMessage = (
     request: HTTPServerRequest, response: HTTPServerResponse
@@ -64,6 +67,7 @@ const onIncomingMessage = (
         request as BufferedHTTPServerRequest
 
     void (async (): Promise<void> => {
+        // TODO integrate into clientnode's logging lib
         void logging.info(
             `|${'-'.repeat(80 - 2)}|\nStart processing`,
             `${bufferedRequest.method} request: ${bufferedRequest.url}\n` +
@@ -131,9 +135,9 @@ for (const path of [
     'configuration.json', 'secure-configuration.json'
 ] as const) {
     const configurationPath: string = resolve(process.cwd(), path)
-    if (isFileSync(configurationPath)) {
+    if (await isFile(configurationPath)) {
         const configuration: RecursivePartial<Configuration> =
-            eval(`require('${configurationPath}')`) as
+            await import(configurationPath) as
                 RecursivePartial<Configuration>
 
         extend(
@@ -143,13 +147,18 @@ for (const path of [
         )
     }
 }
-const CONFIGURATION: Configuration = evaluateDynamicData<Configuration>(
-    BASE_CONFIGURATION,
-    {
+const evaluationOptions = {
+    scope: {
         ...UTILITY_SCOPE,
         configuration: BASE_CONFIGURATION,
         environment: process.env
     }
+}
+const CONFIGURATION = await evaluateAsyncDynamicData<Configuration>(
+    evaluateDynamicData<Configuration>(
+        BASE_CONFIGURATION, evaluationOptions
+    ),
+    evaluationOptions
 )
 const FORWARDERS: ResolvedForwarders =
     resolveForwarders(CONFIGURATION.forwarders)
@@ -238,12 +247,7 @@ server.instance.on(
 )
 // endregion
 // region start / stop
-if (
-    require.main === module ||
-    eval('require.main') !== require.main &&
-    typeof ORIGINAL_MAIN_MODULE !== 'undefined' &&
-    ORIGINAL_MAIN_MODULE === eval('require.main')
-) {
+if (import.meta.main) {
     void logging.info(
         'Start server with configuration:', represent(CONFIGURATION)
     )
