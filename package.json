@@ -57,26 +57,26 @@
     "watch": "weboptimizer build --watch"
   },
   "devDependencies": {
-    "@babel/cli": "^7.28.6",
-    "@babel/eslint-parser": "^7.28.6",
+    "@babel/cli": "^8.0.4",
+    "@babel/eslint-parser": "^8.0.1",
     "@eslint/js": "^10.0.1",
     "@stylistic/eslint-plugin": "^5.10.0",
-    "@types/node": "^25.8.0",
+    "@types/node": "^26.1.1",
     "@types/webpack-env": "^1.18.8",
-    "@typescript-eslint/eslint-plugin": "^8.59.3",
-    "@typescript-eslint/parser": "^8.59.3",
-    "eslint": "^10.4.0",
+    "@typescript-eslint/eslint-plugin": "^8.64.0",
+    "@typescript-eslint/parser": "^8.64.0",
+    "eslint": "^10.7.0",
     "eslint-config-google": "^0.14.0",
-    "eslint-plugin-jsdoc": "^62.9.0",
-    "jest": "^30.3.0",
+    "eslint-plugin-jsdoc": "^63.2.0",
+    "jest": "^30.4.2",
     "jsdoc": "^4.0.5",
-    "typescript-eslint": "^8.59.3",
-    "web-documentation": "^1.0.12",
-    "weboptimizer": "^3.0.22"
+    "typescript-eslint": "^8.64.0",
+    "web-documentation": "^1.0.42",
+    "weboptimizer": "^4.0.24"
   },
   "dependencies": {
-    "@babel/runtime": "^7.29.2",
-    "clientnode": "^4.0.1396"
+    "@babel/runtime": "^8.0.0",
+    "clientnode": "^4.0.1454"
   },
   "engines": {
     "node": ">=24",
@@ -133,7 +133,7 @@
         "includeFilePathRegularExpression": "^(.+/)?index\\.js$",
         "pattern": {
           "#": "This is how we can make our main exported artefact executable.",
-          "__evaluate__": "`#!/usr/bin/env node\n// -*- coding: utf-8 -*-\n${self.generic.assetPattern.javaScript.pattern}if(module===eval('require.main'))module.paths.unshift('/application/node_modules');{1}`"
+          "__evaluate__": "`#!/usr/bin/env node\n// -*- coding: utf-8 -*-\n${self.generic.assetPattern.javaScript?.pattern ?? ''}if(import.module.main)module.paths.unshift('/application/node_modules');{1}`"
         }
       }
     },
