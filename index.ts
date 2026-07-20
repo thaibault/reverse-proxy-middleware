@@ -17,6 +17,20 @@
     endregion
 */
 // region imports
+import type {RecursivePartial} from 'clientnode'
+import type {
+    BufferedHTTPServerRequest,
+    BufferedSocket,
+    Configuration,
+    HTTPServerResponse,
+    HTTPServerRequest,
+    HTTPStream,
+    OutgoingHTTPHeaders,
+    ResolvedForwarder,
+    ResolvedForwarders,
+    Server
+} from './type'
+
 // NOTE: http2 compatibility mode does work for unencrypted connections yet.
 import {
     CLOSE_EVENT_NAMES,
@@ -25,7 +39,6 @@ import {
     isFileSync,
     MAXIMAL_NUMBER_OF_ITERATIONS,
     modifyObject,
-    RecursivePartial,
     represent,
     timeout,
     UTILITY_SCOPE
@@ -42,20 +55,7 @@ import reverseProxyBufferedRequest, {
     resolveForwarders
 } from './helper'
 import packageConfiguration from './package.json'
-import {
-    BufferedHTTPServerRequest,
-    BufferedSocket,
-    Configuration,
-    HTTPServerResponse,
-    HTTPServerRequest,
-    HTTPStream,
-    OutgoingHTTPHeaders,
-    ResolvedForwarder,
-    ResolvedForwarders,
-    Server
-} from './type'
 // endregion
-declare const ORIGINAL_MAIN_MODULE: object
 // region live cycle methods
 const onIncomingMessage = (
     request: HTTPServerRequest, response: HTTPServerResponse
@@ -240,12 +240,7 @@ server.instance.on(
 )
 // endregion
 // region start / stop
-if (
-    require.main === module ||
-    eval('require.main') !== require.main &&
-    typeof ORIGINAL_MAIN_MODULE !== 'undefined' &&
-    ORIGINAL_MAIN_MODULE === eval('require.main')
-) {
+if (require.meta.main) {
     void logging.info(
         'Start server with configuration:', represent(CONFIGURATION)
     )
