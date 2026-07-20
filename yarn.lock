@@ -4255,25 +4255,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"clientnode@npm:4.0.1453":
-  version: 4.0.1453
-  resolution: "clientnode@npm:4.0.1453"
-  peerDependencies:
-    "@types/prop-types": "*"
-    node-fetch: "*"
-    prop-types: "*"
-  peerDependenciesMeta:
-    "@types/prop-types":
-      optional: true
-    node-fetch:
-      optional: true
-    prop-types:
-      optional: true
-  checksum: 10c0/287bd64fe8ddd07b7d21296f7091cde9e2f9af49eaa4817fb9ab6ee842e5ed3596501e045f227569d29f7a606de4aab02e5f49713deb099a23f3e42a45e19c3c
-  languageName: node
-  linkType: hard
-
-"clientnode@npm:^4.0.1454":
+"clientnode@npm:4.0.1454":
   version: 4.0.1454
   resolution: "clientnode@npm:4.0.1454"
   peerDependencies:
@@ -4288,6 +4270,24 @@ __metadata:
     prop-types:
       optional: true
   checksum: 10c0/57e145072e3c2f7f64d1cf90de65cb28bc6331e30806cac67d24aaef0036c4578bb45872706344e0f60efb0ce8f37d75c0b5b243a5bd9024316bf92744e47606
+  languageName: node
+  linkType: hard
+
+"clientnode@npm:^4.0.1455":
+  version: 4.0.1455
+  resolution: "clientnode@npm:4.0.1455"
+  peerDependencies:
+    "@types/prop-types": "*"
+    node-fetch: "*"
+    prop-types: "*"
+  peerDependenciesMeta:
+    "@types/prop-types":
+      optional: true
+    node-fetch:
+      optional: true
+    prop-types:
+      optional: true
+  checksum: 10c0/be6ab90f502df5353b6f60c182196e624bad05c3adba99824d506454b4b41ff1101800b180e54d8aa6bc4cf4b59b0227c28553dfc858f38352757ca8565b9f38
   languageName: node
   linkType: hard
 
@@ -7675,7 +7675,7 @@ __metadata:
     "@types/webpack-env": "npm:^1.18.8"
     "@typescript-eslint/eslint-plugin": "npm:^8.64.0"
     "@typescript-eslint/parser": "npm:^8.64.0"
-    clientnode: "npm:^4.0.1454"
+    clientnode: "npm:^4.0.1455"
     eslint: "npm:^10.7.0"
     eslint-config-google: "npm:^0.14.0"
     eslint-plugin-jsdoc: "npm:^63.2.0"
@@ -7683,7 +7683,7 @@ __metadata:
     jsdoc: "npm:^4.0.5"
     typescript-eslint: "npm:^8.64.0"
     web-documentation: "npm:^1.0.42"
-    weboptimizer: "npm:^4.0.24"
+    weboptimizer: "npm:^4.0.25"
   bin:
     reverse-proxy-middleware: index.js
   languageName: unknown
@@ -8564,9 +8564,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"weboptimizer@npm:^4.0.24":
-  version: 4.0.24
-  resolution: "weboptimizer@npm:4.0.24"
+"weboptimizer@npm:^4.0.25":
+  version: 4.0.25
+  resolution: "weboptimizer@npm:4.0.25"
   dependencies:
     "@babel/core": "npm:^8.0.1"
     "@babel/plugin-proposal-decorators": "npm:^8.0.2"
@@ -8577,7 +8577,7 @@ __metadata:
     babel-loader: "npm:^10.1.1"
     babel-plugin-polyfill-corejs3: "npm:^1.0.0"
     babel-plugin-transform-rewrite-imports: "npm:^1.5.4"
-    clientnode: "npm:4.0.1453"
+    clientnode: "npm:4.0.1454"
     core-js: "npm:^3.49.0"
     ejs: "npm:^6.0.1"
     exports-loader: "npm:^5.0.0"
@@ -8714,7 +8714,7 @@ __metadata:
       optional: true
   bin:
     weboptimizer: index.js
-  checksum: 10c0/693f546d733a8f7577ecc68b5e57c612e5954c7cac8b8f7c5d292ab16963b0ecba6d79f3278c37f13c3ae2d85882104754f10f46454e901ea602486ca4b966fe
+  checksum: 10c0/d936832cbc54039d0230c37538bb8950c0daa439904a7da66f0167dd8bca71b3664805c8ba38cbfe3e10e1043f782a65e0ee91bf90514704f2329af467c7c722
   languageName: node
   linkType: hard
 

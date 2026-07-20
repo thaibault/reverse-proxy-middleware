@@ -29,6 +29,11 @@
     "type.d.ts"
   ],
   "bin": "index.js",
+  "main": "index.js",
+  "type": "module",
+  "imports": {
+    "*": "/application/node_modules/*"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/thaibault/reverse-proxy-middleware.git"
@@ -72,11 +77,11 @@
     "jsdoc": "^4.0.5",
     "typescript-eslint": "^8.64.0",
     "web-documentation": "^1.0.42",
-    "weboptimizer": "^4.0.24"
+    "weboptimizer": "^4.0.25"
   },
   "dependencies": {
     "@babel/runtime": "^8.0.0",
-    "clientnode": "^4.0.1454"
+    "clientnode": "^4.0.1455"
   },
   "engines": {
     "node": ">=24",
@@ -133,13 +138,9 @@
         "includeFilePathRegularExpression": "^(.+/)?index\\.js$",
         "pattern": {
           "#": "This is how we can make our main exported artefact executable.",
-          "__evaluate__": "`#!/usr/bin/env node\n// -*- coding: utf-8 -*-\nif(import.module.main)module.paths.unshift('/application/node_modules');{1}`"
+          "__evaluate__": "`#!/usr/bin/env node\n// -*- coding: utf-8 -*-\n{1}`"
         }
       }
-    },
-    "exportFormat": {
-      "external": "commonjs2",
-      "self": "commonjs2"
     },
     "module": {
       "optimizer": {
