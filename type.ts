@@ -17,10 +17,10 @@
     endregion
 */
 // region imports
-import {
+import type {
     Mapping, PlainObject, Primitive, UTILITY_SCOPE, UTILITY_SCOPE_VALUES
 } from 'clientnode'
-import {
+import type {
     Http2SecureServer as HTTPSecureServer,
     Http2Server as HttpServer,
     Http2ServerRequest,
@@ -29,8 +29,8 @@ import {
     OutgoingHttpHeaders,
     SecureServerOptions
 } from 'http2'
-import {Socket as PlainSocket} from 'net'
-import {TLSSocket} from 'tls'
+import type {Socket as PlainSocket} from 'net'
+import type {TLSSocket} from 'tls'
 // endregion
 export type HTTPServer = HttpServer | HTTPSecureServer
 export type HTTPServerRequest = Http2ServerRequest
