@@ -37,7 +37,7 @@ import {
     evaluateAsyncDynamicData,
     evaluateDynamicData,
     extend,
-    importsPromise,
+    importFilesystemAPI,
     isFile,
     MAXIMAL_NUMBER_OF_ITERATIONS,
     modifyObject,
@@ -58,7 +58,7 @@ import reverseProxyBufferedRequest, {
 } from './helper'
 import packageConfiguration from './package.json'
 // endregion
-await importsPromise
+await importFilesystemAPI()
 // region live cycle methods
 const onIncomingMessage = (
     request: HTTPServerRequest, response: HTTPServerResponse
