@@ -18,22 +18,9 @@
 */
 // region imports
 // NOTE: http2 compatibility mode does work for unencrypted connections yet.
-import {
-    CompilationResult,
-    compile,
-    copy,
-    extend,
-    Mapping,
-    modifyObject,
-    PlainObject,
-    represent,
-    UTILITY_SCOPE_NAMES,
-    UTILITY_SCOPE_VALUES
-} from 'clientnode'
-import {createConnection as createPlainConnection} from 'net'
-import {connect as createSecureConnection} from 'tls'
+import type {CompilationResult, Mapping, PlainObject} from 'clientnode'
 
-import {
+import type {
     APIPostEvaluationExpression,
     APIPreEvaluationExpression,
     APIPostEvaluationResult,
@@ -56,6 +43,18 @@ import {
     StateAPI,
     StringReplacer
 } from './type'
+
+import {
+    compile,
+    copy,
+    extend,
+    modifyObject,
+    represent,
+    UTILITY_SCOPE_NAMES,
+    UTILITY_SCOPE_VALUES
+} from 'clientnode'
+import {createConnection as createPlainConnection} from 'net'
+import {connect as createSecureConnection} from 'tls'
 // endregion
 export const EVALUATION_SCOPE_NAMES = [
     ...UTILITY_SCOPE_NAMES,
