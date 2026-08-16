@@ -66,22 +66,21 @@
     "@babel/eslint-parser": "^8.0.1",
     "@eslint/js": "^10.0.1",
     "@stylistic/eslint-plugin": "^5.10.0",
-    "@types/node": "^26.1.1",
+    "@types/node": "^26.2.0",
     "@types/webpack-env": "^1.18.8",
-    "@typescript-eslint/eslint-plugin": "^8.65.0",
-    "@typescript-eslint/parser": "^8.65.0",
-    "eslint": "^10.7.0",
+    "@typescript-eslint/eslint-plugin": "^8.67.0",
+    "@typescript-eslint/parser": "^8.67.0",
+    "eslint": "^10.8.1",
     "eslint-config-google": "^0.14.0",
-    "eslint-plugin-jsdoc": "^63.2.0",
+    "eslint-plugin-jsdoc": "^64.2.0",
     "jest": "^30.4.2",
     "jsdoc": "^4.0.5",
-    "typescript-eslint": "^8.65.0",
-    "web-documentation": "^1.0.42",
-    "weboptimizer": "^4.0.26"
+    "typescript-eslint": "^8.67.0",
+    "web-documentation": "^1.0.45",
+    "weboptimizer": "^4.0.53"
   },
   "dependencies": {
-    "@babel/runtime": "^8.0.0",
-    "clientnode": "^4.0.1456"
+    "clientnode": "^4.0.1484"
   },
   "engines": {
     "node": ">=24",
