@@ -18,26 +18,27 @@
   },
   "license": "CC-BY-3.0",
   "author": {
-    "name": "Torben Sickert",
     "email": "info@torben.website",
+    "name": "Torben Sickert",
     "url": "https://torben.website"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thaibault/reverse-proxy-middleware.git"
+  },
+  "type": "module",
+  "imports": {
+    "*": "/application/node_modules/*"
+  },
+  "main": "index.js",
+  "bin": "index.js",
   "files": [
     "helper.d.ts",
     "index.d.ts",
     "index.js",
     "type.d.ts"
   ],
-  "bin": "index.js",
-  "main": "index.js",
-  "type": "module",
-  "imports": {
-    "*": "/application/node_modules/*"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/thaibault/reverse-proxy-middleware.git"
-  },
+  "sideEffects": true,
   "scripts": {
     "build": "yarn build:types; yarn build:plain",
     "build:plain": "weboptimizer build",
@@ -61,6 +62,9 @@
     "update:documentation": "web-documentation",
     "watch": "weboptimizer build --watch"
   },
+  "dependencies": {
+    "clientnode": "^4.0.1484"
+  },
   "devDependencies": {
     "@babel/cli": "^8.0.4",
     "@babel/eslint-parser": "^8.0.1",
@@ -79,33 +83,18 @@
     "web-documentation": "^1.0.45",
     "weboptimizer": "^4.0.53"
   },
-  "dependencies": {
-    "clientnode": "^4.0.1484"
+  "resolutions": {
+    "colors": "1.4.0",
+    "globals@npm:^11.1.0": "patch:globals@npm%3A11.12.0#~/.yarn/patches/globals-npm-11.12.0-1fa7f41a6c.patch",
+    "globals@npm:^14.0.0": "patch:globals@npm%3A11.12.0#~/.yarn/patches/globals-npm-11.12.0-1fa7f41a6c.patch",
+    "globals@npm:^9.18.0": "patch:globals@npm%3A11.12.0#~/.yarn/patches/globals-npm-11.12.0-1fa7f41a6c.patch"
   },
   "engines": {
     "node": ">=24",
     "npm": ">=11",
     "yarn": ">=4"
   },
-  "resolutions": {
-    "colors": "1.4.0",
-    "globals@npm:^14.0.0": "patch:globals@npm%3A11.12.0#~/.yarn/patches/globals-npm-11.12.0-1fa7f41a6c.patch",
-    "globals@npm:^9.18.0": "patch:globals@npm%3A11.12.0#~/.yarn/patches/globals-npm-11.12.0-1fa7f41a6c.patch",
-    "globals@npm:^11.1.0": "patch:globals@npm%3A11.12.0#~/.yarn/patches/globals-npm-11.12.0-1fa7f41a6c.patch"
-  },
-  "sideEffects": true,
-  "webDocumentation": {
-    "trackingCode": ""
-  },
   "configuration": {
-    "publicKeyPath": "",
-    "privateKeyPath": "",
-    "nodeServerOptions": {
-      "allowHTTP1": true
-    },
-    "host": "localhost",
-    "port": 8080,
-    "parseBody": false,
     "forwarders": {
       "base": {
         "headerTransformations": {
@@ -118,8 +107,8 @@
           {
             "data": {},
             "expressions": {
-              "pre": "false",
-              "post": "true"
+              "post": "true",
+              "pre": "false"
             },
             "name": "base",
             "options": {},
@@ -129,7 +118,18 @@
         "tls": true,
         "useExpression": "true"
       }
-    }
+    },
+    "host": "localhost",
+    "nodeServerOptions": {
+      "allowHTTP1": true
+    },
+    "parseBody": false,
+    "port": 8080,
+    "privateKeyPath": "",
+    "publicKeyPath": ""
+  },
+  "webDocumentation": {
+    "trackingCode": ""
   },
   "webOptimizer": {
     "assetPattern": {
