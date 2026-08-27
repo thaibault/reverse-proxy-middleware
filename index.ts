@@ -155,9 +155,7 @@ const evaluationOptions = {
     }
 }
 const CONFIGURATION = await evaluateAsyncDynamicData<Configuration>(
-    evaluateDynamicData<Configuration>(
-        BASE_CONFIGURATION, evaluationOptions
-    ),
+    evaluateDynamicData<Configuration>(BASE_CONFIGURATION, evaluationOptions),
     evaluationOptions
 )
 const FORWARDERS: ResolvedForwarders =

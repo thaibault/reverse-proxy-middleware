@@ -18,26 +18,27 @@
   },
   "license": "CC-BY-3.0",
   "author": {
-    "name": "Torben Sickert",
     "email": "info@torben.website",
+    "name": "Torben Sickert",
     "url": "https://torben.website"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thaibault/reverse-proxy-middleware.git"
+  },
+  "type": "module",
+  "imports": {
+    "*": "/application/node_modules/*"
+  },
+  "main": "index.js",
+  "bin": "index.js",
   "files": [
     "helper.d.ts",
     "index.d.ts",
     "index.js",
     "type.d.ts"
   ],
-  "bin": "index.js",
-  "main": "index.js",
-  "type": "module",
-  "imports": {
-    "*": "/application/node_modules/*"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/thaibault/reverse-proxy-middleware.git"
-  },
+  "sideEffects": true,
   "scripts": {
     "build": "yarn build:types; yarn build:plain",
     "build:plain": "weboptimizer build",
@@ -61,51 +62,39 @@
     "update:documentation": "web-documentation",
     "watch": "weboptimizer build --watch"
   },
+  "dependencies": {
+    "clientnode": "^4.0.1500"
+  },
   "devDependencies": {
     "@babel/cli": "^8.0.4",
     "@babel/eslint-parser": "^8.0.1",
     "@eslint/js": "^10.0.1",
     "@stylistic/eslint-plugin": "^5.10.0",
-    "@types/node": "^26.2.0",
+    "@types/node": "^26.3.0",
     "@types/webpack-env": "^1.18.8",
-    "@typescript-eslint/eslint-plugin": "^8.67.0",
-    "@typescript-eslint/parser": "^8.67.0",
-    "eslint": "^10.8.1",
+    "@typescript-eslint/eslint-plugin": "^8.68.0",
+    "@typescript-eslint/parser": "^8.68.0",
+    "eslint": "^10.9.1",
     "eslint-config-google": "^0.14.0",
-    "eslint-plugin-jsdoc": "^64.2.0",
+    "eslint-plugin-jsdoc": "^64.2.1",
     "jest": "^30.4.2",
     "jsdoc": "^4.0.5",
-    "typescript-eslint": "^8.67.0",
-    "web-documentation": "^1.0.45",
-    "weboptimizer": "^4.0.53"
-  },
-  "dependencies": {
-    "clientnode": "^4.0.1484"
-  },
-  "engines": {
-    "node": ">=24",
-    "npm": ">=11",
-    "yarn": ">=4"
+    "typescript-eslint": "^8.68.0",
+    "web-documentation": "^1.0.51",
+    "weboptimizer": "^4.0.65"
   },
   "resolutions": {
     "colors": "1.4.0",
+    "globals@npm:^11.1.0": "patch:globals@npm%3A11.12.0#~/.yarn/patches/globals-npm-11.12.0-1fa7f41a6c.patch",
     "globals@npm:^14.0.0": "patch:globals@npm%3A11.12.0#~/.yarn/patches/globals-npm-11.12.0-1fa7f41a6c.patch",
-    "globals@npm:^9.18.0": "patch:globals@npm%3A11.12.0#~/.yarn/patches/globals-npm-11.12.0-1fa7f41a6c.patch",
-    "globals@npm:^11.1.0": "patch:globals@npm%3A11.12.0#~/.yarn/patches/globals-npm-11.12.0-1fa7f41a6c.patch"
+    "globals@npm:^9.18.0": "patch:globals@npm%3A11.12.0#~/.yarn/patches/globals-npm-11.12.0-1fa7f41a6c.patch"
   },
-  "sideEffects": true,
-  "webDocumentation": {
-    "trackingCode": ""
+  "engines": {
+    "node": ">=26",
+    "npm": ">=12",
+    "yarn": ">=4"
   },
   "configuration": {
-    "publicKeyPath": "",
-    "privateKeyPath": "",
-    "nodeServerOptions": {
-      "allowHTTP1": true
-    },
-    "host": "localhost",
-    "port": 8080,
-    "parseBody": false,
     "forwarders": {
       "base": {
         "headerTransformations": {
@@ -118,8 +107,8 @@
           {
             "data": {},
             "expressions": {
-              "pre": "false",
-              "post": "true"
+              "post": "true",
+              "pre": "false"
             },
             "name": "base",
             "options": {},
@@ -129,7 +118,18 @@
         "tls": true,
         "useExpression": "true"
       }
-    }
+    },
+    "host": "localhost",
+    "nodeServerOptions": {
+      "allowHTTP1": true
+    },
+    "parseBody": false,
+    "port": 8080,
+    "privateKeyPath": "",
+    "publicKeyPath": ""
+  },
+  "webDocumentation": {
+    "trackingCode": ""
   },
   "webOptimizer": {
     "assetPattern": {
@@ -163,5 +163,5 @@
       "payload": "node"
     }
   },
-  "packageManager": "yarn@4.14.1+sha512.64df448055b2d37ba269d7db535a469b8da93f8ef1140c25fd7a83c00a8fbaacb214ca0e02553b92a2c54cef78bb67d0b4817fab02001df0e24fac0faccc3b42"
+  "packageManager": "yarn@4.18.0"
 }

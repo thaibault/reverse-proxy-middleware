@@ -334,9 +334,10 @@ export const resolveForwarders = (
                             const result: CompilationResult<RegExp|string> =
                                 compile<RegExp | string>(
                                     transformation.source,
-                                    EVALUATION_SCOPE_NAMES as
+                                    {scope: EVALUATION_SCOPE_NAMES as
                                         unknown as
                                         Array<string>
+                                    }
                                 )
 
                             if (result.error)
@@ -354,9 +355,10 @@ export const resolveForwarders = (
                                 string | StringReplacer
                             > = compile<string | StringReplacer>(
                                 transformation.target,
-                                EVALUATION_SCOPE_NAMES as
+                                {scope: EVALUATION_SCOPE_NAMES as
                                     unknown as
                                     Array<string>
+                                }
                             )
 
                             if (result.error)
@@ -398,7 +400,10 @@ export const resolveForwarders = (
                     const result: CompilationResult =
                         compile(
                             api.urlExpression,
-                            EVALUATION_SCOPE_NAMES as unknown as Array<string>
+                            {scope: EVALUATION_SCOPE_NAMES as
+                                unknown as
+                                Array<string>
+                            }
                         )
 
                     if (result.error)
@@ -418,9 +423,10 @@ export const resolveForwarders = (
                             APIPreEvaluationResult
                         > = compile<APIPreEvaluationResult>(
                             expression,
-                            EVALUATION_SCOPE_NAMES as
+                            {scope: EVALUATION_SCOPE_NAMES as
                                 unknown as
                                 Array<string>
+                            }
                         )
 
                         if (result.error)
@@ -438,9 +444,10 @@ export const resolveForwarders = (
                             APIPostEvaluationResult
                         > = compile<APIPostEvaluationResult>(
                             expression,
-                            EVALUATION_SCOPE_NAMES as
+                            {scope: EVALUATION_SCOPE_NAMES as
                                 unknown as
                                 Array<string>
+                            }
                         )
 
                         if (result.error)
@@ -461,9 +468,10 @@ export const resolveForwarders = (
             if (typeof forwarder.useExpression === 'string') {
                 const result: CompilationResult<boolean> = compile(
                     forwarder.useExpression,
-                    EVALUATION_SCOPE_NAMES as
+                    {scope: EVALUATION_SCOPE_NAMES as
                         unknown as
                         Array<string>
+                    }
                 )
 
                 if (result.error)
