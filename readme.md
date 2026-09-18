@@ -10,7 +10,8 @@ This library written by Torben Sickert stands under a creative commons naming
 3.0 unported license. See https://creativecommons.org/licenses/by/3.0/deed.de
 endregion -->
 
-Project status
+<!--|deDE:Projektstatus-->
+Project Status
 --------------
 
 [![npm](https://img.shields.io/npm/v/reverse-proxy-middleware?color=%23d55e5d&label=npm%20package%20version&logoColor=%23d55e5d&style=for-the-badge)](https://www.npmjs.com/package/reverse-proxy-middleware)
@@ -30,6 +31,7 @@ Project status
 [![deploy web documentation](https://img.shields.io/github/actions/workflow/status/thaibault/reverse-proxy-middleware/deploy-web-documentation.yaml?label=deploy%20web%20documentation&style=for-the-badge)](https://github.com/thaibault/reverse-proxy-middleware/actions/workflows/deploy-web-documentation.yaml)
 [![web documentation](https://img.shields.io/website-up-down-green-red/https/torben.website/reverse-proxy-middleware.svg?label=web-documentation&style=for-the-badge)](https://torben.website/reverse-proxy-middleware)
 
+<!--|deDE:Verwendung-->
 Use case
 --------
 
@@ -40,9 +42,37 @@ Adding state via session token with external authentication apis is possible as
 applying any external api given data to the incoming and conditionally
 forwarded requests.
 
-### Quick start
+<div class="wd-table-of-contents">
+    <h2 id="content">Content<!--deDE:Inhalt--><!--frFR:Contenu--></h2>
+    <!--wd-table-of-contents-->
+</div>
 
-#### Simple forwarding
+Installation
+------------
+
+You can install via package manager, simply download the compiled version as
+zip file here and inject or request via CDN in HTML:
+<!--deDE:
+    Sie können das Paket über den Paketmanager installieren oder einfach die
+    kompilierte Version als ZIP-Datei hier herunterladen und in HTML einbinden
+    oder über ein CDN abrufen:
+-->
+<!--frFR:
+    Vous pouvez installer le paquet via le gestionnaire de paquets ou
+    simplement télécharger ici la version compilée sous forme de fichier ZIP,
+    puis l'intégrer dans une page HTML ou la récupérer via un CDN:
+-->
+
+```bash
+npm install reverse-proxy-middleware
+```
+
+<!--|deDE:Beispiel-->
+<!--|frFR:Exemple-->
+Example
+-------
+
+### Simple forwarding
 
 Simple reverse proxy request from `http://localhost:8080` to
 `https://www.google.com` without modifying the entire request.
@@ -65,7 +95,7 @@ can check the configuration via a simple curl command:
 Behind there are a some commonly use defaults configured under key
 "configuration" in [package.json](package.json). Please have a look.
 
-#### Distributing requests to different backends
+### Distributing requests to different backends
 
 Here is how to distribute incoming requests randomly between google and bing:
 
@@ -199,7 +229,7 @@ will finally request "www.bing.com".
 Pre and post evaluations can have various results. The meanings of them are
 described here:
 
-#### Pre-Evaluation Results
+### Pre-Evaluation Results
 
 | Result            | Meaning                                                                                                                                                                |
 |-------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -209,7 +239,7 @@ described here:
 | false (boolean)   | Do not use this state api and to not run subsequent pre evaluations.                                                                                                   |
 | code (number)     | Answer client request with provided http status code and do not run any subsequent pre-evaluations, state-api request or request forwarding to the underlying backend. |
 
-#### Post-Evaluation Results
+### Post-Evaluation Results
 
 | Result            | Meaning                                                                                                                                                                 |
 |-------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -283,7 +313,7 @@ is equivalent to:
 }
 ```
 
-#### Use environment variables
+### Use environment variables
 
 While some configuration values are interpret as expression to be evalued at
 runtime e.g. to decide which endpoint to use:
@@ -313,7 +343,7 @@ Every item can utilize expression to dynamically derive intial configurations:
 If an environment variabel "PORT" is set it will be used or "8080" as a
 fallback.
 
-#### Use Base Forwarder
+### Use Base Forwarder
 
 Base forwarder are inherited by every specific forwarder. This configuration:
 
@@ -373,7 +403,7 @@ is equivalent to:
 }
 ```
 
-#### Use base State-APIs
+### Use base State-APIs
 
 As we support generic base forwarder confgurations there are also base state
 api configuraton sections. Consider the follwing configuration example:
