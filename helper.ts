@@ -48,6 +48,7 @@ import {
     compile,
     copy,
     extend,
+    Logger,
     modifyObject,
     represent,
     UTILITY_SCOPE_NAMES,
@@ -66,26 +67,7 @@ export const EVALUATION_SCOPE_NAMES = [
     'stateAPIs'
 ] as const
 
-const log = async (...parameters: Array<unknown>): Promise<void> =>
-    new Promise((resolve: () => void, reject: (error: Error) => void) => {
-        process.stdout.write(
-            `${parameters.join(' ')}\n`,
-            (error?: unknown) => {
-                if (error)
-                    // eslint-disable-next-line prefer-promise-reject-errors
-                    reject(error as Error)
-                else
-                    resolve()
-            }
-        )
-    })
-export const logging = {
-    log,
-    debug: log,
-    info: log,
-    error: log,
-    warn: log
-}
+export const log = new Logger({name: 'reverse-proxy-middleware'})
 
 // region forwarder
 export const applyStateAPIs = async (
@@ -120,7 +102,7 @@ export const applyStateAPIs = async (
                     stateAPIScope
                 )
             } catch (error) {
-                void logging.warn(
+                void log.warn(
                     `Failed running pre ${String(index)}. expression of ` +
                     'state api:',
                     error
@@ -128,7 +110,7 @@ export const applyStateAPIs = async (
             }
 
             if (typeof result === 'number') {
-                void logging.info(
+                void log.info(
                     'Break request caused by state api',
                     `"${stateAPI.name}" with status code ${String(result)}.`
                 )
@@ -152,7 +134,7 @@ export const applyStateAPIs = async (
         }
 
         if (useStateAPI) {
-            void logging.info(`Use state api: "${stateAPI.name}"`)
+            void log.info(`Use state api: "${stateAPI.name}"`)
 
             let error: Error | null = null
 
@@ -168,10 +150,10 @@ export const applyStateAPIs = async (
                         stateAPIScope
                     )
                 } catch (error) {
-                    void logging.warn(`Failed running url expression:`, error)
+                    void log.warn(`Failed running url expression:`, error)
                 }
 
-            void logging.debug(
+            void log.debug(
                 `\nState api configuration is: ${represent(stateAPI)}`
             )
 
@@ -182,7 +164,7 @@ export const applyStateAPIs = async (
             } catch (givenError) {
                 error = givenError as Error
 
-                void logging.warn(
+                void log.warn(
                     `Running state api request for "${stateAPI.name}" throws`,
                     'error:',
                     error
@@ -202,14 +184,14 @@ export const applyStateAPIs = async (
                 } catch (givenError) {
                     error = givenError as Error
 
-                    void logging.warn(
+                    void log.warn(
                         'Parsing state api json response for',
                         `"${stateAPI.name}" throws error:`,
                         error
                     )
                 }
 
-            void logging.debug(
+            void log.debug(
                 `\nState api response is:`, represent(state.response)
             )
 
@@ -227,7 +209,7 @@ export const applyStateAPIs = async (
                         stateAPIScope
                     )
                 } catch (error) {
-                    void logging.warn(
+                    void log.warn(
                         `Failed running ${String(index)}. post ` +
                         'expression of state api:',
                         error
@@ -235,7 +217,7 @@ export const applyStateAPIs = async (
                 }
 
                 if (typeof result === 'number') {
-                    void logging.info(
+                    void log.info(
                         'Break request caused by state api',
                         `"${stateAPI.name}" with status code ` +
                         `${String(result)}.`
@@ -282,7 +264,7 @@ export const determineForwarder = (
             state,
             {[name]: state}
         )) {
-            void logging.info(`Determined forwarder is: "${name}".`)
+            void log.info(`Determined forwarder is: "${name}".`)
 
             return forwarder
         }
@@ -504,7 +486,7 @@ export const addParsedContentToRequest = (
             bufferedRequest.socket.buffer.content =
                 JSON.parse(bufferedRequest.socket.buffer.body) as ParsedContent
         } catch {
-            void logging.warn('Error parsing given request.', bufferedRequest)
+            void log.warn('Error parsing given request.', bufferedRequest)
         }
 }
 export const transformHeaders = (
@@ -554,11 +536,11 @@ export const transformHeaders = (
                 )
             } else {
                 if (!newLinePrinted) {
-                    void logging.debug()
+                    void log.debug()
                     newLinePrinted = true
                 }
                 // Search and replace (or remove) header.
-                void logging.debug(
+                void log.debug(
                     `Search for "${source as string}" and replace with`,
                     `${represent(target)}.`
                 )
@@ -567,7 +549,7 @@ export const transformHeaders = (
                     content = content.replace(source, target as string)
             }
         } catch (error) {
-            void logging.warn(
+            void log.warn(
                 '\nCould not apply header transformation with source ' +
                 (transformation.source ?
                     represent(transformation.source) :
@@ -613,14 +595,14 @@ export const reverseProxyBufferedRequest = async (
                 )
             },
             () => {
-                void logging.info(
+                void log.info(
                     `\nConnection to: http${forwarder.tls ? 's' : ''}://` +
                     `${forwarder.host}${portSuffix} established.`
                 )
             }
         )
         serverSocket.on('error', (error: Error) => {
-            void logging.error('Proxy to server error', error)
+            void log.error('Proxy to server error', error)
 
             reject(error)
         })
@@ -647,7 +629,7 @@ export const reverseProxyBufferedRequest = async (
 
                 let content: string = buffer.toString()
 
-                void logging.info(
+                void log.info(
                     `\n <=== Got response header from backend:\n\n${content}`
                 )
 
@@ -657,7 +639,7 @@ export const reverseProxyBufferedRequest = async (
                     parameters
                 )
 
-                void logging.info(
+                void log.info(
                     `\n <<<< Send response header to client:\n\n${content}`
                 )
 
@@ -676,7 +658,7 @@ export const reverseProxyBufferedRequest = async (
                 if (!headerProcessed) {
                     let content: string = buffer.toString()
 
-                    void logging.debug(
+                    void log.debug(
                         `\n ===> Got request header from client:\n\n${content}`
                     )
 
@@ -696,7 +678,7 @@ export const reverseProxyBufferedRequest = async (
                         parameters
                     )
 
-                    void logging.debug(
+                    void log.debug(
                         `\n >>>> Send request header to backend:\n\n${content}`
                     )
 
