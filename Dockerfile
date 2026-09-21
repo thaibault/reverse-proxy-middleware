@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile-upstream:master-labs
 # region header
-# [Project page](https://torben.website/on-premise-polyfill.io)
+# [Project page](https://tsickert.com/on-premise-polyfill.io)
 
-# Copyright Torben Sickert (info["~at~"]torben.website) 16.12.2012
+# Copyright Torben Sickert (info["~at~"]tsickert.com) 16.12.2012
 
 # License
 # -------
@@ -30,7 +30,7 @@ FROM       ${BASE_IMAGE:-'node:current-alpine'} AS base
 
 LABEL      org.opencontainers.image.title='Node reverse proxy.'
 LABEL      org.opencontainers.image.description='An easy configurable reverse proxy.'
-LABEL      org.opencontainers.image.authors='Torben Sickert <info@torben.website> (@thaibault)'
+LABEL      org.opencontainers.image.authors='Torben Sickert <info@tsickert.com> (@thaibault)'
 LABEL      org.opencontainers.image.url=https://github.com/thaibault/reverse-proxy-middleware/pkgs/container/reverse-proxy-middleware
 LABEL      org.opencontainers.image.documentation=https://github.com/thaibault/reverse-proxy-middleware/blob/main/readme.md
 LABEL      org.opencontainers.image.source=https://github.com/thaibault/reverse-proxy-middleware

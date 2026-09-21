@@ -11,16 +11,16 @@
     "reverse-proxy",
     "web"
   ],
-  "homepage": "https://torben.website/reverse-proxy-middleware",
+  "homepage": "https://tsickert.com/reverse-proxy-middleware",
   "bugs": {
-    "email": "info@torben.website",
+    "email": "info@tsickert.com",
     "url": "https://github.com/thaibault/reverse-proxy-middleware/issues"
   },
   "license": "CC-BY-3.0",
   "author": {
-    "email": "info@torben.website",
+    "email": "info@tsickert.com",
     "name": "Torben Sickert",
-    "url": "https://torben.website"
+    "url": "https://tsickert.com"
   },
   "repository": {
     "type": "git",
