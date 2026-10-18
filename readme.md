@@ -1,7 +1,7 @@
 <!-- !/usr/bin/env markdown
 -*- coding: utf-8 -*-
 region header
-Copyright Torben Sickert (info["~at~"]torben.website) 16.12.2012
+Copyright Torben Sickert (info["~at~"]tsickert.com) 16.12.2012
 
 License
 -------
@@ -29,7 +29,7 @@ Project Status
 [![code coverage](https://img.shields.io/coverallsCoverage/github/thaibault/reverse-proxy-middleware?label=code%20coverage&style=for-the-badge)](https://coveralls.io/github/thaibault/reverse-proxy-middleware)
 
 [![deploy web documentation](https://img.shields.io/github/actions/workflow/status/thaibault/reverse-proxy-middleware/deploy-web-documentation.yaml?label=deploy%20web%20documentation&style=for-the-badge)](https://github.com/thaibault/reverse-proxy-middleware/actions/workflows/deploy-web-documentation.yaml)
-[![web documentation](https://img.shields.io/website-up-down-green-red/https/torben.website/reverse-proxy-middleware.svg?label=web-documentation&style=for-the-badge)](https://torben.website/reverse-proxy-middleware)
+[![web documentation](https://img.shields.io/website-up-down-green-red/https/tsickert.com/reverse-proxy-middleware.svg?label=web-documentation&style=for-the-badge)](https://tsickert.com/reverse-proxy-middleware)
 
 <!--|deDE:Verwendung-->
 Use case
