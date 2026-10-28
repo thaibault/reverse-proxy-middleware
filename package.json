@@ -31,7 +31,9 @@
     "*": "/application/node_modules/*"
   },
   "main": "index.js",
-  "bin": "index.js",
+  "bin": {
+    "reverse-proxy-middleware": "index.js"
+  },
   "files": [
     "helper.d.ts",
     "index.d.ts",
