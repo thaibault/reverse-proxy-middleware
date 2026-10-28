@@ -1,6 +1,6 @@
 {
   "name": "reverse-proxy-middleware",
-  "version": "0.0.142",
+  "version": "0.0.143",
   "description": "A reverse proxy blocking bot requests.",
   "keywords": [
     "api",
@@ -24,14 +24,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/thaibault/reverse-proxy-middleware.git"
+    "url": "git+https://github.com/thaibault/reverse-proxy-middleware.git"
   },
   "type": "module",
   "imports": {
     "*": "/application/node_modules/*"
   },
   "main": "index.js",
-  "bin": "index.js",
+  "bin": {
+    "reverse-proxy-middleware": "index.js"
+  },
   "files": [
     "helper.d.ts",
     "index.d.ts",
