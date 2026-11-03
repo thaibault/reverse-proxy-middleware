@@ -45,6 +45,7 @@ import {
     timeout,
     UTILITY_SCOPE
 } from 'clientnode'
+import {readFile} from 'fs/promises'
 import {createServer as createHTTP1Server} from 'http'
 import {createServer, createSecureServer} from 'http2'
 import {resolve} from 'path'
@@ -56,7 +57,7 @@ import reverseProxyBufferedRequest, {
     log,
     resolveForwarders
 } from './helper'
-import packageConfiguration from './package.json'
+import packageConfiguration from '../package.json'
 // endregion
 await importFilesystemAPI()
 // region live cycle methods
@@ -135,9 +136,9 @@ for (const path of [
 ] as const) {
     const configurationPath: string = resolve(process.cwd(), path)
     if (await isFile(configurationPath)) {
-        const configuration: RecursivePartial<Configuration> =
-            await import(configurationPath) as
-                RecursivePartial<Configuration>
+        const configuration: RecursivePartial<Configuration> = JSON.parse(
+            await readFile(configurationPath, {encoding: 'utf-8'})
+        ) as RecursivePartial<Configuration>
 
         extend(
             true,
