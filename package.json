@@ -1,6 +1,6 @@
 {
   "name": "reverse-proxy-middleware",
-  "version": "0.0.143",
+  "version": "0.0.144",
   "description": "A reverse proxy blocking bot requests.",
   "keywords": [
     "api",
@@ -31,7 +31,9 @@
     "*": "/application/node_modules/*"
   },
   "main": "dist/index.js",
-  "bin": "dist/index.js",
+  "bin": {
+    "reverse-proxy-middleware": "dist/index.js"
+  },
   "files": [
     "dist"
   ],
