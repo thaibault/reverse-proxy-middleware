@@ -73,8 +73,8 @@ FROM       base AS runtime
 
 COPY       --from=build \
            --link \
-               "${APPLICATION_PATH}index.js" \
-               "${APPLICATION_PATH}index.js"
+               "${APPLICATION_PATH}dist/index.js" \
+               "${APPLICATION_PATH}dist/index.js"
 COPY       --from=build \
            --link \
                "${APPLICATION_PATH}node_modules" \

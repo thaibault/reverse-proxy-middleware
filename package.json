@@ -30,13 +30,10 @@
   "imports": {
     "*": "/application/node_modules/*"
   },
-  "main": "index.js",
-  "bin": "index.js",
+  "main": "dist/index.js",
+  "bin": "dist/index.js",
   "files": [
-    "helper.d.ts",
-    "index.d.ts",
-    "index.js",
-    "type.d.ts"
+    "dist"
   ],
   "sideEffects": true,
   "scripts": {
@@ -55,33 +52,33 @@
     "serve:random": "ln --force --symbolic examples/random.json configuration.json && yarn serve",
     "serve:simple": "ln --force --symbolic examples/simple.json configuration.json && yarn serve",
     "serve:state-apis": "ln --force --symbolic examples/state-apis.json configuration.json && yarn serve",
-    "start": "./index.js",
-    "test": "weboptimizer test",
-    "test:coverage": "weboptimizer test:coverage",
-    "test:coverage:report": "weboptimizer test:coverage:report",
+    "start": "./dist/index.js",
+    "test": "yarn clear && weboptimizer test",
+    "test:coverage": "yarn clear && weboptimizer test:coverage",
+    "test:coverage:report": "yarn clear && weboptimizer test:coverage:report",
     "update:documentation": "web-documentation",
     "watch": "weboptimizer build --watch"
   },
   "dependencies": {
-    "clientnode": "^4.0.1524"
+    "clientnode": "^4.0.1530"
   },
   "devDependencies": {
-    "@babel/cli": "^8.0.6",
+    "@babel/cli": "^8.1.0",
     "@babel/eslint-parser": "^8.0.7",
     "@eslint/js": "^10.0.1",
     "@stylistic/eslint-plugin": "^5.10.0",
-    "@types/node": "^26.6.5",
+    "@types/node": "^26.6.6",
     "@types/webpack-env": "^1.18.8",
     "@typescript-eslint/eslint-plugin": "^8.72.1",
     "@typescript-eslint/parser": "^8.72.1",
-    "eslint": "^10.13.0",
+    "eslint": "^10.14.0",
     "eslint-config-google": "^0.14.0",
     "eslint-plugin-jsdoc": "^65.4.2",
     "jest": "^30.5.2",
     "jsdoc": "^4.0.5",
     "typescript-eslint": "^8.72.1",
-    "web-documentation": "^1.0.65",
-    "weboptimizer": "^4.0.96"
+    "web-documentation": "^1.0.71",
+    "weboptimizer": "^4.0.102"
   },
   "resolutions": {
     "colors": "1.4.0",
@@ -156,6 +153,14 @@
             }
           }
         }
+      }
+    },
+    "path": {
+      "source": {
+        "base": "src/"
+      },
+      "target": {
+        "base": "dist/"
       }
     },
     "targetTechnology": {

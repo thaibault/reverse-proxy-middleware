@@ -18,7 +18,7 @@ import {describe} from '@jest/globals'
 import {testEach} from 'clientnode/test-helper'
 
 import {resolveForwarders} from './helper'
-import packageConfiguration from './package.json'
+import packageConfiguration from '../package.json'
 // endregion
 const {configuration: BASE_CONFIGURATION} = packageConfiguration
 
