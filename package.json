@@ -31,9 +31,7 @@
     "*": "/application/node_modules/*"
   },
   "main": "dist/index.js",
-  "bin": {
-    "reverse-proxy-middleware": "dist/index.js"
-  },
+  "bin": "dist/index.js",
   "files": [
     "dist"
   ],
@@ -55,9 +53,9 @@
     "serve:simple": "ln --force --symbolic examples/simple.json configuration.json && yarn serve",
     "serve:state-apis": "ln --force --symbolic examples/state-apis.json configuration.json && yarn serve",
     "start": "./dist/index.js",
-    "test": "yarn clear && weboptimizer test",
-    "test:coverage": "yarn clear && weboptimizer test:coverage",
-    "test:coverage:report": "yarn clear && weboptimizer test:coverage:report",
+    "test": "weboptimizer test",
+    "test:coverage": "weboptimizer test:coverage",
+    "test:coverage:report": "weboptimizer test:coverage:report",
     "update:documentation": "web-documentation",
     "watch": "weboptimizer build --watch"
   },
@@ -80,7 +78,7 @@
     "jsdoc": "^4.0.5",
     "typescript-eslint": "^8.72.1",
     "web-documentation": "^1.0.71",
-    "weboptimizer": "^4.0.102"
+    "weboptimizer": "^4.0.103"
   },
   "resolutions": {
     "colors": "1.4.0",
