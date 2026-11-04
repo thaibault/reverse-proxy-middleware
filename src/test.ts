@@ -41,7 +41,14 @@ import {join} from 'path'
 import {PassThrough} from 'stream'
 
 import {
-    afterAll, afterEach, beforeAll, describe, expect, jest, test
+    afterAll,
+    afterEach,
+    beforeAll,
+    beforeEach,
+    describe,
+    expect,
+    jest,
+    test
 } from '@jest/globals'
 
 import packageConfiguration from '../package.json'
@@ -104,6 +111,26 @@ const getClosedPort = async (): Promise<number> => {
 }
 // endregion
 describe('helper', (): void => {
+    /*
+        NOTE: Errors raised by node's socket implementation are created in
+        another realm, so "expect.any(Error)" can not match them.
+    */
+    const ANY_ERROR = expect.objectContaining({
+        name: expect.stringMatching(/Error$/)
+    }) as unknown as Error
+    // NOTE: Expected error logs are asserted in the tests producing them.
+    const logErrorSpy = jest.spyOn(log, 'error')
+
+    beforeEach((): void => {
+        logErrorSpy.mockResolvedValue(undefined)
+    })
+    afterEach((): void => {
+        logErrorSpy.mockReset()
+    })
+    afterAll((): void => {
+        logErrorSpy.mockRestore()
+    })
+
     // region resolveForwarders
     testEach(
         'resolveForwarders',
@@ -595,6 +622,11 @@ describe('helper', (): void => {
                 }),
                 {}
             )).rejects.toThrow()
+
+            expect(logErrorSpy).toHaveBeenCalledTimes(1)
+            expect(logErrorSpy).toHaveBeenCalledWith(
+                'Proxy to server error', ANY_ERROR
+            )
         })
     })
     // endregion
@@ -647,10 +679,14 @@ describe('helper', (): void => {
         test('answers 502 without forwarder', async (): Promise<void> => {
             const response = createResponse()
 
-            await handleRequest(createRequest(), response, {})
+            const request = createRequest()
+            await handleRequest(request, response, {})
 
             expect(response.statusCode).toStrictEqual(502)
             expect(response.endMock).toHaveBeenCalled()
+            expect(logErrorSpy).toHaveBeenCalledWith(
+                'No forwarder found for given request:', request
+            )
         })
         test(
             'parses body and applies state apis',
@@ -697,6 +733,15 @@ describe('helper', (): void => {
                         tls: false
                     })}
                 )).resolves.toBeUndefined()
+
+                // NOTE: Logged once by the proxy and once by the handler.
+                expect(logErrorSpy).toHaveBeenCalledTimes(2)
+                expect(logErrorSpy).toHaveBeenNthCalledWith(
+                    1, 'Proxy to server error', ANY_ERROR
+                )
+                expect(logErrorSpy).toHaveBeenNthCalledWith(
+                    2, ANY_ERROR
+                )
             }
         )
     })
