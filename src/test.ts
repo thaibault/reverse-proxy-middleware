@@ -94,13 +94,18 @@ const createForwarder = (
     base: {...BASE_CONFIGURATION.forwarders.base, stateAPIs: []},
     test: forwarder
 }).test
+/*
+    NOTE: "localhost" may resolve to an ipv6 address servers listen on while
+    clients connect via ipv4 (e.g. in "node:lts" containers).
+*/
+const HOST = '127.0.0.1'
 const PARAMETERS = [
     ...UTILITY_SCOPE_VALUES, null, null, null, null, null, {}
 ] as unknown as EvaluationParameters
 const getClosedPort = async (): Promise<number> => {
     const server = createNetServer()
     await new Promise<void>((resolve): void => {
-        server.listen(0, 'localhost', resolve)
+        server.listen(0, HOST, resolve)
     })
     const {port} = server.address() as AddressInfo
     await new Promise((resolve): void => {
@@ -536,7 +541,7 @@ describe('helper', (): void => {
                 })
             })
             await new Promise<void>((resolve): void => {
-                backend.listen(0, 'localhost', resolve)
+                backend.listen(0, HOST, resolve)
             })
             port = (backend.address() as AddressInfo).port
         })
@@ -578,7 +583,7 @@ describe('helper', (): void => {
                             },
                             send: {target: '"x-added: yes"'}
                         },
-                        host: 'localhost',
+                        host: HOST,
                         port,
                         tls: false
                     }),
@@ -589,7 +594,7 @@ describe('helper', (): void => {
                     'HTTP/1.1 200 OK\r\nx-backend: no\r\n\r\nbody'
                 )
                 expect(received).toStrictEqual([
-                    `GET / HTTP/1.0\r\nHost: localhost:${String(port)}` +
+                    `GET / HTTP/1.0\r\nHost: ${HOST}:${String(port)}` +
                     '\r\nx-added: yes\r\n\r\nsecond'
                 ])
             }
@@ -601,7 +606,7 @@ describe('helper', (): void => {
             const finished = reverseProxyBufferedRequest(
                 createRequest(['GET / HTTP/1.1\r\nhost: proxy\r\n\r\nsecond']),
                 createResponse(clientSocket),
-                createForwarder({host: 'localhost', port, tls: false}),
+                createForwarder({host: HOST, port, tls: false}),
                 {}
             )
 
@@ -618,7 +623,7 @@ describe('helper', (): void => {
                 createRequest(),
                 createResponse(),
                 createForwarder({
-                    host: 'localhost', port: closedPort, tls: false
+                    host: HOST, port: closedPort, tls: false
                 }),
                 {}
             )).rejects.toThrow()
@@ -728,7 +733,7 @@ describe('helper', (): void => {
                     request,
                     createResponse(),
                     {test: createForwarder({
-                        host: 'localhost',
+                        host: HOST,
                         port: await getClosedPort(),
                         tls: false
                     })}
@@ -753,6 +758,25 @@ describe('helper', (): void => {
             port: 0,
             ...configuration
         })
+        /*
+            NOTE: Servers left open by a failing test would prevent jest from
+            exiting.
+        */
+        const cleanups: Array<() => Promise<unknown>> = []
+        afterEach(async (): Promise<void> => {
+            await Promise.all(cleanups.splice(0).map((cleanup) => cleanup()))
+        })
+        const closeServerAfterTest = (server: {
+            close: (callback: () => void) => unknown
+            closeAllConnections?: () => void
+        }): void => {
+            cleanups.push((): Promise<void> => new Promise((resolve): void => {
+                server.close((): void => {
+                    resolve()
+                })
+                server.closeAllConnections?.()
+            }))
+        }
 
         test('creates a secure server', (): void => {
             expect(createServer(getConfiguration({
@@ -764,21 +788,23 @@ describe('helper', (): void => {
                 response.setHeader('Connection', 'close')
                 response.end(`backend: ${request.headers.host as string}`)
             })
+            closeServerAfterTest(backend)
             await new Promise<void>((resolve): void => {
-                backend.listen(0, 'localhost', resolve)
+                backend.listen(0, HOST, resolve)
             })
             const backendPort = (backend.address() as AddressInfo).port
 
             const server = createServer(getConfiguration({forwarders: {
                 base: {
                     ...BASE_CONFIGURATION.forwarders.base,
-                    host: 'localhost',
+                    host: HOST,
                     port: backendPort,
                     stateAPIs: [],
                     tls: false
                 },
                 backend: {}
             }}))
+            cleanups.push(server.stop)
             await server.start()
 
             // NOTE: The used port is already occupied now.
@@ -786,7 +812,7 @@ describe('helper', (): void => {
             await expect(createServer(getConfiguration({port})).start())
                 .rejects.toThrow()
 
-            const client = connect(port, 'localhost')
+            const client = connect(port, HOST)
             let content = ''
             client.on('data', (data: Buffer): void => {
                 content += data.toString()
@@ -800,23 +826,19 @@ describe('helper', (): void => {
 
             expect(content).toMatch(/^HTTP\/1\.1 200 OK\r\n/)
             expect(content).toMatch(
-                new RegExp(`backend: localhost:${String(backendPort)}$`)
+                new RegExp(`backend: ${HOST}:${String(backendPort)}$`)
             )
-
-            await server.stop()
-            await new Promise((resolve): void => {
-                backend.close(resolve)
-            })
         })
         test('stop closes open connections', async (): Promise<void> => {
             const server = createServer(getConfiguration())
+            cleanups.push(server.stop)
             await server.start()
             const connected = new Promise((resolve): void => {
                 server.instance.once('connection', resolve)
             })
 
             const client = connect(
-                (server.instance.address() as AddressInfo).port, 'localhost'
+                (server.instance.address() as AddressInfo).port, HOST
             )
             // NOTE: Destroying the connection resets the client socket.
             client.on('error', (): void => {
