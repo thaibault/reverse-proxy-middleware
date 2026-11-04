@@ -205,6 +205,6 @@ export interface Server {
     streams: Array<HTTPStream>
     sockets: Array<Socket>
 
-    start: () => void
-    stop: () => void
+    start: () => Promise<void>
+    stop: () => Promise<void>
 }
