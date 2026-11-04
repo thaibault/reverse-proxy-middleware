@@ -18,7 +18,9 @@
 */
 // region imports
 // NOTE: http2 compatibility mode does work for unencrypted connections yet.
-import type {CompilationResult, Mapping, PlainObject} from 'clientnode'
+import type {
+    CompilationResult, Mapping, PlainObject, RecursivePartial
+} from 'clientnode'
 
 import type {
     APIPostEvaluationExpression,
@@ -26,12 +28,17 @@ import type {
     APIPostEvaluationResult,
     APIPreEvaluationResult,
     BufferedHTTPServerRequest,
+    BufferedSocket,
+    Configuration,
     EvaluationParameters,
     EvaluationScopeStateAPI,
     EvaluationScopeStateAPIs,
     Forwarders,
     HeaderTransformation,
+    HTTPServerRequest,
     HTTPServerResponse,
+    HTTPStream,
+    OutgoingHTTPHeaders,
     ParsedContent,
     ResolvedAPIExpressions,
     ResolvedHeaderTransformation,
@@ -39,6 +46,7 @@ import type {
     ResolvedForwarder,
     ResolvedForwarders,
     ResolvedStateAPI,
+    Server,
     Socket,
     StateAPI,
     StringReplacer
@@ -47,15 +55,27 @@ import type {
 import {
     compile,
     copy,
+    evaluateAsyncDynamicData,
+    evaluateDynamicData,
     extend,
+    isFile,
     Logger,
+    MAXIMAL_NUMBER_OF_ITERATIONS,
     modifyObject,
     represent,
+    timeout,
+    UTILITY_SCOPE,
     UTILITY_SCOPE_NAMES,
     UTILITY_SCOPE_VALUES
 } from 'clientnode'
+import {readFile} from 'fs/promises'
+import {createServer as createHTTP1Server} from 'http'
+import {createServer as createHTTP2Server, createSecureServer} from 'http2'
 import {createConnection as createPlainConnection} from 'net'
+import {resolve as resolvePath} from 'path'
 import {connect as createSecureConnection} from 'tls'
+
+import packageConfiguration from '../package.json'
 // endregion
 export const EVALUATION_SCOPE_NAMES = [
     ...UTILITY_SCOPE_NAMES,
@@ -652,6 +672,21 @@ export const reverseProxyBufferedRequest = async (
         } else
             serverSocket.pipe(clientSocket)
 
+        /*
+            NOTE: A closed client connection makes the backend connection
+            obsolete. Without header transformations the request is finished
+            when the backend connection has been closed.
+        */
+        const onClientClose = (): void => {
+            serverSocket.destroy()
+        }
+        clientSocket.once('close', onClientClose)
+        serverSocket.on('close', (): void => {
+            clientSocket.off('close', onClientClose)
+
+            resolve()
+        })
+
         serverSocket.on('connect', () => {
             let headerProcessed = false
             for (const buffer of request.socket.buffer.data) {
@@ -668,7 +703,7 @@ export const reverseProxyBufferedRequest = async (
 
                     // Overwrite proxy host with destination one.
                     content = content.replace(
-                        /(($|\n)host: )[^\n]+/i,
+                        /(($|\n)host: )[^\r\n]+/i,
                         `$1${forwarder.host}${portSuffix}`
                     )
 
@@ -692,5 +727,232 @@ export const reverseProxyBufferedRequest = async (
             }
         })
     })
+// region server
+/**
+ * Loads the package configuration extended by "configuration.json" and
+ * "secure-configuration.json" files found in given directory and evaluates
+ * all dynamic values.
+ * @param directoryPath - Directory to search configuration files in.
+ * @param baseConfiguration - Configuration to extend.
+ * @returns A promise resolving to the evaluated configuration.
+ */
+export const loadConfiguration = async (
+    directoryPath: string = process.cwd(),
+    baseConfiguration: Configuration = packageConfiguration.configuration
+): Promise<Configuration> => {
+    const configuration: Configuration = copy(baseConfiguration)
 
+    for (const path of [
+        'configuration.json', 'secure-configuration.json'
+    ] as const) {
+        const configurationPath: string = resolvePath(directoryPath, path)
+        if (await isFile(configurationPath)) {
+            const givenConfiguration: RecursivePartial<Configuration> =
+                JSON.parse(
+                    await readFile(configurationPath, {encoding: 'utf-8'})
+                ) as RecursivePartial<Configuration>
+
+            extend(
+                true,
+                modifyObject(configuration, givenConfiguration),
+                givenConfiguration
+            )
+        }
+    }
+
+    const evaluationOptions = {
+        scope: {
+            ...UTILITY_SCOPE,
+            configuration,
+            environment: process.env
+        }
+    }
+
+    return evaluateAsyncDynamicData<Configuration>(
+        evaluateDynamicData<Configuration>(configuration, evaluationOptions),
+        evaluationOptions
+    )
+}
+/**
+ * Waits until given request is fully buffered, determines its forwarder,
+ * applies the forwarder's state apis and forwards the request.
+ * @param request - Buffered client request.
+ * @param response - Response to the client.
+ * @param forwarders - Forwarders to choose from.
+ * @param parseBody - Indicates whether to parse a json request body.
+ * @returns A promise resolving when the request has been processed.
+ */
+export const handleRequest = async (
+    request: BufferedHTTPServerRequest,
+    response: HTTPServerResponse,
+    forwarders: ResolvedForwarders,
+    parseBody = false
+): Promise<void> => {
+    void log.info(
+        `|${'-'.repeat(80 - 2)}|\nStart processing`,
+        `${request.method} request: ${request.url}\n` +
+        (request as unknown as string)
+    )
+
+    // NOTE: We have to wait until client request is fully buffered.
+    for (
+        let iteration = 0;
+        iteration < (MAXIMAL_NUMBER_OF_ITERATIONS.value * 1000);
+        iteration++
+    ) {
+        await timeout()
+
+        if (request.socket.buffer.finished)
+            break
+    }
+
+    if (parseBody)
+        addParsedContentToRequest(request)
+
+    const forwarder: null | ResolvedForwarder =
+        determineForwarder(request, response, forwarders)
+
+    if (forwarder === null) {
+        void log.error('No forwarder found for given request:', request)
+
+        response.statusCode = 502
+        response.end()
+
+        return
+    }
+
+    try {
+        const {result, scope} =
+            await applyStateAPIs(request, response, forwarder)
+        if (result)
+            await reverseProxyBufferedRequest(
+                request, response, forwarder, scope
+            )
+    } catch (error) {
+        void log.error(error)
+    }
+
+    void log.info(
+        `\nEnd processing`,
+        `${request.method} request: ${request.url}\n` +
+        `${request as unknown as string}|${'-'.repeat(80 - 2)}|`
+    )
+}
+/**
+ * Creates a (not yet listening) server forwarding incoming requests.
+ * @param configuration - Server configuration.
+ * @param forwarders - Forwarders to use for incoming requests.
+ * @returns The created server.
+ */
+export const createServer = (
+    configuration: Configuration,
+    forwarders: ResolvedForwarders =
+    resolveForwarders(configuration.forwarders)
+): Server => {
+    const onIncomingMessage = (
+        request: HTTPServerRequest, response: HTTPServerResponse
+    ): void => {
+        void handleRequest(
+            request as BufferedHTTPServerRequest,
+            response,
+            forwarders,
+            configuration.parseBody
+        )
+    }
+
+    const server: Server = {
+        instance:
+            configuration.publicKeyPath && configuration.privateKeyPath ?
+                createSecureServer(
+                    configuration.nodeServerOptions, onIncomingMessage
+                ) :
+                // NOTE: http2 compatibility mode does not work for
+                // unencrypted connections yet.
+                (createHTTP1Server as unknown as typeof createHTTP2Server)(
+                    onIncomingMessage
+                ),
+        streams: [],
+        sockets: [],
+
+        start: (): Promise<void> => new Promise((
+            resolve: () => void, reject: (error: Error) => void
+        ): void => {
+            server.instance.once('error', reject)
+            server.instance.listen(
+                configuration.port,
+                (): void => {
+                    server.instance.off('error', reject)
+
+                    void log.info(
+                        `Listen on port ${String(configuration.port)} for ` +
+                        'incoming requests.'
+                    )
+
+                    resolve()
+                }
+            )
+        }),
+        stop: (): Promise<void> => new Promise((resolve: () => void): void => {
+            server.instance.close((): void => {
+                void log.info('Shut server down.')
+
+                resolve()
+            })
+
+            for (const connections of [server.sockets, server.streams])
+                for (const connection of [...connections])
+                    connection.destroy()
+        })
+    }
+
+    server.instance.on(
+        'connection',
+        (socket: BufferedSocket): void => {
+            server.sockets.push(socket)
+
+            socket.buffer = {
+                data: [],
+                finished: false
+            }
+            socket.on('data', (data: Buffer) => {
+                socket.buffer.data.push(data)
+            })
+            for (const name of [
+                'done', 'finish', 'writableEnded', 'writableFinished'
+            ])
+                socket.on(name, () => {
+                    socket.buffer.finished = true
+                })
+            /*
+                NOTE: Workaround since none of the events above trigger before
+                responding to client occurred.
+            */
+            void timeout(() => {
+                socket.buffer.finished = true
+            })
+
+            socket.on('close', () => {
+                socket.buffer.finished = true
+
+                server.sockets.splice(server.sockets.indexOf(socket), 1)
+            })
+        }
+    )
+
+    server.instance.on(
+        'stream',
+        (stream: HTTPStream, headers: OutgoingHTTPHeaders) => {
+            server.streams.push(stream)
+
+            void log.info('Got stream', stream, headers)
+
+            stream.on('close', () => {
+                server.streams.splice(server.streams.indexOf(stream), 1)
+            })
+        }
+    )
+
+    return server
+}
+// endregion
 export default reverseProxyBufferedRequest
