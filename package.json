@@ -127,9 +127,6 @@
     "privateKeyPath": "",
     "publicKeyPath": ""
   },
-  "webDocumentation": {
-    "trackingCode": ""
-  },
   "webOptimizer": {
     "assetPattern": {
       "javaScript": {
