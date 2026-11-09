@@ -78,7 +78,7 @@
     "jsdoc": "^4.0.5",
     "typescript-eslint": "^8.72.1",
     "web-documentation": "^1.0.72",
-    "weboptimizer": "^4.0.108"
+    "weboptimizer": "^4.0.109"
   },
   "resolutions": {
     "colors": "1.4.0",
