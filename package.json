@@ -31,9 +31,7 @@
     "*": "/application/node_modules/*"
   },
   "main": "dist/index.js",
-  "bin": {
-    "reverse-proxy-middleware": "dist/index.js"
-  },
+  "bin": "dist/index.js",
   "files": [
     "dist"
   ],
@@ -80,7 +78,7 @@
     "jsdoc": "^4.0.5",
     "typescript-eslint": "^8.72.1",
     "web-documentation": "^1.0.72",
-    "weboptimizer": "^4.0.103"
+    "weboptimizer": "^4.0.108"
   },
   "resolutions": {
     "colors": "1.4.0",
