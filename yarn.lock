@@ -8862,6 +8862,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^8.72.1"
     "@typescript-eslint/parser": "npm:^8.72.1"
     clientnode: "npm:^4.0.1530"
+    core-js: "npm:^3.51.0"
     eslint: "npm:^10.14.0"
     eslint-config-google: "npm:^0.14.0"
     eslint-plugin-jsdoc: "npm:^65.4.2"
@@ -8870,6 +8871,8 @@ __metadata:
     typescript-eslint: "npm:^8.72.1"
     web-documentation: "npm:^1.0.72"
     weboptimizer: "npm:^4.0.109"
+  peerDependencies:
+    core-js: "*"
   bin:
     reverse-proxy-middleware: dist/index.js
   languageName: unknown
