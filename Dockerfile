@@ -8,8 +8,8 @@
 # -------
 
 # This library written by Torben Sickert stands under a creative commons naming
-# 4.0 unported license.
-# See https://creativecommons.org/licenses/by/3.0/deed.de
+# 4.0 international license.
+# See https://creativecommons.org/licenses/by/4.0/deed.de
 
 # Basic ArchLinux with user-mapping, AUR integration and support for decryption
 # of security related files.
