@@ -8885,8 +8885,6 @@ __metadata:
     typescript-eslint: "npm:^8.72.1"
     web-documentation: "npm:^1.0.72"
     weboptimizer: "npm:^4.0.115"
-  peerDependencies:
-    core-js: "*"
   bin:
     reverse-proxy-middleware: dist/index.js
   languageName: unknown

@@ -145,9 +145,49 @@ are optional, the second one is meant for secrets. The top level options are:
     options de premier niveau sont:
 -->
 
-- "port" (default "8080"): where the proxy listens on all network interfaces.<!--deDE:"port" (Standard "8080"): wo der Proxy auf allen Netzwerkschnittstellen lauscht.--><!--frFR:"port" (par défaut "8080"): où le proxy écoute sur toutes les interfaces réseau.-->
+- "port" (default: the environment variable "PORT" or "8080"): where the proxy listens.<!--deDE:"port" (Standard: die Umgebungsvariable "PORT" oder "8080"): wo der Proxy lauscht.--><!--frFR:"port" (par défaut: la variable d'environnement "PORT" ou "8080"): où le proxy écoute.-->
+- "host" (default empty, meaning all network interfaces): the address to listen on, e.g. "127.0.0.1".<!--deDE:"host" (Standard leer, also alle Netzwerkschnittstellen): die Adresse, auf der gelauscht wird, z. B. "127.0.0.1".--><!--frFR:"host" (vide par défaut, donc toutes les interfaces réseau): l'adresse d'écoute, par exemple "127.0.0.1".-->
 - "forwarders": the backends, see below.<!--deDE:"forwarders": die Backends, siehe unten.--><!--frFR:"forwarders": les backends, voir ci-dessous.-->
 - "parseBody" (default "false"): parses JSON request bodies for expressions.<!--deDE:"parseBody" (Standard "false"): wertet JSON-Anfragekörper für Ausdrücke aus.--><!--frFR:"parseBody" (par défaut "false"): analyse les corps de requête JSON pour les expressions.-->
+- "logLevel" (default "info"): one of "debug", "info", "warn", "error" and "critical". "debug" logs every forwarded header.<!--deDE:"logLevel" (Standard "info"): einer von "debug", "info", "warn", "error" und "critical". "debug" protokolliert jeden weitergeleiteten Header.--><!--frFR:"logLevel" (par défaut "info"): l'un de "debug", "info", "warn", "error" et "critical". "debug" journalise chaque en-tête transmis.-->
+- "publicKeyPath" and "privateKeyPath": certificate and key files which switch the proxy to HTTPS, see below.<!--deDE:"publicKeyPath" und "privateKeyPath": Zertifikats- und Schlüsseldatei, die den Proxy auf HTTPS umstellen, siehe unten.--><!--frFR:"publicKeyPath" et "privateKeyPath": fichiers de certificat et de clé qui font passer le proxy en HTTPS, voir ci-dessous.-->
+- "nodeServerOptions": further options of the HTTPS server, see [Node.js](https://nodejs.org/api/https.html#httpscreateserveroptions-requestlistener).<!--deDE:"nodeServerOptions": weitere Optionen des HTTPS-Servers, siehe [Node.js](https://nodejs.org/api/https.html#httpscreateserveroptions-requestlistener).--><!--frFR:"nodeServerOptions": autres options du serveur HTTPS, voir [Node.js](https://nodejs.org/api/https.html#httpscreateserveroptions-requestlistener).-->
+
+### HTTPS
+
+With "publicKeyPath" and "privateKeyPath" set, the proxy only accepts HTTPS
+connections. Relative paths start at the working directory, the files are
+read on start:
+<!--deDE:
+    Sind "publicKeyPath" und "privateKeyPath" gesetzt, akzeptiert der Proxy
+    nur HTTPS-Verbindungen. Relative Pfade beginnen im Arbeitsverzeichnis,
+    die Dateien werden beim Start gelesen:
+-->
+<!--frFR:
+    Lorsque "publicKeyPath" et "privateKeyPath" sont définis, le proxy
+    n'accepte que des connexions HTTPS. Les chemins relatifs partent du
+    répertoire de travail, les fichiers sont lus au démarrage:
+-->
+
+```JSON
+{
+    "publicKeyPath": "certificate.pem",
+    "privateKeyPath": "key.pem"
+}
+```
+
+Encrypted connections always use HTTP/1.1. Certificate and key end up in
+"nodeServerOptions" as "cert" and "key" unless these are given there already.
+<!--deDE:
+    Verschlüsselte Verbindungen nutzen immer HTTP/1.1. Zertifikat und
+    Schlüssel landen als "cert" und "key" in "nodeServerOptions", sofern
+    diese dort nicht schon angegeben sind.
+-->
+<!--frFR:
+    Les connexions chiffrées utilisent toujours HTTP/1.1. Le certificat et
+    la clé sont placés dans "nodeServerOptions" sous "cert" et "key", sauf
+    s'ils y sont déjà indiqués.
+-->
 
 <!--|deDE:Weiterleitung-->
 <!--|frFR:Redirection-->
@@ -189,7 +229,8 @@ forwarder "base":
     viennent du forwarder spécial "base":
 -->
 
-- "host" (default "localhost"), "port" (default "443") and "tls" (default "true"): the backend. Certificates of backends are not verified.<!--deDE:"host" (Standard "localhost"), "port" (Standard "443") und "tls" (Standard "true"): das Backend. Zertifikate von Backends werden nicht geprüft.--><!--frFR:"host" (par défaut "localhost"), "port" (par défaut "443") et "tls" (par défaut "true"): le backend. Les certificats des backends ne sont pas vérifiés.-->
+- "host" (default "localhost"), "port" (default "443") and "tls" (default "true"): the backend.<!--deDE:"host" (Standard "localhost"), "port" (Standard "443") und "tls" (Standard "true"): das Backend.--><!--frFR:"host" (par défaut "localhost"), "port" (par défaut "443") et "tls" (par défaut "true"): le backend.-->
+- "rejectUnauthorized" (default "false"): set it to "true" to only accept backends with a valid certificate.<!--deDE:"rejectUnauthorized" (Standard "false"): auf "true" setzen, um nur Backends mit gültigem Zertifikat zu akzeptieren.--><!--frFR:"rejectUnauthorized" (par défaut "false"): le mettre à "true" pour n'accepter que les backends ayant un certificat valide.-->
 - "useExpression" (default "true"): decides whether this forwarder takes the request.<!--deDE:"useExpression" (Standard "true"): entscheidet, ob dieser Forwarder die Anfrage übernimmt.--><!--frFR:"useExpression" (par défaut "true"): décide si ce forwarder prend la requête.-->
 - "headerTransformations": rewrites headers, see below.<!--deDE:"headerTransformations": schreibt Header um, siehe unten.--><!--frFR:"headerTransformations": réécrit les en-têtes, voir ci-dessous.-->
 - "stateAPIs": requests to third party services, see below.<!--deDE:"stateAPIs": Anfragen an Dienste von Drittanbietern, siehe unten.--><!--frFR:"stateAPIs": requêtes vers des services tiers, voir ci-dessous.-->
@@ -562,21 +603,28 @@ Any value of the configuration can be computed once on start with
 
 ```JSON
 {
-    "port": {
-        "__evaluate__": "parseInt(environment.PORT ?? 8080)"
+    "forwarders": {
+        "example": {
+            "host": {
+                "__evaluate__": "environment.BACKEND_HOST ?? 'example.com'"
+            }
+        }
     }
 }
 ```
 
-The proxy then listens on the port given in the environment variable "PORT"
-or on "8080".
+The proxy then forwards to the host given in the environment variable
+"BACKEND_HOST" or to "example.com". The default "port" works the same way
+with "PORT".
 <!--deDE:
-    Der Proxy lauscht dann auf dem in der Umgebungsvariable "PORT"
-    angegebenen Port oder auf "8080".
+    Der Proxy leitet dann an den in der Umgebungsvariable "BACKEND_HOST"
+    angegebenen Host weiter oder an "example.com". Der Standardwert von
+    "port" funktioniert genauso mit "PORT".
 -->
 <!--frFR:
-    Le proxy écoute alors sur le port donné dans la variable
-    d'environnement "PORT" ou sur "8080".
+    Le proxy transmet alors à l'hôte donné dans la variable d'environnement
+    "BACKEND_HOST" ou à "example.com". La valeur par défaut de "port"
+    fonctionne de la même façon avec "PORT".
 -->
 
 <!--|deDE:Entwicklung-->

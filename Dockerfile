@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile-upstream:master-labs
 # region header
-# [Project page](https://tsickert.com/on-premise-polyfill.io)
+# [Project page](https://tsickert.com/reverse-proxy-middleware)
 
 # Copyright Torben Sickert (info["~at~"]tsickert.com) 16.12.2012
 
@@ -11,8 +11,8 @@
 # 4.0 international license.
 # See https://creativecommons.org/licenses/by/4.0/deed.de
 
-# Basic ArchLinux with user-mapping, AUR integration and support for decryption
-# of security related files.
+# Node image running the reverse proxy. A "certificate.pem" next to this file
+# is trusted during the build (e.g. behind a TLS intercepting proxy).
 # endregion
 # region create commands
 # Run the following command in the directory where this file lives to build a
@@ -22,7 +22,7 @@
 # endregion
 # region start container commands
 # Run the following command in the directory where this file lives to start:
-# podman / docker run --interactive --name reverse-proxy-middleware --publish 0.0.0.0:8080:8080 --rm --tty --volume "$(pwd):/application" ghcr.io/thaibault/reverse-proxy-middleware:latest
+# podman / docker run --interactive --name reverse-proxy-middleware --publish 0.0.0.0:8080:8080 --rm --tty --volume "$(pwd)/configuration.json:/application/configuration.json" ghcr.io/thaibault/reverse-proxy-middleware:latest
 # endregion
 ARG        BASE_IMAGE
 
@@ -41,7 +41,9 @@ ENV        APPLICATION_PATH=/application/
 ENV        PORT=8080
 ENV        NODE_ENV=production
 
-COPY       --link . "$APPLICATION_PATH"
+# NOTE: The package manager is defined in "package.json". The glob copies
+# "certificate.pem" only if it exists.
+COPY       --link package.json certificate.pe[m] "$APPLICATION_PATH"
 WORKDIR    "$APPLICATION_PATH"
 
            # Install package manager.
@@ -56,18 +58,23 @@ RUN        path="${APPLICATION_PATH}certificate.pem" && \
            npm install -g corepack@latest && \
            corepack enable && \
            corepack install && \
-           rm -f -r /tmp/*
+           rm -f -r /tmp/* "$path"
 RUN        corepack pack --output /corepack.tgz
 RUN        corepack install --global /corepack.tgz
 
 FROM       base AS build
+
+COPY       --link . "$APPLICATION_PATH"
            # Install dev dependencies build and ignore those for production
            # build.
-RUN        yarn unlink clientnode
-RUN        yarn install
-RUN        yarn build
-RUN        yarn unlink clientnode
-RUN        yarn workspaces focus --production
+RUN        path="${APPLICATION_PATH}certificate.pem" && \
+           if [ -f "$path" ]; then \
+               export NODE_EXTRA_CA_CERTS="$path"; \
+           fi && \
+           yarn unlink clientnode && \
+           yarn install && \
+           yarn build && \
+           yarn workspaces focus --production
 
 FROM       base AS runtime
 
@@ -86,6 +93,6 @@ COPY       --from=build \
 
 EXPOSE     $PORT
 
-CMD        yarn start
+CMD        ["node", "dist/index.js"]
 
 #ENTRYPOINT ...

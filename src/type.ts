@@ -1,10 +1,10 @@
 // #!/usr/bin/env babel-node
 // -*- coding: utf-8 -*-
-/** @module web-node */
+/** @module reverse-proxy-middleware */
 'use strict'
 /* !
     region header
-    [Project page](https://tsickert.com/webNode)
+    [Project page](https://tsickert.com/reverse-proxy-middleware)
 
     Copyright Torben Sickert (info["~at~"]tsickert.com) 16.12.2012
 
@@ -18,7 +18,7 @@
 */
 // region imports
 import type {
-    Mapping, PlainObject, Primitive, UTILITY_SCOPE, UTILITY_SCOPE_VALUES
+    Level, Mapping, PlainObject, Primitive, UTILITY_SCOPE, UTILITY_SCOPE_VALUES
 } from 'clientnode'
 import type {
     Http2SecureServer as HTTPSecureServer,
@@ -26,9 +26,9 @@ import type {
     Http2ServerRequest,
     Http2ServerResponse,
     Http2Stream,
-    OutgoingHttpHeaders,
-    SecureServerOptions
+    OutgoingHttpHeaders
 } from 'http2'
+import type {ServerOptions as SecureServerOptions} from 'https'
 import type {Socket as PlainSocket} from 'net'
 import type {TLSSocket} from 'tls'
 // endregion
@@ -166,6 +166,7 @@ export interface Forwarder {
     headerTransformations?: HeaderTransformations
     host: string
     port?: number
+    rejectUnauthorized?: boolean
     stateAPIs?: Array<StateAPI> | StateAPI
     tls?: boolean
     useExpression?: string | ((...parameters: EvaluationParameters) => boolean)
@@ -187,6 +188,8 @@ export type ResolvedForwarder =
 export type ResolvedForwarders = Mapping<ResolvedForwarder>
 
 export interface Configuration {
+    logLevel: Level
+
     privateKeyPath: string
     publicKeyPath: string
 
