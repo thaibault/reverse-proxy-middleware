@@ -1,10 +1,10 @@
 // #!/usr/bin/env babel-node
 // -*- coding: utf-8 -*-
-/** @module web-node */
+/** @module reverse-proxy-middleware */
 'use strict'
 /* !
     region header
-    [Project page](https://tsickert.com/webNode)
+    [Project page](https://tsickert.com/reverse-proxy-middleware)
 
     Copyright Torben Sickert (info["~at~"]tsickert.com) 16.12.2012
 
@@ -17,7 +17,6 @@
     endregion
 */
 // region imports
-// NOTE: http2 compatibility mode does work for unencrypted connections yet.
 import type {
     CompilationResult, Mapping, PlainObject, RecursivePartial
 } from 'clientnode'
@@ -35,6 +34,7 @@ import type {
     EvaluationScopeStateAPIs,
     Forwarders,
     HeaderTransformation,
+    HTTPServer,
     HTTPServerRequest,
     HTTPServerResponse,
     HTTPStream,
@@ -69,9 +69,9 @@ import {
     UTILITY_SCOPE_VALUES
 } from 'clientnode'
 import {readFile} from 'fs/promises'
-import {createServer as createHTTP1Server} from 'http'
-import {createServer as createHTTP2Server, createSecureServer} from 'http2'
-import {createConnection as createPlainConnection} from 'net'
+import {createServer as createHTTP1Server, RequestListener} from 'http'
+import {createServer as createHTTPSServer} from 'https'
+import {createConnection as createPlainConnection, isIP} from 'net'
 import {resolve as resolvePath} from 'path'
 import {connect as createSecureConnection} from 'tls'
 
@@ -610,7 +610,14 @@ export const reverseProxyBufferedRequest = async (
                 host: forwarder.host,
                 port: forwarder.port,
                 ...(forwarder.tls ?
-                    {servername: forwarder.host, rejectUnauthorized: false} :
+                    {
+                        // NOTE: Server names have to be host names.
+                        ...(isIP(forwarder.host) ?
+                            {} :
+                            {servername: forwarder.host}
+                        ),
+                        rejectUnauthorized: forwarder.rejectUnauthorized
+                    } :
                     {}
                 )
             },
@@ -730,15 +737,17 @@ export const reverseProxyBufferedRequest = async (
 // region server
 /**
  * Loads the package configuration extended by "configuration.json" and
- * "secure-configuration.json" files found in given directory and evaluates
- * all dynamic values.
+ * "secure-configuration.json" files found in given directory, evaluates all
+ * dynamic values and loads configured key and certificate files into the node
+ * server options.
  * @param directoryPath - Directory to search configuration files in.
  * @param baseConfiguration - Configuration to extend.
  * @returns A promise resolving to the evaluated configuration.
  */
 export const loadConfiguration = async (
     directoryPath: string = process.cwd(),
-    baseConfiguration: Configuration = packageConfiguration.configuration
+    baseConfiguration: Configuration =
+        packageConfiguration.configuration as unknown as Configuration
 ): Promise<Configuration> => {
     const configuration: Configuration = copy(baseConfiguration)
 
@@ -768,10 +777,25 @@ export const loadConfiguration = async (
         }
     }
 
-    return evaluateAsyncDynamicData<Configuration>(
+    const result: Configuration = await evaluateAsyncDynamicData<
+        Configuration
+    >(
         evaluateDynamicData<Configuration>(configuration, evaluationOptions),
         evaluationOptions
     )
+
+    if (result.privateKeyPath && result.publicKeyPath)
+        result.nodeServerOptions = {
+            cert: await readFile(
+                resolvePath(directoryPath, result.publicKeyPath)
+            ),
+            key: await readFile(
+                resolvePath(directoryPath, result.privateKeyPath)
+            ),
+            ...result.nodeServerOptions
+        }
+
+    return result
 }
 /**
  * Waits until given request is fully buffered, determines its forwarder,
@@ -860,17 +884,22 @@ export const createServer = (
         )
     }
 
+    const secure = Boolean(
+        configuration.publicKeyPath && configuration.privateKeyPath
+    )
+
     const server: Server = {
-        instance:
-            configuration.publicKeyPath && configuration.privateKeyPath ?
-                createSecureServer(
-                    configuration.nodeServerOptions, onIncomingMessage
-                ) :
-                // NOTE: http2 compatibility mode does not work for
-                // unencrypted connections yet.
-                (createHTTP1Server as unknown as typeof createHTTP2Server)(
-                    onIncomingMessage
-                ),
+        /*
+            NOTE: Requests are forwarded as raw HTTP/1 data so encrypted
+            connections can not use HTTP/2.
+        */
+        instance: (secure ?
+            createHTTPSServer(
+                configuration.nodeServerOptions,
+                onIncomingMessage as unknown as RequestListener
+            ) :
+            createHTTP1Server(onIncomingMessage as unknown as RequestListener)
+        ) as unknown as HTTPServer,
         streams: [],
         sockets: [],
 
@@ -880,11 +909,14 @@ export const createServer = (
             server.instance.once('error', reject)
             server.instance.listen(
                 configuration.port,
+                // NOTE: An empty host listens on all network interfaces.
+                configuration.host || undefined,
                 (): void => {
                     server.instance.off('error', reject)
 
                     void log.info(
-                        `Listen on port ${String(configuration.port)} for ` +
+                        `Listen on ${configuration.host || 'all interfaces'}` +
+                        ` with port ${String(configuration.port)} for ` +
                         'incoming requests.'
                     )
 
@@ -905,8 +937,9 @@ export const createServer = (
         })
     }
 
+    // NOTE: Encrypted connections provide their decrypted data separately.
     server.instance.on(
-        'connection',
+        secure ? 'secureConnection' : 'connection',
         (socket: BufferedSocket): void => {
             server.sockets.push(socket)
 

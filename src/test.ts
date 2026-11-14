@@ -27,7 +27,7 @@ import type {
 
 import {copy, importFilesystemAPI, UTILITY_SCOPE_VALUES} from 'clientnode'
 import {testEach} from 'clientnode/test-helper'
-import {mkdtemp, rm, writeFile} from 'fs/promises'
+import {mkdtemp, readFile, rm, writeFile} from 'fs/promises'
 import {createServer as createHTTPServer} from 'http'
 import {
     AddressInfo,
@@ -37,8 +37,13 @@ import {
     Socket
 } from 'net'
 import {tmpdir} from 'os'
-import {join} from 'path'
+import {join, resolve as resolvePath} from 'path'
 import {PassThrough} from 'stream'
+import {
+    connect as connectSecure,
+    createServer as createSecureNetServer,
+    Server as SecureNetServer
+} from 'tls'
 
 import {
     afterAll,
@@ -102,6 +107,9 @@ const HOST = '127.0.0.1'
 const PARAMETERS = [
     ...UTILITY_SCOPE_VALUES, null, null, null, null, null, {}
 ] as unknown as EvaluationParameters
+// NOTE: Self-signed certificate for "localhost" with its private key.
+const CERTIFICATE_PATH = resolvePath('test/certificate.pem')
+const PRIVATE_KEY_PATH = resolvePath('test/key.pem')
 const getClosedPort = async (): Promise<number> => {
     const server = createNetServer()
     await new Promise<void>((resolve): void => {
@@ -152,6 +160,7 @@ describe('helper', (): void => {
                     host: 'host',
                     name: 'test',
                     port: 443,
+                    rejectUnauthorized: false,
                     stateAPIs: [],
                     tls: true,
                     useExpression: positiveUseExpression
@@ -633,6 +642,69 @@ describe('helper', (): void => {
                 'Proxy to server error', ANY_ERROR
             )
         })
+        describe('with tls backend', (): void => {
+            let secureBackend: SecureNetServer
+            let securePort = 0
+
+            beforeAll(async (): Promise<void> => {
+                secureBackend = createSecureNetServer(
+                    {
+                        cert: await readFile(CERTIFICATE_PATH),
+                        key: await readFile(PRIVATE_KEY_PATH)
+                    },
+                    (socket): void => {
+                        socket.on('data', (): void => {
+                            socket.end(RESPONSE)
+                        })
+                    }
+                )
+                await new Promise<void>((resolve): void => {
+                    secureBackend.listen(0, HOST, resolve)
+                })
+                securePort = (secureBackend.address() as AddressInfo).port
+            })
+            afterAll(async (): Promise<void> => {
+                await new Promise((resolve): void => {
+                    secureBackend.close(resolve)
+                })
+            })
+
+            test(
+                'accepts self-signed certificates by default',
+                async (): Promise<void> => {
+                    const clientSocket = new PassThrough()
+                    const responseContent = readResponse(clientSocket)
+
+                    await reverseProxyBufferedRequest(
+                        createRequest(['GET / HTTP/1.1\r\n\r\n']),
+                        createResponse(clientSocket),
+                        createForwarder({host: HOST, port: securePort}),
+                        {}
+                    )
+
+                    expect(await responseContent).toStrictEqual(RESPONSE)
+                }
+            )
+            test(
+                'rejects unauthorized certificates if configured',
+                async (): Promise<void> => {
+                    await expect(reverseProxyBufferedRequest(
+                        createRequest(['GET / HTTP/1.1\r\n\r\n']),
+                        createResponse(),
+                        createForwarder({
+                            host: HOST,
+                            port: securePort,
+                            rejectUnauthorized: true
+                        }),
+                        {}
+                    )).rejects.toThrow()
+
+                    expect(logErrorSpy).toHaveBeenCalledWith(
+                        'Proxy to server error', ANY_ERROR
+                    )
+                }
+            )
+        })
     })
     // endregion
     // region server
@@ -650,7 +722,7 @@ describe('helper', (): void => {
 
         test('without configuration files', async (): Promise<void> => {
             expect(await loadConfiguration(directoryPath))
-                .toStrictEqual(BASE_CONFIGURATION)
+                .toStrictEqual({...BASE_CONFIGURATION, port: 8080})
         })
         test('with configuration files', async (): Promise<void> => {
             await writeFile(
@@ -677,7 +749,23 @@ describe('helper', (): void => {
             expect(configuration.forwarders)
                 .toStrictEqual(BASE_CONFIGURATION.forwarders)
             // NOTE: Given base configuration should not be modified.
-            expect(BASE_CONFIGURATION.host).toStrictEqual('localhost')
+            expect(BASE_CONFIGURATION.host).toStrictEqual('')
+        })
+        test('loads key and certificate files', async (): Promise<void> => {
+            await writeFile(
+                join(directoryPath, 'secure-configuration.json'),
+                JSON.stringify({
+                    privateKeyPath: PRIVATE_KEY_PATH,
+                    publicKeyPath: CERTIFICATE_PATH
+                })
+            )
+
+            const configuration = await loadConfiguration(directoryPath)
+
+            expect(configuration.nodeServerOptions).toStrictEqual({
+                cert: await readFile(CERTIFICATE_PATH),
+                key: await readFile(PRIVATE_KEY_PATH)
+            })
         })
     })
     describe('handleRequest', (): void => {
@@ -754,7 +842,7 @@ describe('helper', (): void => {
         const getConfiguration = (
             configuration: Partial<Configuration> = {}
         ): Configuration => ({
-            ...copy(BASE_CONFIGURATION as Configuration),
+            ...copy(BASE_CONFIGURATION as unknown as Configuration),
             port: 0,
             ...configuration
         })
@@ -781,8 +869,27 @@ describe('helper', (): void => {
         test('creates a secure server', (): void => {
             expect(createServer(getConfiguration({
                 privateKeyPath: 'key', publicKeyPath: 'certificate'
-            })).instance.constructor.name).toStrictEqual('Http2SecureServer')
+            })).instance.constructor.name).toStrictEqual('Server')
         })
+        test(
+            'listens on all interfaces or given host',
+            async (): Promise<void> => {
+                const server = createServer(getConfiguration())
+                cleanups.push(server.stop)
+                await server.start()
+
+                expect((server.instance.address() as AddressInfo).address)
+                    .toMatch(/^(::|0\.0\.0\.0)$/)
+
+                const localServer =
+                    createServer(getConfiguration({host: HOST}))
+                cleanups.push(localServer.stop)
+                await localServer.start()
+
+                expect((localServer.instance.address() as AddressInfo).address)
+                    .toStrictEqual(HOST)
+            }
+        )
         test('forwards requests to backend', async (): Promise<void> => {
             const backend = createHTTPServer((request, response): void => {
                 response.setHeader('Connection', 'close')
@@ -829,6 +936,60 @@ describe('helper', (): void => {
                 new RegExp(`backend: ${HOST}:${String(backendPort)}$`)
             )
         })
+        test(
+            'forwards encrypted requests to backend',
+            async (): Promise<void> => {
+                const backend = createHTTPServer((_request, response): void => {
+                    response.setHeader('Connection', 'close')
+                    response.end('backend')
+                })
+                closeServerAfterTest(backend)
+                await new Promise<void>((resolve): void => {
+                    backend.listen(0, HOST, resolve)
+                })
+
+                const server = createServer(getConfiguration({
+                    forwarders: {
+                        base: {
+                            ...BASE_CONFIGURATION.forwarders.base,
+                            host: HOST,
+                            port: (backend.address() as AddressInfo).port,
+                            stateAPIs: [],
+                            tls: false
+                        },
+                        backend: {}
+                    },
+                    nodeServerOptions: {
+                        cert: await readFile(CERTIFICATE_PATH),
+                        key: await readFile(PRIVATE_KEY_PATH)
+                    },
+                    privateKeyPath: PRIVATE_KEY_PATH,
+                    publicKeyPath: CERTIFICATE_PATH
+                }))
+                cleanups.push(server.stop)
+                await server.start()
+
+                const client = connectSecure({
+                    host: HOST,
+                    port: (server.instance.address() as AddressInfo).port,
+                    rejectUnauthorized: false
+                })
+                let content = ''
+                client.on('data', (data: Buffer): void => {
+                    content += data.toString()
+                })
+                client.write(
+                    'GET / HTTP/1.1\r\nHost: proxy\r\nConnection: close' +
+                    '\r\n\r\n'
+                )
+                await new Promise((resolve): void => {
+                    client.on('close', resolve)
+                })
+
+                expect(content).toMatch(/^HTTP\/1\.1 200 OK\r\n/)
+                expect(content).toMatch(/backend$/)
+            }
+        )
         test('stop closes open connections', async (): Promise<void> => {
             const server = createServer(getConfiguration())
             cleanups.push(server.stop)

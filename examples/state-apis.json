@@ -8,11 +8,11 @@
           "question": "What is the meaning of life?"
         },
         "expressions": {
-          "pre": "request.headers['ask-for-sense-of-live'] ? true : null",
-          "post": "response.statusCode >= 200 && response.statusCode < 300 ? response.statusCode : null"
+          "pre": "request.headers['ask-for-sense-of-life'] ? true : null",
+          "post": "stateAPI.response?.ok ? null : stateAPI.response?.status ?? 502"
         },
         "name": "sense",
-        "url": "https://www.google.com/search?q=${data.question}"
+        "urlExpression": "`https://www.google.com/search?q=${encodeURIComponent(data.question)}`"
       }
     }
   }

@@ -47,7 +47,6 @@
     "lint": "weboptimizer lint",
     "prepare": "yarn build",
     "serve": "yarn build:plain && yarn start",
-    "serve:custom": "ln --force --symbolic examples/custom.json configuration.json && yarn serve",
     "serve:headers": "ln --force --symbolic examples/headers.json configuration.json && yarn serve",
     "serve:random": "ln --force --symbolic examples/random.json configuration.json && yarn serve",
     "serve:simple": "ln --force --symbolic examples/simple.json configuration.json && yarn serve",
@@ -60,7 +59,8 @@
     "watch": "weboptimizer build --watch"
   },
   "dependencies": {
-    "clientnode": "^4.0.1530"
+    "clientnode": "^4.0.1530",
+    "core-js": "^3.51.0"
   },
   "devDependencies": {
     "@babel/cli": "^8.1.0",
@@ -72,7 +72,6 @@
     "@types/webpack-env": "^1.18.8",
     "@typescript-eslint/eslint-plugin": "^8.72.1",
     "@typescript-eslint/parser": "^8.72.1",
-    "core-js": "^3.51.0",
     "eslint": "^10.14.0",
     "eslint-config-google": "^0.14.0",
     "eslint-plugin-jsdoc": "^65.4.2",
@@ -102,6 +101,7 @@
         },
         "host": "localhost",
         "port": 443,
+        "rejectUnauthorized": false,
         "stateAPIs": [
           {
             "data": {},
@@ -118,12 +118,13 @@
         "useExpression": "true"
       }
     },
-    "host": "localhost",
-    "nodeServerOptions": {
-      "allowHTTP1": true
-    },
+    "host": "",
+    "logLevel": "info",
+    "nodeServerOptions": {},
     "parseBody": false,
-    "port": 8080,
+    "port": {
+      "__evaluate__": "parseInt(environment.PORT ?? '8080')"
+    },
     "privateKeyPath": "",
     "publicKeyPath": ""
   },
@@ -186,8 +187,5 @@
       }
     }
   },
-  "packageManager": "yarn@4.18.1+sha512.b2e1e7524f654f2749d32b4ebcb4622473cb5bcbc485df2007e12a154e50162a4d795526768bc5f5b8f81717bfd79deb2472813d86fb5ae2eb551fa9c872b08f",
-  "peerDependencies": {
-    "core-js": "*"
-  }
+  "packageManager": "yarn@4.18.1+sha512.b2e1e7524f654f2749d32b4ebcb4622473cb5bcbc485df2007e12a154e50162a4d795526768bc5f5b8f81717bfd79deb2472813d86fb5ae2eb551fa9c872b08f"
 }
