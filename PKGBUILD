@@ -22,7 +22,7 @@ backup=(srv/http/reverse-proxy-middleware/configuration.json)
 # NOTE: Only the service file is needed, the image is pulled from the
 # registry.
 source=("https://github.com/thaibault/reverse-proxy-middleware/archive/refs/tags/v${pkgver}.tar.gz")
-sha256sums=(ee236fd55d6193c64f713e23b0247aa56ff90537ab798976a9b57e5446851884)
+sha256sums=('6b0a2704310098499157518c4812a8b3f854fe995b4e68d13cf84388c64e688b')
 copy_to_aur=true
 
 package() {
