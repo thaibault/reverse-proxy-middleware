@@ -11,7 +11,7 @@
 # See https://creativecommons.org/licenses/by/4.0/deed.de
 # endregion
 pkgname=reverse-proxy-middleware
-pkgver=0.0.147
+pkgver=0.0.148
 pkgrel=1
 pkgdesc='A reverse proxy blocking bot requests.'
 arch=(any)
