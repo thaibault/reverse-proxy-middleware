@@ -31,9 +31,7 @@
     "*": "/application/node_modules/*"
   },
   "main": "dist/index.js",
-  "bin": {
-    "reverse-proxy-middleware": "dist/index.js"
-  },
+  "bin": "dist/index.js",
   "files": [
     "dist"
   ],
@@ -149,15 +147,17 @@
     },
     "module": {
       "optimizer": {
-        "terser": {
-          "terserOptions": {
-            "compress": {
-              "#": "To provide a logging output we need to exclude this feature.",
-              "drop_console": {
-                "__evaluate__": "false"
-              },
-              "drop_debugger": {
-                "__evaluate__": "false"
+        "javaScript": {
+          "minify": {
+            "options": {
+              "compress": {
+                "#": "To provide a logging output we need to exclude this feature.",
+                "drop_console": {
+                  "__evaluate__": "false"
+                },
+                "drop_debugger": {
+                  "__evaluate__": "false"
+                }
               }
             }
           }
