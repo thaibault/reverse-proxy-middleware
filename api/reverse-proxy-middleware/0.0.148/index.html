@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Home</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Home</h1>
+
+    
+
+
+
+    
+
+
+    <h3>reverse-proxy-middleware 0.0.148</h3>
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+    <section>
+        <article><!-- !/usr/bin/env markdown
+-*- coding: utf-8 -*-
+region header
+Copyright Torben Sickert (info["~at~"]tsickert.com) 16.12.2012
+
+License
+-------
+
+This library written by Torben Sickert stands under a creative commons naming
+4.0 international license.
+See https://creativecommons.org/licenses/by/4.0/deed.de
+endregion -->
+<!--|deDE:Projektstatus-->
+<!--|frFR:Statut du projet-->
+<h2>Project status</h2>
+<p><a href="https://www.npmjs.com/package/reverse-proxy-middleware"><img src="https://img.shields.io/npm/v/reverse-proxy-middleware?color=%23d55e5d&amp;label=npm%20package%20version&amp;logoColor=%23d55e5d&amp;style=for-the-badge" alt="npm"></a>
+<a href="https://www.npmjs.com/package/reverse-proxy-middleware"><img src="https://img.shields.io/npm/dy/reverse-proxy-middleware.svg?style=for-the-badge" alt="npm downloads"></a></p>
+<p><a href="https://github.com/thaibault/reverse-proxy-middleware/actions/workflows/build.yaml"><img src="https://img.shields.io/github/actions/workflow/status/thaibault/reverse-proxy-middleware/build.yaml?style=for-the-badge" alt="build"></a>
+<a href="https://github.com/thaibault/reverse-proxy-middleware/actions/workflows/build-package-and-push.yaml"><img src="https://img.shields.io/github/actions/workflow/status/thaibault/reverse-proxy-middleware/build-package-and-push.yaml?label=build%20push%20package&amp;style=for-the-badge" alt="build push package"></a></p>
+<p><a href="https://github.com/thaibault/reverse-proxy-middleware/actions/workflows/check-types.yaml"><img src="https://img.shields.io/github/actions/workflow/status/thaibault/reverse-proxy-middleware/check-types.yaml?label=check%20types&amp;style=for-the-badge" alt="check types"></a>
+<a href="https://github.com/thaibault/reverse-proxy-middleware/actions/workflows/lint.yaml"><img src="https://img.shields.io/github/actions/workflow/status/thaibault/reverse-proxy-middleware/lint.yaml?label=lint&amp;style=for-the-badge" alt="lint"></a>
+<a href="https://github.com/thaibault/reverse-proxy-middleware/actions/workflows/test-coverage-report.yaml"><img src="https://img.shields.io/github/actions/workflow/status/thaibault/reverse-proxy-middleware/test-coverage-report.yaml?label=test&amp;style=for-the-badge" alt="test"></a></p>
+<p><a href="https://github.com/thaibault/reverse-proxy-middleware/actions/workflows/build-image-and-push-periodically-2.yaml"><img src="https://img.shields.io/github/actions/workflow/status/thaibault/reverse-proxy-middleware/build-image-and-push-periodically-2.yaml?label=build%20push%20image&amp;style=for-the-badge" alt="build push image"></a></p>
+<p><a href="https://coveralls.io/github/thaibault/reverse-proxy-middleware"><img src="https://img.shields.io/coverallsCoverage/github/thaibault/reverse-proxy-middleware?label=code%20coverage&amp;style=for-the-badge" alt="code coverage"></a></p>
+<p><a href="https://github.com/thaibault/reverse-proxy-middleware/actions/workflows/deploy-web-documentation.yaml"><img src="https://img.shields.io/github/actions/workflow/status/thaibault/reverse-proxy-middleware/deploy-web-documentation.yaml?label=deploy%20web%20documentation&amp;style=for-the-badge" alt="deploy web documentation"></a>
+<a href="https://tsickert.com/reverse-proxy-middleware"><img src="https://img.shields.io/website-up-down-green-red/https/tsickert.com/reverse-proxy-middleware.svg?label=web-documentation&amp;style=for-the-badge" alt="web documentation"></a></p>
+<!--|deDE:Einsatzmöglichkeiten-->
+<!--|frFR:Cas d'utilisation-->
+<h2>Use case</h2>
+<p>A small reverse proxy configured with a single JSON file. Each incoming request
+is passed on to one of the configured backends (&quot;forwarders&quot;). Before that, the
+proxy can ask third party services (&quot;state APIs&quot;), e.g. a bot filter like
+reCAPTCHA or friendlycaptcha or an authentication service, and answer the
+request itself depending on their responses. Request and response headers can
+be rewritten on the way through. All decisions are short JavaScript
+expressions inside the configuration.</p>
+<!--deDE:
+    Ein kleiner Reverse-Proxy, der über eine einzige JSON-Datei konfiguriert
+    wird. Jede eingehende Anfrage wird an eines der konfigurierten Backends
+    ("Forwarder") weitergereicht. Vorher kann der Proxy Dienste von
+    Drittanbietern ("State-APIs") befragen, z. B. einen Bot-Filter wie
+    reCAPTCHA oder friendlycaptcha oder einen Authentifizierungsdienst, und
+    die Anfrage abhängig von deren Antworten selbst beantworten. Anfrage- und
+    Antwort-Header lassen sich unterwegs umschreiben. Alle Entscheidungen
+    sind kurze JavaScript-Ausdrücke in der Konfiguration.
+-->
+<!--frFR:
+    Un petit proxy inverse configuré par un seul fichier JSON. Chaque requête
+    entrante est transmise à l'un des backends configurés ("forwarders").
+    Auparavant, le proxy peut interroger des services tiers ("state APIs"),
+    par exemple un filtre anti-bots comme reCAPTCHA ou friendlycaptcha ou un
+    service d'authentification, et répondre lui-même à la requête selon
+    leurs réponses. Les en-têtes de requête et de réponse peuvent être
+    réécrits au passage. Toutes les décisions sont de courtes expressions
+    JavaScript dans la configuration.
+-->
+<div class="wd-table-of-contents">
+    <h2 id="content">Content<!--deDE:Inhalt--><!--frFR:Contenu--></h2>
+    <!--wd-table-of-contents-->
+</div>
+<h2>Installation</h2>
+<p>Install the command globally via npm and start it in the folder which holds
+your &quot;configuration.json&quot;:</p>
+<!--deDE:
+    Installieren Sie den Befehl global über npm und starten Sie ihn in dem
+    Ordner, der Ihre "configuration.json" enthält:
+-->
+<!--frFR:
+    Installez la commande globalement via npm et lancez-la dans le dossier
+    qui contient votre "configuration.json":
+-->
+<pre class="prettyprint source lang-bash"><code>npm install --global reverse-proxy-middleware
+reverse-proxy-middleware
+</code></pre>
+<p>Or run the container image and mount the configuration into it:</p>
+<!--deDE:
+    Oder starten Sie das Container-Image und binden Sie die Konfiguration
+    ein:
+-->
+<!--frFR:Ou lancez l'image de conteneur et montez-y la configuration:-->
+<pre class="prettyprint source lang-bash"><code>docker run \
+    --name reverse-proxy-middleware \
+    --publish 8080:8080 \
+    --rm \
+    --volume &quot;$(pwd)/configuration.json:/application/configuration.json&quot; \
+    ghcr.io/thaibault/reverse-proxy-middleware:latest
+</code></pre>
+<p>&quot;systemd.service&quot; in this repository is a unit which runs the container in
+the Docker network &quot;proxy&quot; (e.g. behind the
+<a href="https://tsickert.com/proxy">proxy</a> project) and reads its configuration from
+&quot;/srv/http/reverse-proxy-middleware/configuration.json&quot;.</p>
+<!--deDE:
+    "systemd.service" in diesem Repository ist eine Unit, die den Container
+    im Docker-Netzwerk "proxy" betreibt (z. B. hinter dem Projekt
+    [proxy](https://tsickert.com/proxy)) und ihre Konfiguration aus
+    "/srv/http/reverse-proxy-middleware/configuration.json" liest.
+-->
+<!--frFR:
+    "systemd.service" dans ce dépôt est une unité qui exécute le conteneur
+    dans le réseau Docker "proxy" (par exemple derrière le projet
+    [proxy](https://tsickert.com/proxy)) et lit sa configuration depuis
+    "/srv/http/reverse-proxy-middleware/configuration.json".
+-->
+<h2>Configuration</h2>
+<p>On start, the defaults under the key &quot;configuration&quot; in
+<a href="package.json">package.json</a> are extended by &quot;configuration.json&quot; and then by
+&quot;secure-configuration.json&quot; from the current working directory. Both files
+are optional, the second one is meant for secrets. The top level options are:</p>
+<!--deDE:
+    Beim Start werden die Standardwerte unter dem Schlüssel "configuration"
+    in [package.json](package.json) durch "configuration.json" und danach
+    durch "secure-configuration.json" aus dem aktuellen Arbeitsverzeichnis
+    erweitert. Beide Dateien sind optional, die zweite ist für Geheimnisse
+    gedacht. Die Optionen der obersten Ebene sind:
+-->
+<!--frFR:
+    Au démarrage, les valeurs par défaut sous la clé "configuration" dans
+    [package.json](package.json) sont étendues par "configuration.json" puis
+    par "secure-configuration.json" du répertoire de travail courant. Les
+    deux fichiers sont facultatifs, le second est destiné aux secrets. Les
+    options de premier niveau sont:
+-->
+<ul>
+<li>&quot;port&quot; (default: the environment variable &quot;PORT&quot; or &quot;8080&quot;): where the proxy listens.<!--deDE:"port" (Standard: die Umgebungsvariable "PORT" oder "8080"): wo der Proxy lauscht.--><!--frFR:"port" (par défaut: la variable d'environnement "PORT" ou "8080"): où le proxy écoute.--></li>
+<li>&quot;host&quot; (default empty, meaning all network interfaces): the address to listen on, e.g. &quot;127.0.0.1&quot;.<!--deDE:"host" (Standard leer, also alle Netzwerkschnittstellen): die Adresse, auf der gelauscht wird, z. B. "127.0.0.1".--><!--frFR:"host" (vide par défaut, donc toutes les interfaces réseau): l'adresse d'écoute, par exemple "127.0.0.1".--></li>
+<li>&quot;forwarders&quot;: the backends, see below.<!--deDE:"forwarders": die Backends, siehe unten.--><!--frFR:"forwarders": les backends, voir ci-dessous.--></li>
+<li>&quot;parseBody&quot; (default &quot;false&quot;): parses JSON request bodies for expressions.<!--deDE:"parseBody" (Standard "false"): wertet JSON-Anfragekörper für Ausdrücke aus.--><!--frFR:"parseBody" (par défaut "false"): analyse les corps de requête JSON pour les expressions.--></li>
+<li>&quot;logLevel&quot; (default &quot;info&quot;): one of &quot;debug&quot;, &quot;info&quot;, &quot;warn&quot;, &quot;error&quot; and &quot;critical&quot;. &quot;debug&quot; logs every forwarded header.<!--deDE:"logLevel" (Standard "info"): einer von "debug", "info", "warn", "error" und "critical". "debug" protokolliert jeden weitergeleiteten Header.--><!--frFR:"logLevel" (par défaut "info"): l'un de "debug", "info", "warn", "error" et "critical". "debug" journalise chaque en-tête transmis.--></li>
+<li>&quot;publicKeyPath&quot; and &quot;privateKeyPath&quot;: certificate and key files which switch the proxy to HTTPS, see below.<!--deDE:"publicKeyPath" und "privateKeyPath": Zertifikats- und Schlüsseldatei, die den Proxy auf HTTPS umstellen, siehe unten.--><!--frFR:"publicKeyPath" et "privateKeyPath": fichiers de certificat et de clé qui font passer le proxy en HTTPS, voir ci-dessous.--></li>
+<li>&quot;nodeServerOptions&quot;: further options of the HTTPS server, see <a href="https://nodejs.org/api/https.html#httpscreateserveroptions-requestlistener">Node.js</a>.<!--deDE:"nodeServerOptions": weitere Optionen des HTTPS-Servers, siehe [Node.js](https://nodejs.org/api/https.html#httpscreateserveroptions-requestlistener).--><!--frFR:"nodeServerOptions": autres options du serveur HTTPS, voir [Node.js](https://nodejs.org/api/https.html#httpscreateserveroptions-requestlistener).--></li>
+</ul>
+<h3>HTTPS</h3>
+<p>With &quot;publicKeyPath&quot; and &quot;privateKeyPath&quot; set, the proxy only accepts HTTPS
+connections. Relative paths start at the working directory, the files are
+read on start:</p>
+<!--deDE:
+    Sind "publicKeyPath" und "privateKeyPath" gesetzt, akzeptiert der Proxy
+    nur HTTPS-Verbindungen. Relative Pfade beginnen im Arbeitsverzeichnis,
+    die Dateien werden beim Start gelesen:
+-->
+<!--frFR:
+    Lorsque "publicKeyPath" et "privateKeyPath" sont définis, le proxy
+    n'accepte que des connexions HTTPS. Les chemins relatifs partent du
+    répertoire de travail, les fichiers sont lus au démarrage:
+-->
+<pre class="prettyprint source lang-JSON"><code>{
+    &quot;publicKeyPath&quot;: &quot;certificate.pem&quot;,
+    &quot;privateKeyPath&quot;: &quot;key.pem&quot;
+}
+</code></pre>
+<p>Encrypted connections always use HTTP/1.1. Certificate and key end up in
+&quot;nodeServerOptions&quot; as &quot;cert&quot; and &quot;key&quot; unless these are given there already.</p>
+<!--deDE:
+    Verschlüsselte Verbindungen nutzen immer HTTP/1.1. Zertifikat und
+    Schlüssel landen als "cert" und "key" in "nodeServerOptions", sofern
+    diese dort nicht schon angegeben sind.
+-->
+<!--frFR:
+    Les connexions chiffrées utilisent toujours HTTP/1.1. Le certificat et
+    la clé sont placés dans "nodeServerOptions" sous "cert" et "key", sauf
+    s'ils y sont déjà indiqués.
+-->
+<!--|deDE:Weiterleitung-->
+<!--|frFR:Redirection-->
+<h3>Simple forwarding</h3>
+<p>This configuration passes every request on &quot;http://localhost:8080&quot; to
+&quot;https://example.com&quot; unchanged:</p>
+<!--deDE:
+    Diese Konfiguration reicht jede Anfrage an "http://localhost:8080"
+    unverändert an "https://example.com" weiter:
+-->
+<!--frFR:
+    Cette configuration transmet telle quelle chaque requête sur
+    "http://localhost:8080" à "https://example.com":
+-->
+<pre class="prettyprint source lang-JSON"><code>{
+    &quot;forwarders&quot;: {
+        &quot;example&quot;: {
+            &quot;host&quot;: &quot;example.com&quot;
+        }
+    }
+}
+</code></pre>
+<pre class="prettyprint source lang-bash"><code>curl --verbose http://localhost:8080
+</code></pre>
+<p>A forwarder has the following options, the defaults come from the special
+forwarder &quot;base&quot;:</p>
+<!--deDE:
+    Ein Forwarder hat die folgenden Optionen, die Standardwerte stammen vom
+    besonderen Forwarder "base":
+-->
+<!--frFR:
+    Un forwarder possède les options suivantes, les valeurs par défaut
+    viennent du forwarder spécial "base":
+-->
+<ul>
+<li>&quot;host&quot; (default &quot;localhost&quot;), &quot;port&quot; (default &quot;443&quot;) and &quot;tls&quot; (default &quot;true&quot;): the backend.<!--deDE:"host" (Standard "localhost"), "port" (Standard "443") und "tls" (Standard "true"): das Backend.--><!--frFR:"host" (par défaut "localhost"), "port" (par défaut "443") et "tls" (par défaut "true"): le backend.--></li>
+<li>&quot;rejectUnauthorized&quot; (default &quot;false&quot;): set it to &quot;true&quot; to only accept backends with a valid certificate.<!--deDE:"rejectUnauthorized" (Standard "false"): auf "true" setzen, um nur Backends mit gültigem Zertifikat zu akzeptieren.--><!--frFR:"rejectUnauthorized" (par défaut "false"): le mettre à "true" pour n'accepter que les backends ayant un certificat valide.--></li>
+<li>&quot;useExpression&quot; (default &quot;true&quot;): decides whether this forwarder takes the request.<!--deDE:"useExpression" (Standard "true"): entscheidet, ob dieser Forwarder die Anfrage übernimmt.--><!--frFR:"useExpression" (par défaut "true"): décide si ce forwarder prend la requête.--></li>
+<li>&quot;headerTransformations&quot;: rewrites headers, see below.<!--deDE:"headerTransformations": schreibt Header um, siehe unten.--><!--frFR:"headerTransformations": réécrit les en-têtes, voir ci-dessous.--></li>
+<li>&quot;stateAPIs&quot;: requests to third party services, see below.<!--deDE:"stateAPIs": Anfragen an Dienste von Drittanbietern, siehe unten.--><!--frFR:"stateAPIs": requêtes vers des services tiers, voir ci-dessous.--></li>
+</ul>
+<p>For a plain HTTP backend set &quot;tls&quot; to &quot;false&quot; and &quot;port&quot; to e.g. &quot;80&quot;.</p>
+<!--deDE:
+    Für ein reines HTTP-Backend setzen Sie "tls" auf "false" und "port" z.
+    B. auf "80".
+-->
+<!--frFR:
+    Pour un backend HTTP simple, mettez "tls" à "false" et "port" par
+    exemple à "80".
+-->
+<!--|deDE:Anfragen auf mehrere Backends verteilen-->
+<!--|frFR:Répartir les requêtes sur plusieurs backends-->
+<h3>Distributing requests</h3>
+<p>Forwarders are tried in alphabetical order of their names. The first one whose
+&quot;useExpression&quot; results in &quot;true&quot; gets the request. This distributes requests
+randomly between two backends, like a basic load balancer:</p>
+<!--deDE:
+    Forwarder werden in alphabetischer Reihenfolge ihrer Namen geprüft. Der
+    erste, dessen "useExpression" "true" ergibt, erhält die Anfrage. So
+    werden Anfragen zufällig auf zwei Backends verteilt, wie bei einem
+    einfachen Load-Balancer:
+-->
+<!--frFR:
+    Les forwarders sont essayés dans l'ordre alphabétique de leurs noms. Le
+    premier dont "useExpression" donne "true" reçoit la requête. Ainsi, les
+    requêtes sont réparties aléatoirement entre deux backends, comme avec un
+    simple répartiteur de charge:
+-->
+<pre class="prettyprint source lang-JSON"><code>{
+    &quot;forwarders&quot;: {
+        &quot;first&quot;: {
+            &quot;host&quot;: &quot;first.example.com&quot;,
+            &quot;useExpression&quot;: &quot;Math.random() &lt; 0.5&quot;
+        },
+        &quot;second&quot;: {
+            &quot;host&quot;: &quot;second.example.com&quot;
+        }
+    }
+}
+</code></pre>
+<p>Expressions can also route by path, e.g.
+&quot;request.url.startsWith('/api/')&quot;. If no forwarder matches, the client gets
+status code &quot;502&quot;.</p>
+<!--deDE:
+    Ausdrücke können auch nach Pfad weiterleiten, z. B.
+    "request.url.startsWith('/api/')". Passt kein Forwarder, erhält der Client
+    den Statuscode "502".
+-->
+<!--frFR:
+    Les expressions peuvent aussi aiguiller selon le chemin, par exemple
+    "request.url.startsWith('/api/')". Si aucun forwarder ne correspond, le
+    client reçoit le code de statut "502".
+-->
+<!--|deDE:Header umschreiben-->
+<!--|frFR:Réécrire les en-têtes-->
+<h3>Rewriting headers</h3>
+<p>&quot;send&quot; transformations apply to the request header sent to the backend,
+&quot;retrieve&quot; transformations to the response header sent back to the client.
+&quot;source&quot; is an expression resulting in a regular expression or string to
+search for, &quot;target&quot; one resulting in its replacement:</p>
+<!--deDE:
+    "send"-Transformationen gelten für den Anfrage-Header, der an das Backend
+    geht, "retrieve"-Transformationen für den Antwort-Header, der zum Client
+    zurückgeht. "source" ist ein Ausdruck, der einen regulären Ausdruck oder
+    eine zu suchende Zeichenkette ergibt, "target" einer, der deren Ersatz
+    ergibt:
+-->
+<!--frFR:
+    Les transformations "send" s'appliquent à l'en-tête de requête envoyé au
+    backend, les transformations "retrieve" à l'en-tête de réponse renvoyé au
+    client. "source" est une expression donnant une expression régulière ou
+    une chaîne à rechercher, "target" une expression donnant son
+    remplacement:
+-->
+<pre class="prettyprint source lang-JSON"><code>{
+    &quot;forwarders&quot;: {
+        &quot;example&quot;: {
+            &quot;host&quot;: &quot;example.com&quot;,
+            &quot;headerTransformations&quot;: {
+                &quot;send&quot;: {
+                    &quot;source&quot;: &quot;/X-Special-Client-Header-Name: (.+)/gi&quot;,
+                    &quot;target&quot;: &quot;'New-Header-Name: $1'&quot;
+                },
+                &quot;retrieve&quot;: {
+                    &quot;source&quot;: &quot;/set-cookie: (.+)/gi&quot;,
+                    &quot;target&quot;: &quot;'X-Prevented-Cookie: $1'&quot;
+                }
+            }
+        }
+    }
+}
+</code></pre>
+<pre class="prettyprint source lang-bash"><code>curl \
+    --header 'X-Special-Client-Header-Name: value' \
+    --output /dev/null \
+    --verbose \
+    http://localhost:8080
+</code></pre>
+<p>The backend gets &quot;New-Header-Name: value&quot; and every &quot;set-cookie&quot; header of the
+response arrives as &quot;X-Prevented-Cookie&quot;. A transformation without &quot;source&quot;
+adds the header given by &quot;target&quot;, e.g.
+&quot;{&quot;target&quot;: &quot;'X-Forwarded-By: proxy'&quot;}&quot;. The &quot;host&quot; header is always
+replaced by the backend's host.</p>
+<!--deDE:
+    Das Backend erhält "New-Header-Name: value" und jeder
+    "set-cookie"-Header der Antwort kommt als "X-Prevented-Cookie" an. Eine
+    Transformation ohne "source" fügt den in "target" angegebenen Header
+    hinzu, z. B. "{\"target\": \"'X-Forwarded-By: proxy'\"}". Der
+    "host"-Header wird immer durch den Host des Backends ersetzt.
+-->
+<!--frFR:
+    Le backend reçoit "New-Header-Name: value" et chaque en-tête
+    "set-cookie" de la réponse arrive sous la forme "X-Prevented-Cookie".
+    Une transformation sans "source" ajoute l'en-tête donné par "target",
+    par exemple "{\"target\": \"'X-Forwarded-By: proxy'\"}". L'en-tête
+    "host" est toujours remplacé par l'hôte du backend.
+-->
+<h3>State APIs</h3>
+<p>A state API is a request to a third party service which runs before the
+request is forwarded. Its &quot;pre&quot; expressions decide whether it runs, its
+&quot;post&quot; expressions evaluate its response. This forwarder only passes requests
+on if an authentication service accepts their token:</p>
+<!--deDE:
+    Eine State-API ist eine Anfrage an einen Dienst eines Drittanbieters,
+    die vor dem Weiterleiten der Anfrage läuft. Ihre "pre"-Ausdrücke
+    entscheiden, ob sie läuft, ihre "post"-Ausdrücke werten ihre Antwort
+    aus. Dieser Forwarder reicht Anfragen nur weiter, wenn ein
+    Authentifizierungsdienst ihr Token akzeptiert:
+-->
+<!--frFR:
+    Une state API est une requête vers un service tiers qui s'exécute avant
+    la transmission de la requête. Ses expressions "pre" décident si elle
+    s'exécute, ses expressions "post" évaluent sa réponse. Ce forwarder ne
+    transmet les requêtes que si un service d'authentification accepte leur
+    jeton:
+-->
+<pre class="prettyprint source lang-JSON"><code>{
+    &quot;forwarders&quot;: {
+        &quot;example&quot;: {
+            &quot;host&quot;: &quot;example.com&quot;,
+            &quot;stateAPIs&quot;: {
+                &quot;name&quot;: &quot;authentication&quot;,
+                &quot;urlExpression&quot;: &quot;`https://auth.example.com/check?token=${encodeURIComponent(request.headers['x-token'])}`&quot;,
+                &quot;options&quot;: {&quot;headers&quot;: {&quot;accept&quot;: &quot;application/json&quot;}},
+                &quot;expressions&quot;: {
+                    &quot;pre&quot;: &quot;request.headers['x-token'] ? true : 401&quot;,
+                    &quot;post&quot;: &quot;stateAPI.response?.ok ? null : 403&quot;
+                }
+            }
+        }
+    }
+}
+</code></pre>
+<p>Requests without an &quot;X-Token&quot; header are answered with &quot;401&quot;, requests whose
+token the service rejects with &quot;403&quot;, all others reach &quot;example.com&quot;. The
+service is requested via
+<a href="https://developer.mozilla.org/docs/Web/API/fetch">fetch</a> with the given
+&quot;options&quot;. &quot;url&quot; sets a fixed address instead of
+&quot;urlExpression&quot;.</p>
+<!--deDE:
+    Anfragen ohne "X-Token"-Header werden mit "401" beantwortet, Anfragen,
+    deren Token der Dienst ablehnt, mit "403", alle anderen erreichen
+    "example.com". Der Dienst wird über
+    [fetch](https://developer.mozilla.org/docs/Web/API/fetch) mit den
+    angegebenen "options" angefragt. "url" setzt statt "urlExpression" eine
+    feste Adresse.
+-->
+<!--frFR:
+    Les requêtes sans en-tête "X-Token" reçoivent "401", celles dont le
+    service rejette le jeton "403", toutes les autres atteignent
+    "example.com". Le service est interrogé via
+    [fetch](https://developer.mozilla.org/docs/Web/API/fetch) avec les
+    "options" données. "url" définit une adresse fixe à la place de
+    "urlExpression".
+-->
+<p>&quot;pre&quot; and &quot;post&quot; accept a single expression or a list, which runs in order.
+The result of each &quot;pre&quot; expression means:</p>
+<!--deDE:
+    "pre" und "post" akzeptieren einen einzelnen Ausdruck oder eine Liste,
+    die der Reihe nach läuft. Das Ergebnis jedes "pre"-Ausdrucks bedeutet:
+-->
+<!--frFR:
+    "pre" et "post" acceptent une seule expression ou une liste, exécutée
+    dans l'ordre. Le résultat de chaque expression "pre" signifie:
+-->
+<ul>
+<li>&quot;true&quot;: run the request of this state API.<!--deDE:"true": die Anfrage dieser State-API ausführen.--><!--frFR:"true": exécuter la requête de cette state API.--></li>
+<li>&quot;false&quot;: skip this state API and its remaining &quot;pre&quot; expressions.<!--deDE:"false": diese State-API und ihre übrigen "pre"-Ausdrücke überspringen.--><!--frFR:"false": ignorer cette state API et ses expressions "pre" restantes.--></li>
+<li>&quot;'break'&quot;: stop evaluating &quot;pre&quot; expressions.<!--deDE:"'break'": keine weiteren "pre"-Ausdrücke auswerten.--><!--frFR:"'break'": arrêter d'évaluer les expressions "pre".--></li>
+<li>&quot;null&quot; or &quot;undefined&quot;: continue with the next expression.<!--deDE:"null" oder "undefined": mit dem nächsten Ausdruck fortfahren.--><!--frFR:"null" ou "undefined": continuer avec l'expression suivante.--></li>
+<li>a number: answer the client with this status code and stop.<!--deDE:eine Zahl: dem Client mit diesem Statuscode antworten und abbrechen.--><!--frFR:un nombre: répondre au client avec ce code de statut et s'arrêter.--></li>
+</ul>
+<p>&quot;post&quot; expressions know the same results except &quot;true&quot; and &quot;false&quot;. If no
+expression answers the client, the next state API runs and finally the
+request is forwarded.</p>
+<!--deDE:
+    "post"-Ausdrücke kennen dieselben Ergebnisse außer "true" und "false".
+    Beantwortet kein Ausdruck den Client, läuft die nächste State-API und
+    schließlich wird die Anfrage weitergeleitet.
+-->
+<!--frFR:
+    Les expressions "post" connaissent les mêmes résultats sauf "true" et
+    "false". Si aucune expression ne répond au client, la state API suivante
+    s'exécute et la requête est finalement transmise.
+-->
+<!--|deDE:Basis-Konfigurationen-->
+<!--|frFR:Configurations de base-->
+<h3>Base configurations</h3>
+<p>Every forwarder inherits from the forwarder &quot;base&quot;, and every state API of a
+forwarder inherits from its state API named &quot;base&quot;. This configuration
+forwards to two backends under a sub path and asks one service with
+different data depending on the request:</p>
+<!--deDE:
+    Jeder Forwarder erbt vom Forwarder "base" und jede State-API eines
+    Forwarders von dessen State-API namens "base". Diese Konfiguration
+    leitet an zwei Backends unter einem Unterpfad weiter und befragt einen
+    Dienst je nach Anfrage mit unterschiedlichen Daten:
+-->
+<!--frFR:
+    Chaque forwarder hérite du forwarder "base", et chaque state API d'un
+    forwarder hérite de sa state API nommée "base". Cette configuration
+    transmet vers deux backends sous un sous-chemin et interroge un service
+    avec des données différentes selon la requête:
+-->
+<pre class="prettyprint source lang-JSON"><code>{
+    &quot;forwarders&quot;: {
+        &quot;base&quot;: {
+            &quot;headerTransformations&quot;: {
+                &quot;send&quot;: {
+                    &quot;source&quot;: &quot;/^(GET|POST) \\/(.*) (HTTP.*)$/m&quot;,
+                    &quot;target&quot;: &quot;'$1 /sub/path/$2 $3'&quot;
+                }
+            }
+        },
+        &quot;first&quot;: {
+            &quot;host&quot;: &quot;first.example.com&quot;,
+            &quot;useExpression&quot;: &quot;Math.random() &lt; 0.5&quot;
+        },
+        &quot;second&quot;: {
+            &quot;host&quot;: &quot;second.example.com&quot;,
+            &quot;stateAPIs&quot;: [
+                {
+                    &quot;name&quot;: &quot;base&quot;,
+                    &quot;urlExpression&quot;: &quot;`https://service.example.com/?q=${data.query}`&quot;,
+                    &quot;expressions&quot;: {
+                        &quot;pre&quot;: &quot;request.headers[data.header] ? true : null&quot;,
+                        &quot;post&quot;: &quot;stateAPI.response?.data?.allowed ? null : 403&quot;
+                    }
+                },
+                {
+                    &quot;name&quot;: &quot;cats&quot;,
+                    &quot;data&quot;: {&quot;header&quot;: &quot;x-cats&quot;, &quot;query&quot;: &quot;cats&quot;}
+                },
+                {
+                    &quot;name&quot;: &quot;dogs&quot;,
+                    &quot;data&quot;: {&quot;header&quot;: &quot;x-dogs&quot;, &quot;query&quot;: &quot;dogs&quot;}
+                }
+            ]
+        }
+    }
+}
+</code></pre>
+<p>&quot;data&quot; holds any values for the expressions. JSON responses of state APIs are
+available as &quot;stateAPI.response.data&quot;.</p>
+<!--deDE:
+    "data" enthält beliebige Werte für die Ausdrücke. JSON-Antworten von
+    State-APIs stehen als "stateAPI.response.data" zur Verfügung.
+-->
+<!--frFR:
+    "data" contient des valeurs quelconques pour les expressions. Les
+    réponses JSON des state APIs sont disponibles sous
+    "stateAPI.response.data".
+-->
+<!--|deDE:Ausdrücke-->
+<!--|frFR:Expressions-->
+<h3>Expressions</h3>
+<p>Every expression is a JavaScript expression with access to:</p>
+<!--deDE:Jeder Ausdruck ist ein JavaScript-Ausdruck mit Zugriff auf:-->
+<!--frFR:Chaque expression est une expression JavaScript ayant accès à:-->
+<ul>
+<li>&quot;request&quot;: the client request with &quot;url&quot;, &quot;method&quot; and &quot;headers&quot;.<!--deDE:"request": die Client-Anfrage mit "url", "method" und "headers".--><!--frFR:"request": la requête du client avec "url", "method" et "headers".--></li>
+<li>&quot;response&quot;: the response to the client (not the one of a state API).<!--deDE:"response": die Antwort an den Client (nicht die einer State-API).--><!--frFR:"response": la réponse au client (pas celle d'une state API).--></li>
+<li>&quot;stateAPI&quot;: the current state API with its &quot;configuration&quot;, &quot;error&quot; and &quot;response&quot;.<!--deDE:"stateAPI": die aktuelle State-API mit "configuration", "error" und "response".--><!--frFR:"stateAPI": la state API courante avec "configuration", "error" et "response".--></li>
+<li>&quot;stateAPIs&quot;: all state APIs of the forwarder by name, e.g. in header transformations.<!--deDE:"stateAPIs": alle State-APIs des Forwarders nach Namen, z. B. in Header-Transformationen.--><!--frFR:"stateAPIs": toutes les state APIs du forwarder par nom, par exemple dans les transformations d'en-têtes.--></li>
+<li>&quot;data&quot;: the state API's &quot;data&quot;, the forwarder in &quot;useExpression&quot; and both sockets in header transformations.<!--deDE:"data": die "data" der State-API, der Forwarder in "useExpression" und beide Sockets in Header-Transformationen.--><!--frFR:"data": les "data" de la state API, le forwarder dans "useExpression" et les deux sockets dans les transformations d'en-têtes.--></li>
+<li>&quot;error&quot;: the error of a failed state API request.<!--deDE:"error": der Fehler einer fehlgeschlagenen State-API-Anfrage.--><!--frFR:"error": l'erreur d'une requête de state API échouée.--></li>
+<li>&quot;array&quot;, &quot;datetime&quot;, &quot;object&quot;, &quot;string&quot;, &quot;utility&quot; and more: helpers of <a href="https://tsickert.com/clientnode">clientnode</a>.<!--deDE:"array", "datetime", "object", "string", "utility" und mehr: Hilfsfunktionen von [clientnode](https://tsickert.com/clientnode).--><!--frFR:"array", "datetime", "object", "string", "utility" et d'autres: fonctions utilitaires de [clientnode](https://tsickert.com/clientnode).--></li>
+</ul>
+<p>For example, this send transformation passes the answer of the
+authentication service from above on to the backend:</p>
+<!--deDE:
+    Diese Send-Transformation gibt zum Beispiel die Antwort des
+    Authentifizierungsdienstes von oben an das Backend weiter:
+-->
+<!--frFR:
+    Par exemple, cette transformation "send" transmet au backend la réponse
+    du service d'authentification ci-dessus:
+-->
+<pre class="prettyprint source lang-JSON"><code>{
+    &quot;target&quot;: &quot;`X-Allowed: ${stateAPIs.authentication.response?.data?.allowed}`&quot;
+}
+</code></pre>
+<!--|deDE:Einzelwerte oder Listen-->
+<!--|frFR:Valeurs uniques ou listes-->
+<h3>Single values or lists</h3>
+<p>&quot;headerTransformations.send&quot;, &quot;headerTransformations.retrieve&quot;, &quot;stateAPIs&quot;,
+&quot;expressions.pre&quot; and &quot;expressions.post&quot; take a single item or a list of
+items. &quot;{...}&quot; means the same as &quot;[{...}]&quot;.</p>
+<!--deDE:
+    "headerTransformations.send", "headerTransformations.retrieve",
+    "stateAPIs", "expressions.pre" und "expressions.post" nehmen ein
+    einzelnes Element oder eine Liste von Elementen. "{...}" bedeutet
+    dasselbe wie "[{...}]".
+-->
+<!--frFR:
+    "headerTransformations.send", "headerTransformations.retrieve",
+    "stateAPIs", "expressions.pre" et "expressions.post" acceptent un seul
+    élément ou une liste d'éléments. "{...}" signifie la même chose que
+    "[{...}]".
+-->
+<!--|deDE:Umgebungsvariablen-->
+<!--|frFR:Variables d'environnement-->
+<h3>Environment variables</h3>
+<p>Any value of the configuration can be computed once on start with
+&quot;<strong>evaluate</strong>&quot;, which has access to &quot;environment&quot; and &quot;configuration&quot;:</p>
+<!--deDE:
+    Jeder Wert der Konfiguration lässt sich beim Start einmalig über
+    "__evaluate__" berechnen, das Zugriff auf "environment" und
+    "configuration" hat:
+-->
+<!--frFR:
+    Toute valeur de la configuration peut être calculée une fois au
+    démarrage via "__evaluate__", qui a accès à "environment" et
+    "configuration":
+-->
+<pre class="prettyprint source lang-JSON"><code>{
+    &quot;forwarders&quot;: {
+        &quot;example&quot;: {
+            &quot;host&quot;: {
+                &quot;__evaluate__&quot;: &quot;environment.BACKEND_HOST ?? 'example.com'&quot;
+            }
+        }
+    }
+}
+</code></pre>
+<p>The proxy then forwards to the host given in the environment variable
+&quot;BACKEND_HOST&quot; or to &quot;example.com&quot;. The default &quot;port&quot; works the same way
+with &quot;PORT&quot;.</p>
+<!--deDE:
+    Der Proxy leitet dann an den in der Umgebungsvariable "BACKEND_HOST"
+    angegebenen Host weiter oder an "example.com". Der Standardwert von
+    "port" funktioniert genauso mit "PORT".
+-->
+<!--frFR:
+    Le proxy transmet alors à l'hôte donné dans la variable d'environnement
+    "BACKEND_HOST" ou à "example.com". La valeur par défaut de "port"
+    fonctionne de la même façon avec "PORT".
+-->
+<!--|deDE:Entwicklung-->
+<!--|frFR:Développement-->
+<h2>Development</h2>
+<pre class="prettyprint source lang-bash"><code>yarn install
+yarn check
+yarn test
+yarn serve:simple
+</code></pre>
+<p>&quot;yarn check&quot; checks types and lints, &quot;yarn serve:&lt;name&gt;&quot; builds the
+proxy and starts it with one of the configurations in &quot;examples/&quot; (&quot;headers&quot;,
+&quot;random&quot;, &quot;simple&quot; or &quot;state-apis&quot;).</p>
+<!--deDE:
+    "yarn check" prüft Typen und lintet, "yarn serve:&lt;name&gt;" baut den
+    Proxy und startet ihn mit einer der Konfigurationen in "examples/"
+    ("headers", "random", "simple" oder "state-apis").
+-->
+<!--frFR:
+    "yarn check" vérifie les types et lance le linter, "yarn
+    serve:&lt;name&gt;" construit le proxy et le lance avec l'une des
+    configurations de "examples/" ("headers", "random", "simple" ou
+    "state-apis").
+--></article>
+    </section>
+
+
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Tue Nov 17 2026 11:40:59 GMT+0100 (Mitteleuropäische Normalzeit)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
