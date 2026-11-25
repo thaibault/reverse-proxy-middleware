@@ -107,19 +107,22 @@ docker run \
 ```
 
 "systemd.service" in this repository is a unit which runs the container in
-the Docker network "proxy" (e.g. behind the
-[proxy](https://tsickert.com/proxy) project) and reads its configuration from
+the Docker network "certbot-proxy" (e.g. behind the
+[certbot-proxy](https://tsickert.com/certbot-proxy) project) and reads its
+configuration from
 "/srv/http/reverse-proxy-middleware/configuration.json".
 <!--deDE:
     "systemd.service" in diesem Repository ist eine Unit, die den Container
-    im Docker-Netzwerk "proxy" betreibt (z. B. hinter dem Projekt
-    [proxy](https://tsickert.com/proxy)) und ihre Konfiguration aus
+    im Docker-Netzwerk "certbot-proxy" betreibt (z. B. hinter dem Projekt
+    [certbot-proxy](https://tsickert.com/certbot-proxy)) und ihre
+    Konfiguration aus
     "/srv/http/reverse-proxy-middleware/configuration.json" liest.
 -->
 <!--frFR:
     "systemd.service" dans ce dépôt est une unité qui exécute le conteneur
-    dans le réseau Docker "proxy" (par exemple derrière le projet
-    [proxy](https://tsickert.com/proxy)) et lit sa configuration depuis
+    dans le réseau Docker "certbot-proxy" (par exemple derrière le projet
+    [certbot-proxy](https://tsickert.com/certbot-proxy)) et lit sa
+    configuration depuis
     "/srv/http/reverse-proxy-middleware/configuration.json".
 -->
 
